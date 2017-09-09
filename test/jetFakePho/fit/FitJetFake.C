@@ -62,6 +62,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 	setTDRStyle();   
 	time_t now = time(0);
 
+	std::cout << "start fitting " << std::endl;
 	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 	ofstream myfile;
 	myfile.open("JetFakeRate-DoubleEG-FullEcal.txt", std::ios_base::app | std::ios_base::out);
@@ -90,8 +91,8 @@ FitJetFake(float lowercut, float uppercut, int detType){
 	/*************************************/
 	std::ostringstream elefake_config;
 	elefake_config.str("");
-	if(detType == 1)elefake_config << "../../eleFakePho/Aug3/EleFakeRate-ByPtVtx-EB.txt";
-	else if(detType == 2)elefake_config << "../../eleFakePho/Aug3/EleFakeRate-ByPtVtx-EE.txt";
+	if(detType == 1)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/EleFakeRate-ByPtVtx-EB.txt";
+	else if(detType == 2)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/EleFakeRate-ByPtVtx-EE.txt";
 	std::ifstream elefake_file(elefake_config.str().c_str());
 	double scalefactor(0);
 	double ptslope(0);
@@ -304,6 +305,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 			}
 		}					
 	}
+	std::cout << "MC tree has been filled" << std::endl;
 
 	if(nMCtarget > 0)mcfakerate = 1.0*nMCfaketarget/nMCtarget;
 
@@ -359,6 +361,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 
 	}
 
+	std::cout << "data tree has been filled" << std::endl;
 
 	TCanvas *districan = new TCanvas("districan","",1200,600);
 	districan->Divide(2);
@@ -472,7 +475,9 @@ FitJetFake(float lowercut, float uppercut, int detType){
 					leg->AddEntry(mc_predict[iLower][iUpper], "hadrons");
 					leg->Draw("same");
 					hname.str("");
-					hname << "../plot/frac-" << lowername << "-" << uppername << "-DoubleEG-FullEcal.pdf";
+					hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/frac-" << lowername << "-" << uppername << "-DoubleEG-FullEcal";
+					if(detType == 1)hname << "-EB.pdf";
+					else if(detType == 1)hname << "-EE.pdf";
 					can[iLower][iUpper]->SaveAs(hname.str().c_str());
 				}
 				if(fracBkg >0 && fracBkg < 1)fracHad2D->Fill(SigmaCutLower[iLower]+0.00005, SigmaCutUpper[iUpper]+0.00005, num*fracBkg/den);
@@ -487,7 +492,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		hadfrac = fracHad1D->GetMean();	
 	}
 
-	hname.str(""); hname << "../plot/can2D-" << lowername << "-" << uppername << "-DoubleEG-FullEcal.pdf";
+	hname.str(""); hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/can2D-" << lowername << "-" << uppername << "-DoubleEG-FullEcal.pdf";
 	can2D->cd();
 	fracHad2D->Draw("colz");
 	can2D->SaveAs(hname.str().c_str());

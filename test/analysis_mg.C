@@ -45,9 +45,9 @@ void analysis_mg(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.log"); 
+  logfile.open("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.log"); 
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
@@ -247,6 +247,55 @@ void analysis_mg(){//main
 	fakeLeptree->Branch("nJetClean", &fakeLepnJetClean);
 	fakeLeptree->Branch("HTClean",   &fakeLepHTClean);
 
+//*************** for jet-photon fake rate ***********************//
+	TTree *hadrontree = new TTree("hadronTree","hadronTree");
+	float hadron_phoEt(0);
+	float hadron_phoEta(0);
+	float hadron_phoPhi(0);
+	float hadron_phoSigma(0);
+	float hadron_phoChIso(0);
+  std::vector<float> hadron_eleproxyEt;
+	std::vector<float> hadron_eleproxyEta;
+	std::vector<float> hadron_eleproxyPhi;
+	std::vector<float> hadron_eleproxySigma;
+	std::vector<float> hadron_eleproxyChIso;
+	std::vector<int> hadron_eleproxynVertex;
+	float hadron_sigMT(0);
+	float hadron_sigMET(0);
+	float hadron_sigMETPhi(0);
+	float hadron_dPhiLepMET(0);
+	int   hadron_nVertex(0);
+	float hadron_HT(0);
+	float hadron_nJet(0);
+	std::vector<int> hadron_mcPID;
+	std::vector<float> hadron_mcEta;
+	std::vector<float> hadron_mcPhi;
+	std::vector<float> hadron_mcPt;
+	std::vector<int> hadron_mcMomPID;
+
+	hadrontree->Branch("phoEt",     &hadron_phoEt);
+	hadrontree->Branch("phoEta",    &hadron_phoEta);
+	hadrontree->Branch("phoPhi",    &hadron_phoPhi);
+	hadrontree->Branch("phoSigma",  &hadron_phoSigma);
+	hadrontree->Branch("phoChIso",  &hadron_phoChIso);
+	hadrontree->Branch("eleproxyEt",&hadron_eleproxyEt);
+	hadrontree->Branch("eleproxyEta",&hadron_eleproxyEta);
+	hadrontree->Branch("eleproxyPhi",&hadron_eleproxyPhi);
+	hadrontree->Branch("eleproxySigma", &hadron_eleproxySigma);
+	hadrontree->Branch("eleproxyChIso", &hadron_eleproxyChIso);
+	hadrontree->Branch("eleproxynVertex",&hadron_eleproxynVertex);
+	hadrontree->Branch("sigMT",     &hadron_sigMT);
+	hadrontree->Branch("sigMET",    &hadron_sigMET);
+	hadrontree->Branch("sigMETPhi", &hadron_sigMETPhi);
+	hadrontree->Branch("dPhiLepMET",&hadron_dPhiLepMET);
+	hadrontree->Branch("nVertex",   &hadron_nVertex);
+	hadrontree->Branch("HT",        &hadron_HT);
+	hadrontree->Branch("nJet",      &hadron_nJet);
+	hadrontree->Branch("mcPID",     &hadron_mcPID);
+	hadrontree->Branch("mcEta",     &hadron_mcEta);
+	hadrontree->Branch("mcPhi",     &hadron_mcPhi);
+	hadrontree->Branch("mcPt",      &hadron_mcPt);
+	hadrontree->Branch("mcMomPID",  &hadron_mcMomPID);
 //*********** histo list **********************//
   TH1F *p_eventcount = new TH1F("p_eventcount","p_eventcount",7,0,7);
 
@@ -296,12 +345,20 @@ void analysis_mg(){//main
 
 			if(raw.nMu < 1 || raw.nPho <1)continue;
 
+			/******************************************************************************************************************************************************************************/
+			/***********************************                                  Select Photon                                              **********************************************/
 			bool hasPho(false);
 			std::vector<recoPhoton>::iterator signalPho = Photon.begin();
 			std::vector< std::vector<recoPhoton>::iterator >  proxyPhoCollection;
 			proxyPhoCollection.clear();
 			std::vector< std::vector<recoPhoton>::iterator >  jetPhoCollection;
 			jetPhoCollection.clear();
+			// ******* for jet-photon fake rate***************//
+			bool hasHadronPho(false);
+			std::vector<recoPhoton>::iterator hadronPho = Photon.begin();
+			std::vector< std::vector<recoPhoton>::iterator >  hadeleproxyPhoCollection;
+			hadeleproxyPhoCollection.clear();
+
 			for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
 				if(itpho->getR9() < 0.5)continue;
 				if(!itpho->passHLTSelection())continue;
@@ -318,12 +375,20 @@ void analysis_mg(){//main
 				for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
 					if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getEt()>2.0)FSRVeto=false;
 
-				if(itpho->getChIso()<20 && itpho->getSigma()< 0.02 && itpho->isEB()){
-					//if(itpho->isEB())  // Loose the proxy definition
+				// ******** very loose, before sigma and isolation cut.  For jet-photon fake rate, and hadron proxy ************//	
+				if(GSFveto && PixelVeto && FSRVeto){
+					if(!hasHadronPho){
+						hasHadronPho = true;
+						hadronPho = itpho;
+					}
+
 					if(!passSigma || !passChIso){
-						if(GSFveto && PixelVeto && FSRVeto)jetPhoCollection.push_back(itpho);
+						if( (itpho->getSigma()< 0.02 && itpho->isEB()) || (itpho->getSigma()< 0.04 && itpho->isEE()) )jetPhoCollection.push_back(itpho);
 					}
 				}
+				else if( (!GSFveto || !PixelVeto) )hadeleproxyPhoCollection.push_back(itpho);
+
+        // ****************  standard ID ************************************//
 				if(!itpho->passSignalSelection())continue;
 				if(GSFveto && PixelVeto && FSRVeto){
 					if(!hasPho){
@@ -334,7 +399,7 @@ void analysis_mg(){//main
 				}
 
 				if((!PixelVeto || !GSFveto)){
-					if(itpho->isEB())proxyPhoCollection.push_back(itpho);
+						proxyPhoCollection.push_back(itpho);
 				}
 			}
 
@@ -367,7 +432,7 @@ void analysis_mg(){//main
 				}
 			}
 
-			if(hasPho && hasLep && signalPho->isEB()){
+			if(hasPho && hasLep){
 				double dRlepphoton = DeltaR(signalPho->getEta(), signalPho->getPhi(), signalLep->getEta(), signalLep->getPhi());
 				if(dRlepphoton > 0.8){
 					npassdR+=1;
@@ -556,7 +621,7 @@ void analysis_mg(){//main
 		} // loop on pho collection
 		}
 
-		if(hasPho && !hasLep && signalPho->isEB()){
+		if(hasPho && !hasLep){
 			std::vector<recoPhoton>::iterator fakeLepPho = signalPho;
 			for(unsigned ip(0); ip < fakeLepCollection.size(); ip++){
 				std::vector<recoMuon>::iterator fakeMu = fakeLepCollection[ip];
@@ -600,6 +665,64 @@ void analysis_mg(){//main
 				} // loop on pho collection
 			}
 
+		if(hasHadronPho || hadeleproxyPhoCollection.size() > 0){
+			hadron_phoEt = 0;
+			hadron_phoEta = 0;
+			hadron_phoPhi = 0;
+			hadron_phoSigma = 0;
+			hadron_phoChIso = 0;
+			hadron_sigMT = 0;
+			hadron_sigMET = 0;
+			hadron_sigMETPhi = 0;
+			hadron_dPhiLepMET = 0;
+			hadron_nVertex = 0;
+			hadron_HT = 0;
+			hadron_nJet = 0;
+  		hadron_eleproxyEt.clear();
+			hadron_eleproxyEta.clear();
+			hadron_eleproxyPhi.clear();
+			hadron_eleproxySigma.clear();
+			hadron_eleproxyChIso.clear();
+			hadron_eleproxynVertex.clear();
+
+			if(hasLep){
+				double DeltaPhoLep = DeltaR(hadronPho->getEta(), hadronPho->getPhi(), signalLep->getEta(), signalLep->getPhi());
+				double DoubleMass  = (hadronPho->getP4()+signalLep->getP4()).M();
+				if(DeltaPhoLep > 0.8){
+				if(passMETFilter(METFilter)){
+					float deltaPhi = DeltaPhi(signalLep->getPhi(), METPhi);
+					float MT = sqrt(2*MET*signalLep->getPt()*(1-std::cos(deltaPhi)));
+					hadron_phoEt = hadronPho->getCalibEt();
+					hadron_phoEta = hadronPho->getEta();
+					hadron_phoPhi = hadronPho->getPhi();
+					hadron_phoSigma = hadronPho->getSigma();
+					hadron_phoChIso = hadronPho->getChIso();
+					hadron_sigMT = MT;
+					hadron_sigMET = MET;
+					hadron_sigMETPhi = METPhi;
+					hadron_dPhiLepMET = deltaPhi;
+					hadron_nVertex = nVtx;
+					hadron_HT = 0;
+					hadron_nJet = jetNumber;
+				}}
+			}
+			for(unsigned ip(0); ip < hadeleproxyPhoCollection.size(); ip++){
+				for(unsigned ie(0); ie < proxyLepCollection.size(); ie++){
+					std::vector<recoPhoton>::iterator proxyPho = hadeleproxyPhoCollection[ip];
+					std::vector<recoMuon>::iterator proxyMuon = proxyLepCollection[ie];
+					double dRlepphoton = DeltaR(proxyPho->getEta(), proxyPho->getPhi(), proxyMuon->getEta(), proxyMuon->getPhi());
+					if(dRlepphoton>0.8 && passMETFilter(METFilter)){
+						hadron_eleproxyEt.push_back(proxyPho->getCalibEt());
+						hadron_eleproxyEta.push_back(proxyPho->getEta());
+						hadron_eleproxyPhi.push_back(proxyPho->getPhi());
+						hadron_eleproxySigma.push_back(proxyPho->getSigma());
+						hadron_eleproxyChIso.push_back(proxyPho->getChIso());
+						hadron_eleproxynVertex.push_back(nVtx); 
+					}//dR filter
+				}// loop on ele collection
+			} // loop on pho collection
+			hadrontree->Fill();
+		}
  
 	}//loop on  events
 

@@ -41,7 +41,7 @@ void analysis_elefakepho(){//main
   RunType datatype(MC); 
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/skim-DYJetsToLL_M-50_nlo.root");
+  es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_nlo.root");
   
   TFile *outputfile = TFile::Open(outputname,"NEW");
   outputfile->cd();
@@ -196,7 +196,7 @@ void analysis_elefakepho(){//main
 				PhoFSRVeto.clear();
         if(ElectronCollection.size() > 0){
 	      for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
-	        if(itpho->getCalibEt() < 30 || !itpho->isEB())continue;
+	        if(itpho->getCalibEt() < 30)continue;
 	        if(itpho->isLoose()){
               bool PixelVeto = itpho->PixelSeed()==0? true: false;
               bool GSFveto(true);

@@ -30,6 +30,7 @@
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_fakes.h"
+#include "../../include/analysis_binning.h"
 
 void pred_qcdBkg(){
 
@@ -71,13 +72,21 @@ void pred_qcdBkg(){
 
 	std::ifstream binfile("binConfig.txt");
 	float METbin1(200), METbin2(300);
+	float HTbin1(100),  HTbin2(400);
+	float PHOETbin(100);
+	int   NBIN(0);
 	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
+		for(int i(0); i<6; i++){
 			binfile >> conftype >> confvalue;
+			if(conftype.find("NBIN")!=std::string::npos)NBIN = int(confvalue);
 			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
 			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
+			if(conftype.find("HTbin1")!=std::string::npos)HTbin1= confvalue;
+			if(conftype.find("HTbin2")!=std::string::npos)HTbin2= confvalue;
+			if(conftype.find("PHOETbin")!=std::string::npos)PHOETbin= confvalue;
 		}
 	}
+	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
@@ -105,7 +114,7 @@ void pred_qcdBkg(){
 	}
 
 	TFile *scaleFile;
-	if(channelType == 1)scaleFile = TFile::Open("qcd_eg_scale.root");
+	if(channelType == 1)scaleFile = TFile::Open("/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/qcd_eg_scale.root");
 //	else if(channelType == 2)scaleFile = TFile::Open("qcd_mg_scale.root");
 	TH1D *p_scale;
 	if(channelType == 1)p_scale = (TH1D*)scaleFile->Get("p_scale");
@@ -124,6 +133,13 @@ void pred_qcdBkg(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 
+	TH1D *p_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){
+		histname.str("");
+		histname << "p_PhoEt_bin" << ip;
+	 	p_PhoEt_bin[ip] = new TH1D(histname.str().c_str(),"#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
+	}
+
 	TH1D *h_qcdfakelep_norm;
 	TH1D *h_qcdfakelep_normup;
 	TH1D *h_qcdfakelep_normdo;
@@ -136,30 +152,30 @@ void pred_qcdBkg(){
 	TH1D *h_qcdfakelep_syserr_xs;
 	TH1D *h_qcdfakelep_syserr_lumi;
 	if(channelType==1){
-		h_qcdfakelep_norm            = new TH1D("eg_qcdfakelep_norm","eventcount",9,0,9);
-		h_qcdfakelep_normup          = new TH1D("eg_qcdfakelep_normup","eventcount; eventcount (GeV);",9,0,9);
-		h_qcdfakelep_normdo          = new TH1D("eg_qcdfakelep_normdo","eventcount; eventcount (GeV);",9,0,9);
-		h_qcdfakelep_syserr_jes      = new TH1D("eg_qcdfakelep_syserr_jes","",9,0,9);	
-		h_qcdfakelep_syserr_jer      = new TH1D("eg_qcdfakelep_syserr_jer","",9,0,9);	
-		h_qcdfakelep_syserr_esf      = new TH1D("eg_qcdfakelep_syserr_esf","",9,0,9);	
-		h_qcdfakelep_syserr_scale    = new TH1D("eg_qcdfakelep_syserr_scale","",9,0,9);	
-		h_qcdfakelep_syserr_eleshape = new TH1D("eg_qcdfakelep_syserr_eleshape","",9,0,9);	
-		h_qcdfakelep_syserr_jetshape = new TH1D("eg_qcdfakelep_syserr_jetshape","",9,0,9);	
-		h_qcdfakelep_syserr_xs       = new TH1D("eg_qcdfakelep_syserr_xs","",9,0,9);	
-		h_qcdfakelep_syserr_lumi     = new TH1D("eg_qcdfakelep_syserr_lumi","",9,0,9);
+		h_qcdfakelep_norm            = new TH1D("eg_qcdfakelep_norm","eventcount",NBIN,0,NBIN);
+		h_qcdfakelep_normup          = new TH1D("eg_qcdfakelep_normup","eventcount; eventcount (GeV);",NBIN,0,NBIN);
+		h_qcdfakelep_normdo          = new TH1D("eg_qcdfakelep_normdo","eventcount; eventcount (GeV);",NBIN,0,NBIN);
+		h_qcdfakelep_syserr_jes      = new TH1D("eg_qcdfakelep_syserr_jes","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_jer      = new TH1D("eg_qcdfakelep_syserr_jer","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_esf      = new TH1D("eg_qcdfakelep_syserr_esf","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_scale    = new TH1D("eg_qcdfakelep_syserr_scale","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_eleshape = new TH1D("eg_qcdfakelep_syserr_eleshape","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_jetshape = new TH1D("eg_qcdfakelep_syserr_jetshape","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_xs       = new TH1D("eg_qcdfakelep_syserr_xs","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_lumi     = new TH1D("eg_qcdfakelep_syserr_lumi","",NBIN,0,NBIN);
 	} 
 	else if(channelType==2){
-		h_qcdfakelep_norm            = new TH1D("mg_qcdfakelep_norm","eventcount",9,0,9);
-		h_qcdfakelep_normup          = new TH1D("mg_qcdfakelep_normup","eventcount; eventcount (GeV);",9,0,9);
-		h_qcdfakelep_normdo          = new TH1D("mg_qcdfakelep_normdo","eventcount; eventcount (GeV);",9,0,9);
-		h_qcdfakelep_syserr_jes      = new TH1D("mg_qcdfakelep_syserr_jes","",9,0,9);	
-		h_qcdfakelep_syserr_jer      = new TH1D("mg_qcdfakelep_syserr_jer","",9,0,9);	
-		h_qcdfakelep_syserr_esf      = new TH1D("mg_qcdfakelep_syserr_esf","",9,0,9);	
-		h_qcdfakelep_syserr_scale    = new TH1D("mg_qcdfakelep_syserr_scale","",9,0,9);	
-		h_qcdfakelep_syserr_eleshape = new TH1D("mg_qcdfakelep_syserr_eleshape","",9,0,9);	
-		h_qcdfakelep_syserr_jetshape = new TH1D("mg_qcdfakelep_syserr_jetshape","",9,0,9);	
-		h_qcdfakelep_syserr_xs       = new TH1D("mg_qcdfakelep_syserr_xs","",9,0,9);	
-		h_qcdfakelep_syserr_lumi     = new TH1D("mg_qcdfakelep_syserr_lumi","",9,0,9);
+		h_qcdfakelep_norm            = new TH1D("mg_qcdfakelep_norm","eventcount",NBIN,0,NBIN);
+		h_qcdfakelep_normup          = new TH1D("mg_qcdfakelep_normup","eventcount; eventcount (GeV);",NBIN,0,NBIN);
+		h_qcdfakelep_normdo          = new TH1D("mg_qcdfakelep_normdo","eventcount; eventcount (GeV);",NBIN,0,NBIN);
+		h_qcdfakelep_syserr_jes      = new TH1D("mg_qcdfakelep_syserr_jes","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_jer      = new TH1D("mg_qcdfakelep_syserr_jer","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_esf      = new TH1D("mg_qcdfakelep_syserr_esf","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_scale    = new TH1D("mg_qcdfakelep_syserr_scale","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_eleshape = new TH1D("mg_qcdfakelep_syserr_eleshape","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_jetshape = new TH1D("mg_qcdfakelep_syserr_jetshape","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_xs       = new TH1D("mg_qcdfakelep_syserr_xs","",NBIN,0,NBIN);	
+		h_qcdfakelep_syserr_lumi     = new TH1D("mg_qcdfakelep_syserr_lumi","",NBIN,0,NBIN);
 	} 
 	
 	TH1D *normup_PhoEt = new TH1D("normup_PhoEt","#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
@@ -182,7 +198,7 @@ void pred_qcdBkg(){
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
 	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -259,10 +275,13 @@ void pred_qcdBkg(){
 		p_nJet->Fill(nJet, factorQCD);	
 	
 		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
+		SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 		if(SigBinIndex >=0)h_qcdfakelep_norm->Fill( SigBinIndex, factorQCD);
 		h_qcdfakelep_normup->Fill( SigBinIndex, factorQCDUP); 
 		h_qcdfakelep_normdo->Fill( SigBinIndex, factorQCDDO); 
+
+		if(SigBinIndex >=0)p_PhoEt_bin[SigBinIndex]->Fill( phoEt,factorQCD);
+
 
 		normup_PhoEt->Fill(phoEt, factorQCDUP);
 		normup_PhoEta->Fill(phoEta,factorQCDUP);
@@ -359,6 +378,7 @@ void pred_qcdBkg(){
 	h_qcdfakelep_syserr_jetshape->Write();  
 	h_qcdfakelep_syserr_xs->Write();        
 	h_qcdfakelep_syserr_lumi->Write();      
+	for(unsigned ip(0); ip<NBIN; ip++)p_PhoEt_bin[ip]->Write();
 	outputfile->Write();
 	outputfile->Close();
 }

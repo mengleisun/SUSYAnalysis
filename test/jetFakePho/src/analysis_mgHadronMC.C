@@ -30,17 +30,17 @@ void analysis_mgHadronMC(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/test/plot_hadron_DY.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/test/plot_hadron_mgGJet.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/test/plot_hadron_DY.log"); 
+  logfile.open("/uscms_data/d3/mengleis/test/plot_hadron_mgGJet.log"); 
 
   logfile << "analysis_hadron()" << std::endl;
 
   RunType datatype(MC); 
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_madgraph.root");
-  logfile << "root://cmseos.fnal.gov//store/user/msun/MC/DY" << std::endl;
+	es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
+  logfile << "root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root" << std::endl;
 
   TFile *outputfile = TFile::Open(outputname,"NEW");
   outputfile->cd();
@@ -191,7 +191,7 @@ void analysis_mgHadronMC(){//main
 
 	if(!raw.passHLT())continue;
 	if(raw.nPho <1 || raw.nMu<1)continue;
-    if(MET>70)continue;
+  if(MET>70)continue;
    
 	bool hasMu(false); 
 	std::vector<recoMuon>::iterator itLeadMu(Muon.end());
@@ -203,12 +203,11 @@ void analysis_mgHadronMC(){//main
 	  }
 	}
       
-    if(!hasMu)continue;
+  if(!hasMu)continue;
     //Get reco-level photons
 	for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
       bool isegCandidate(false), ismgCandidate(false), ishadCandidate(false);
       bool hasegCandidate(false), hasmgCandidate(false), hashadCandidate(false);
-      if(!itpho->isEB())continue; 
 	  if(itpho->getCalibEt() < 25 || !itpho->passHoverE(1)|| !itpho->passNeuIso(1) || !itpho->passPhoIso(1))continue;
       if(itpho->getChIso() > 20.0)continue;
       double DeltaPhoMu = DeltaR(itpho->getEta(), itpho->getPhi(), itLeadMu->getEta(), itLeadMu->getPhi());

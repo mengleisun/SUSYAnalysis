@@ -27,12 +27,12 @@ void unblind(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-	TFile *file_sig = TFile::Open("signalTree_mg_signal_ReMiniAOD.root");
+	TFile *file_sig = TFile::Open("signalTree_mg_signal.root");
 	TFile *file_ele = TFile::Open("signalTree_mg_eleBkg.root");
-	TFile *file_jet = TFile::Open("signalTree_mg_jetbkg_ReMiniAOD.root");
-	TFile *file_qcd = TFile::Open("signalTree_mg_qcd_ReMiniAOD.root");
-	TFile *file_VG  = TFile::Open("signalTree_mg_VGBkg_wgt.root");
-	TFile *file_rare= TFile::Open("signalTree_mg_rareBkg_ReMiniAOD.root");
+	TFile *file_jet = TFile::Open("signalTree_mg_jetbkg.root");
+	TFile *file_qcd = TFile::Open("signalTree_mg_qcd.root");
+	TFile *file_VG  = TFile::Open("signalTree_mg_VGBkg.root");
+	TFile *file_rare= TFile::Open("signalTree_mg_rareBkg.root");
 
 	TFile *file_t5 = TFile::Open("signalTree_T5WG.root");
 	TFile *file_tchi=TFile::Open("signalTree_TChiWG.root");
@@ -45,6 +45,9 @@ void unblind(){//main
 	TH1D *p_t5wg_HT_signal_1000_500 = (TH1D*)file_t5->Get("p_t5wg_HT_signal_1000_500");
 	TH1D *p_t5wg_HT_signal_1800_1000= (TH1D*)file_t5->Get("p_t5wg_HT_signal_1800_1000");
 	TH1D *p_t5wg_HT_signal_1800_200 = (TH1D*)file_t5->Get("p_t5wg_HT_signal_1800_200");
+	TH1D *p_t5wg_PhoEt_signal_1000_500 = (TH1D*)file_t5->Get("p_t5wg_PhoEt_signal_1000_500_1");
+	TH1D *p_t5wg_PhoEt_signal_1800_1000= (TH1D*)file_t5->Get("p_t5wg_PhoEt_signal_1800_1000_1");
+	TH1D *p_t5wg_PhoEt_signal_1800_200 = (TH1D*)file_t5->Get("p_t5wg_PhoEt_signal_1800_200_1");
 
 	TH1D *p_tchiwg_MET_valid_500  = (TH1D*)file_tchi->Get("p_tchiwg_MET_valid_500");
 	TH1D *p_tchiwg_MET_valid_800  = (TH1D*)file_tchi->Get("p_tchiwg_MET_valid_800");
@@ -211,6 +214,16 @@ void unblind(){//main
 	leg_pt->AddEntry(p_VGPhoEt, "WG/ZG");
 	leg_pt->Draw("same");
 //	p_allPhoEt->Draw("E same");
+
+	p_t5wg_PhoEt_signal_1000_500->SetLineColor(kBlack);
+  p_t5wg_PhoEt_signal_1800_1000->SetLineColor(8);
+  p_t5wg_PhoEt_signal_1800_200->SetLineColor(kCyan);
+	p_t5wg_PhoEt_signal_1000_500->SetLineWidth(4);
+  p_t5wg_PhoEt_signal_1800_1000->SetLineWidth(4);
+  p_t5wg_PhoEt_signal_1800_200->SetLineWidth(4);
+	p_t5wg_PhoEt_signal_1000_500->Draw("same");
+  p_t5wg_PhoEt_signal_1800_1000->Draw("same");
+  p_t5wg_PhoEt_signal_1800_200->Draw("same");
 
 	c_pt->cd();
 	TPad *pt_pad2 = new TPad("pt_pad2", "pt_pad2", 0, 0.05, 1, 0.25);

@@ -31,6 +31,7 @@
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_fakes.h"
 #include "../../include/analysis_scalefactor.h"
+#include "../../include/analysis_binning.h"
 
 void pred_rareBkg(){
 
@@ -64,13 +65,22 @@ void pred_rareBkg(){
 
 	std::ifstream binfile("binConfig.txt");
 	float METbin1(200), METbin2(300);
+	float HTbin1(100),  HTbin2(400);
+	float PHOETbin(100);
+	int   NBIN(0);
 	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
+		for(int i(0); i<6; i++){
 			binfile >> conftype >> confvalue;
+			if(conftype.find("NBIN")!=std::string::npos)NBIN = int(confvalue);
 			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
 			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
+			if(conftype.find("HTbin1")!=std::string::npos)HTbin1= confvalue;
+			if(conftype.find("HTbin2")!=std::string::npos)HTbin2= confvalue;
+			if(conftype.find("PHOETbin")!=std::string::npos)PHOETbin= confvalue;
 		}
 	}
+	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
+
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 	esfScaleFactor  objectESF;
@@ -103,6 +113,16 @@ void pred_rareBkg(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 
+	TH1D *p_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){
+		histname.str("");
+		histname << "p_PhoEt_bin" << ip;
+	 	p_PhoEt_bin[ip] = new TH1D(histname.str().c_str(),"#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
+	}
+	double count_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){count_PhoEt_bin[ip] = 0;}
+
+
 	TH1D *p_reweight_PhoEt = new TH1D("p_reweight_PhoEt","#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
 	TH1D *p_reweight_PhoEta = new TH1D("p_reweight_PhoEta","#gamma #eta; #eta;",60,-3,3);
 	TH1D *p_reweight_LepPt = new TH1D("p_reweight_LepPt","p_reweight_LepPt",nSigPtBins,sigPtBins);
@@ -128,38 +148,38 @@ void pred_rareBkg(){
 	TH1D *h_rare_syserr_xs;
 	TH1D *h_rare_syserr_lumi;
 	if(channelType==1){
-		h_rare_norm            = new TH1D("eg_rare_norm","eventcount",9,0,9);
-		h_rare_jesUp           = new TH1D("eg_rare_jesUp","eventcount",9,0,9);
-		h_rare_jesDown         = new TH1D("eg_rare_jesDown","eventcount",9,0,9);
-		h_rare_jerUp           = new TH1D("eg_rare_jerUp","eventcount",9,0,9);
-		h_rare_jerDown         = new TH1D("eg_rare_jerDown","eventcount",9,0,9);
-		h_rare_esfUp           = new TH1D("eg_rare_esfUp","eventcount",9,0,9);
-		h_rare_esfDown         = new TH1D("eg_rare_esfDown","eventcount",9,0,9);
-		h_rare_syserr_jes      = new TH1D("eg_rare_syserr_jes","",9,0,9);	
-		h_rare_syserr_jer      = new TH1D("eg_rare_syserr_jer","",9,0,9);	
-		h_rare_syserr_esf      = new TH1D("eg_rare_syserr_esf","",9,0,9);	
-		h_rare_syserr_scale    = new TH1D("eg_rare_syserr_scale","",9,0,9);	
-		h_rare_syserr_eleshape = new TH1D("eg_rare_syserr_eleshape","",9,0,9);	
-		h_rare_syserr_jetshape = new TH1D("eg_rare_syserr_jetshape","",9,0,9);	
-		h_rare_syserr_xs       = new TH1D("eg_rare_syserr_xs","",9,0,9);	
-		h_rare_syserr_lumi     = new TH1D("eg_rare_syserr_lumi","",9,0,9);
+		h_rare_norm            = new TH1D("eg_rare_norm","eventcount",NBIN,0,NBIN);
+		h_rare_jesUp           = new TH1D("eg_rare_jesUp","eventcount",NBIN,0,NBIN);
+		h_rare_jesDown         = new TH1D("eg_rare_jesDown","eventcount",NBIN,0,NBIN);
+		h_rare_jerUp           = new TH1D("eg_rare_jerUp","eventcount",NBIN,0,NBIN);
+		h_rare_jerDown         = new TH1D("eg_rare_jerDown","eventcount",NBIN,0,NBIN);
+		h_rare_esfUp           = new TH1D("eg_rare_esfUp","eventcount",NBIN,0,NBIN);
+		h_rare_esfDown         = new TH1D("eg_rare_esfDown","eventcount",NBIN,0,NBIN);
+		h_rare_syserr_jes      = new TH1D("eg_rare_syserr_jes","",NBIN,0,NBIN);	
+		h_rare_syserr_jer      = new TH1D("eg_rare_syserr_jer","",NBIN,0,NBIN);	
+		h_rare_syserr_esf      = new TH1D("eg_rare_syserr_esf","",NBIN,0,NBIN);	
+		h_rare_syserr_scale    = new TH1D("eg_rare_syserr_scale","",NBIN,0,NBIN);	
+		h_rare_syserr_eleshape = new TH1D("eg_rare_syserr_eleshape","",NBIN,0,NBIN);	
+		h_rare_syserr_jetshape = new TH1D("eg_rare_syserr_jetshape","",NBIN,0,NBIN);	
+		h_rare_syserr_xs       = new TH1D("eg_rare_syserr_xs","",NBIN,0,NBIN);	
+		h_rare_syserr_lumi     = new TH1D("eg_rare_syserr_lumi","",NBIN,0,NBIN);
 	} 
 	else if(channelType==2){
-		h_rare_norm            = new TH1D("mg_rare_norm","eventcount",9,0,9);
-		h_rare_jesUp           = new TH1D("mg_rare_jesUp","eventcount",9,0,9);
-		h_rare_jesDown         = new TH1D("mg_rare_jesDown","eventcount",9,0,9);
-		h_rare_jerUp           = new TH1D("mg_rare_jerUp","eventcount",9,0,9);
-		h_rare_jerDown         = new TH1D("mg_rare_jerDown","eventcount",9,0,9);
-		h_rare_esfUp           = new TH1D("mg_rare_esfUp","eventcount",9,0,9);
-		h_rare_esfDown         = new TH1D("mg_rare_esfDown","eventcount",9,0,9);
-		h_rare_syserr_jes      = new TH1D("mg_rare_syserr_jes","",9,0,9);	
-		h_rare_syserr_jer      = new TH1D("mg_rare_syserr_jer","",9,0,9);	
-		h_rare_syserr_esf      = new TH1D("mg_rare_syserr_esf","",9,0,9);	
-		h_rare_syserr_scale    = new TH1D("mg_rare_syserr_scale","",9,0,9);	
-		h_rare_syserr_eleshape = new TH1D("mg_rare_syserr_eleshape","",9,0,9);	
-		h_rare_syserr_jetshape = new TH1D("mg_rare_syserr_jetshape","",9,0,9);	
-		h_rare_syserr_xs       = new TH1D("mg_rare_syserr_xs","",9,0,9);	
-		h_rare_syserr_lumi     = new TH1D("mg_rare_syserr_lumi","",9,0,9);
+		h_rare_norm            = new TH1D("mg_rare_norm","eventcount",NBIN,0,NBIN);
+		h_rare_jesUp           = new TH1D("mg_rare_jesUp","eventcount",NBIN,0,NBIN);
+		h_rare_jesDown         = new TH1D("mg_rare_jesDown","eventcount",NBIN,0,NBIN);
+		h_rare_jerUp           = new TH1D("mg_rare_jerUp","eventcount",NBIN,0,NBIN);
+		h_rare_jerDown         = new TH1D("mg_rare_jerDown","eventcount",NBIN,0,NBIN);
+		h_rare_esfUp           = new TH1D("mg_rare_esfUp","eventcount",NBIN,0,NBIN);
+		h_rare_esfDown         = new TH1D("mg_rare_esfDown","eventcount",NBIN,0,NBIN);
+		h_rare_syserr_jes      = new TH1D("mg_rare_syserr_jes","",NBIN,0,NBIN);	
+		h_rare_syserr_jer      = new TH1D("mg_rare_syserr_jer","",NBIN,0,NBIN);	
+		h_rare_syserr_esf      = new TH1D("mg_rare_syserr_esf","",NBIN,0,NBIN);	
+		h_rare_syserr_scale    = new TH1D("mg_rare_syserr_scale","",NBIN,0,NBIN);	
+		h_rare_syserr_eleshape = new TH1D("mg_rare_syserr_eleshape","",NBIN,0,NBIN);	
+		h_rare_syserr_jetshape = new TH1D("mg_rare_syserr_jetshape","",NBIN,0,NBIN);	
+		h_rare_syserr_xs       = new TH1D("mg_rare_syserr_xs","",NBIN,0,NBIN);	
+		h_rare_syserr_lumi     = new TH1D("mg_rare_syserr_lumi","",NBIN,0,NBIN);
 	} 
 
 	TH1D *jesup_MET = new TH1D("jesup_MET","MET; MET (GeV);",nSigMETBins, sigMETBins);
@@ -399,14 +419,19 @@ void pred_rareBkg(){
 		p_reweight_dPhiEleMET->Fill(fabs(dPhiLepMET), reweightF);
 
 		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
+		SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 		h_rare_norm->Fill( SigBinIndex, weight);
 		h_rare_esfUp->Fill( SigBinIndex, weight_scaleup);
 		h_rare_esfDown->Fill( SigBinIndex, weight_scaledo);
-		if(findSignalBin(sigMETJESup, HTJESup)>=0)h_rare_jesUp->Fill( findSignalBin(sigMETJESup, HTJESup, METbin1, METbin2),  weight);
-		if(findSignalBin(sigMETJESdo, HTJESdo)>=0)h_rare_jesDown->Fill( findSignalBin(sigMETJESdo, HTJESdo, METbin1, METbin2),  weight);
-		if(findSignalBin(sigMETJERup, HT)>=0)h_rare_jerUp->Fill( findSignalBin(sigMETJERup, HT, METbin1, METbin2),       weight);
-		if(findSignalBin(sigMETJERdo, HT)>=0)h_rare_jerDown->Fill( findSignalBin(sigMETJERdo, HT, METbin1, METbin2),       weight); 
+		if(Bin.findSignalBin(sigMETJESup, HTJESup, phoEt)>=0)h_rare_jesUp->Fill( Bin.findSignalBin(sigMETJESup, HTJESup, phoEt),  weight);
+		if(Bin.findSignalBin(sigMETJESdo, HTJESdo, phoEt)>=0)h_rare_jesDown->Fill( Bin.findSignalBin(sigMETJESdo, HTJESdo, phoEt),  weight);
+		if(Bin.findSignalBin(sigMETJERup, HT, phoEt)>=0)h_rare_jerUp->Fill( Bin.findSignalBin(sigMETJERup, HT, phoEt),       weight);
+		if(Bin.findSignalBin(sigMETJERdo, HT, phoEt)>=0)h_rare_jerDown->Fill( Bin.findSignalBin(sigMETJERdo, HT, phoEt),       weight); 
+
+		if(SigBinIndex >=0){
+			p_PhoEt_bin[SigBinIndex]->Fill( phoEt,weight);
+			count_PhoEt_bin[SigBinIndex] += 1;
+		}
 
 		jesup_MET->Fill(sigMETJESup, weight);
 		jesup_Mt->Fill(sigMTJESup, weight);
@@ -505,7 +530,7 @@ void pred_rareBkg(){
 		p_dPhiEleMET->SetBinError(ibin,sqrt(syserror));
 	}	
 	
-	for(int contbin(1); contbin <=9; contbin++){
+	for(int contbin(1); contbin <=NBIN; contbin++){
 		float nominalsig = h_rare_norm->GetBinContent(contbin); 
 		float jesuperror = fabs(h_rare_jesUp->GetBinContent(contbin)- nominalsig);
 		float jesdoerror = fabs(h_rare_jesDown->GetBinContent(contbin)- nominalsig);
@@ -524,6 +549,7 @@ void pred_rareBkg(){
 		h_rare_syserr_lumi->SetBinContent(contbin, 0.026*h_rare_norm->GetBinContent(contbin));      
 	}
 
+	for(unsigned ip(0); ip<NBIN; ip++)std::cout << "count bin " << ip << " :" << count_PhoEt_bin[ip] << "  error:" << sqrt(count_PhoEt_bin[ip])/count_PhoEt_bin[ip] << std::endl;
 	p_PhoEt->Sumw2();
 	outputfile->Write();
 	outputfile->Close();

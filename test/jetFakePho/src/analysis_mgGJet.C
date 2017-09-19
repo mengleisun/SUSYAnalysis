@@ -30,9 +30,9 @@ void analysis_mgGJet(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/test/plot_hadron_mgGJet.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/plot_hadron_mgGJet.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/test/plot_hadron_mgGJet.log"); 
+  logfile.open("/uscms_data/d3/mengleis/Sep1/plot_hadron_mgGJet.log"); 
 
   logfile << "analysis_hadron()" << std::endl;
 
@@ -45,7 +45,7 @@ void analysis_mgGJet(){//main
   TFile *outputfile = TFile::Open(outputname,"NEW");
   outputfile->cd();
 
-  int mcType = MCType::GJet;
+  int mcType = MCType::generalMC;
   if(datatype == MC && mcType == MCType::NOMC){std::cout << "wrong MC type" << std::endl; throw;} 
   logfile << "mcType" << mcType << std::endl;
 //************ Signal Tree **********************//
@@ -155,7 +155,6 @@ void analysis_mgGJet(){//main
 	for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
     bool ismgCandidate(false), ishadCandidate(false);
     bool hasmgCandidate(false),  hashadCandidate(false);
-    if(!itpho->isEB())continue;
 		if(itpho->getR9() < 0.5)continue; 
 	  if(itpho->getCalibEt() < 25 || !itpho->passHoverE(1)|| !itpho->passNeuIso(1) || !itpho->passPhoIso(1))continue;
     if(itpho->getChIso() > 20.0)continue;
@@ -163,7 +162,6 @@ void analysis_mgGJet(){//main
 	  bool GSFveto(true);
 	  bool FSRVeto(true);
 	  for(std::vector<recoEle>::iterator ie = Ele.begin(); ie != Ele.end(); ie++){
-		 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.02)GSFveto = false;
 		 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3 && ie->getCalibPt()>2.0)FSRVeto=false;
 	  }
 	  for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)

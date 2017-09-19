@@ -7,6 +7,7 @@
     p4_.SetPtEtaPhiE((*raw.jetPt)[ij],(*raw.jetEta)[ij],(*raw.jetPhi)[ij],(*raw.jetEn)[ij]);
     jetArea_ = (*raw.jetArea)[ij];
 		jetJECUnc_ = (*raw.jetJECUnc)[ij];
+		jetCSV2BJetTags_ = (*raw.jetCSV2BJetTags)[ij];
   }
 
   ~recoJet(){
@@ -23,6 +24,10 @@ inline TLorentzVector getP4() {
 }
 inline float getArea() { return jetArea_;}
 inline float getPtUnc(){ return jetJECUnc_;}
+inline bool  isBJet()  {
+	if(jetCSV2BJetTags_ > 0.8484)return true;
+	else return false;
+}
 
 inline bool passSignalSelection(){
 	bool pass(true);
@@ -35,5 +40,6 @@ private:
     TLorentzVector p4_;
     float jetArea_;
 		float jetJECUnc_;
+		float jetCSV2BJetTags_;
 };
    

@@ -5,5 +5,5 @@ for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
 do
 	j=$((i+1))
   #root -b -q "FitJetFake.C+(${ptbins[$i]},${ptbins[$j]})"
-  root -b -q "FitJetFake.C+(${ptbins[$i]},${ptbins[$j]})"
+  root -b -q "FitJetFake.C+(${ptbins[$i]},${ptbins[$j]},2)"
 done

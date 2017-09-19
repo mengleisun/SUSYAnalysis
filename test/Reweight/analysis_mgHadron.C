@@ -203,7 +203,6 @@ void analysis_mgHadron(){//main
  
     for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
       if(itpho->getR9() < 0.5)continue;
-			if(!itpho->isEB())continue;
 			if(!itpho->passHLTSelection())continue;
 			if(!itpho->passBasicSelection())continue; 
       if(itpho->getCalibEt() < 25)continue;
@@ -240,7 +239,7 @@ void analysis_mgHadron(){//main
 			}
 		}
      
-    if(hasSigPho && hasMu && sigPho->isEB()){
+    if(hasSigPho && hasMu){
       double DeltaPhoLep = DeltaR(sigPho->getEta(), sigPho->getPhi(), signalMu->getEta(), signalMu->getPhi());
       if(DeltaPhoLep > 0.8){ 
 					bool foundZG(false); 

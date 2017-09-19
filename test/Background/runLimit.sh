@@ -1,14 +1,23 @@
 #!/bin/bash
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-for METbin1 in {200,220,240,260,300}
-do
-	for METbin2 in {320,340,360,380,400,420,440,460,500}
-	do
+METbin1=200
+METbin2=400
 
+for HTbin1 in {100,200,300,400}
+do
+	for HTbin2 in {400,500,600}
+	do
+	for PHOETbin in {100,120,150,200}
+		do
+
+		mkdir t5wg_${HTbin1}_${HTbin2}_${PHOETbin}
 		rm binConfig.txt
-		echo 'METbin1' $METbin1 >>  binConfig.txt
-		echo 'METbin2' $METbin2 >>  binConfig.txt
+		echo 'METbin1 200' >>  binConfig.txt
+		echo 'METbin2 400' >>  binConfig.txt
+		echo 'HTbin1' $HTbin1  >>  binConfig.txt
+		echo 'HTbin2' $HTbin2  >>  binConfig.txt
+		echo 'PHOETbin' $PHOETbin >>  binConfig.txt
 
 		ch=1
 		anatype=3
@@ -19,21 +28,21 @@ do
 		iso=4
 		lpt=0
 		hpt=-1
-		rm BkgPredConfig.txt
-		echo 'ichannel' $ch  >> BkgPredConfig.txt
-		echo 'anatype'  $anatype >>  BkgPredConfig.txt
-		echo 'lowMt'    $lmt >> BkgPredConfig.txt
-		echo 'highMt'   $hmt >> BkgPredConfig.txt
-		echo 'lowMET'   $lmet >>BkgPredConfig.txt
-		echo 'highMET'  $hmet >>BkgPredConfig.txt
-		echo 'lowPt'    $lpt >> BkgPredConfig.txt
-		echo 'highPt'   $hpt >> BkgPredConfig.txt
-		echo 'lepIso'   $iso    >> BkgPredConfig.txt
-		root -q analysis_VGBkg.C++
-		root -q analysis_eleBkg.C++
-		root -q analysis_jetBkg.C++
-		root -q analysis_qcdBkg.C++
-		root -q analysis_rareBkg.C++
+		rm SigConfig.txt
+		echo 'ichannel' $ch  >> SigConfig.txt
+		echo 'anatype'  $anatype >>  SigConfig.txt
+		echo 'lowMt'    $lmt >> SigConfig.txt
+		echo 'highMt'   $hmt >> SigConfig.txt
+		echo 'lowMET'   $lmet >>SigConfig.txt
+		echo 'highMET'  $hmet >>SigConfig.txt
+		echo 'lowPt'    $lpt >> SigConfig.txt
+		echo 'highPt'   $hpt >> SigConfig.txt
+		echo 'lepIso'   $iso    >> SigConfig.txt
+		root -q pred_VGBkg.C++
+		root -q pred_eleBkg.C++
+		root -q pred_jetBkg.C++
+		root -q pred_qcdBkg.C++
+		root -q pred_rareBkg.C++
 
 		ch=2
 		anatype=3
@@ -44,98 +53,30 @@ do
 		iso=4
 		lpt=0
 		hpt=-1
-		rm BkgPredConfig.txt
-		echo 'ichannel' $ch  >> BkgPredConfig.txt
-		echo 'anatype'  $anatype >>  BkgPredConfig.txt
-		echo 'lowMt'    $lmt >> BkgPredConfig.txt
-		echo 'highMt'   $hmt >> BkgPredConfig.txt
-		echo 'lowMET'   $lmet >>BkgPredConfig.txt
-		echo 'highMET'  $hmet >>BkgPredConfig.txt
-		echo 'lowPt'    $lpt >> BkgPredConfig.txt
-		echo 'highPt'   $hpt >> BkgPredConfig.txt
-		echo 'lepIso'   $iso    >> BkgPredConfig.txt
-		root -q analysis_VGBkg.C++
-		root -q analysis_eleBkg.C++
-		root -q analysis_jetBkg.C++
-		root -q analysis_qcdBkg.C++
-		root -q analysis_rareBkg.C++
+		rm SigConfig.txt
+		echo 'ichannel' $ch  >> SigConfig.txt
+		echo 'anatype'  $anatype >>  SigConfig.txt
+		echo 'lowMt'    $lmt >> SigConfig.txt
+		echo 'highMt'   $hmt >> SigConfig.txt
+		echo 'lowMET'   $lmet >>SigConfig.txt
+		echo 'highMET'  $hmet >>SigConfig.txt
+		echo 'lowPt'    $lpt >> SigConfig.txt
+		echo 'highPt'   $hpt >> SigConfig.txt
+		echo 'lepIso'   $iso    >> SigConfig.txt
+		root -q pred_VGBkg.C++
+		root -q pred_eleBkg.C++
+		root -q pred_jetBkg.C++
+		root -q pred_qcdBkg.C++
+		root -q pred_rareBkg.C++
 
 		root -b -q plot_eventct.C++
 		root -q analysis_TChiWG.C++
 		mv SignalSystematic_egmg.root SignalSystematic_${METbin1}_${METbin2}.root
-		mv signalTree_TChiWG.root signalTree_TChiWG_${METbin1}_${METbin2}.root
 		mv signalTree_T5WG.root signalTree_T5WG_${METbin1}_${METbin2}.root
-	  python writeTChiWGcard.py --MET1 $METbin1 --MET2 $METbin2
-	  python writeT5WGcard.py --MET1 $METbin1 --MET2 $METbin2
+	  python writeNewBin.py --MET1 $METbin1 --MET2 $METbin2
+		mv t5wg/* t5wg_${HTbin1}_${HTbin2}_${PHOETbin}/.
 	done
 done 
-#done
+done
 #
 
-
-#rm BkgPredConfig.txt
-#cp BkgPred_bkgConfig_eg.txt  BkgPredConfig.txt
-root -q analysis_VGBkg.C++ 
-root -q analysis_eleBkg.C++
-root -q analysis_jetBkg.C++
-root -q analysis_qcdBkg.C++
-root -q analysis_rareBkg.C++
-root -q analysis_sig.C++
-
-
-#rm BkgPredConfig.txt
-#cp BkgPred_signalConfig_eg.txt BkgPredConfig.txt  
-#root -q analysis_VGBkg.C++
-#root -q analysis_eleBkg.C++
-#root -q analysis_jetBkg.C++
-#root -q analysis_qcdBkg.C++
-#root -q analysis_rareBkg.C++
-#root -q analysis_sig.C++
-
-
-#rm BkgPredConfig.txt
-#cp BkgPred_validConfig_eg.txt BkgPredConfig.txt
-#root -q analysis_VGBkg.C++
-#root -q analysis_eleBkg.C++
-#root -q analysis_jetBkg.C++
-#root -q analysis_qcdBkg.C++
-#root -q analysis_rareBkg.C++
-#root -q analysis_sig.C++
-
-
-#rm BkgPredConfig.txt
-#cp BkgPred_bkgConfig.txt  BkgPredConfig.txt
-#root -q analysis_VGBkg.C++
-##root -q analysis_eleBkg.C++
-##root -q analysis_jetBkg.C++
-#root -q analysis_qcdBkg.C++
-##root -q analysis_rareBkg.C++
-##root -q analysis_sig.C++
-##
-##
-#rm BkgPredConfig.txt
-#cp BkgPred_signalConfig.txt BkgPredConfig.txt   
-#root -q analysis_VGBkg.C++
-##root -q analysis_eleBkg.C++
-##root -q analysis_jetBkg.C++
-#root -q analysis_qcdBkg.C++
-##root -q analysis_rareBkg.C++
-##root -q analysis_sig.C++
-##
-##
-#rm BkgPredConfig.txt
-#cp BkgPred_validConfig.txt BkgPredConfig.txt
-#root -q analysis_VGBkg.C++
-##root -q analysis_eleBkg.C++
-##root -q analysis_jetBkg.C++
-#root -q analysis_qcdBkg.C++
-##root -q analysis_rareBkg.C++
-##root -q analysis_sig.C++
-##
-##
-root -q pred_VGBkg.C++
-root -q pred_eleBkg.C++
-root -q pred_jetBkg.C++
-root -q pred_qcdBkg.C++
-root -q pred_rareBkg.C++
-root -q pred_sig.C++

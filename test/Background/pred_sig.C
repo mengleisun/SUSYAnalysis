@@ -63,13 +63,19 @@ void pred_sig(){
 
 	std::ifstream binfile("binConfig.txt");
 	float METbin1(200), METbin2(300);
+	float HTbin1(100),  HTbin2(400);
+	float PHOETbin(100);
 	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
+		for(int i(0); i<5; i++){
 			binfile >> conftype >> confvalue;
 			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
 			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
+			if(conftype.find("HTbin1")!=std::string::npos)HTbin1= confvalue;
+			if(conftype.find("HTbin2")!=std::string::npos)HTbin2= confvalue;
+			if(conftype.find("PHOETbin")!=std::string::npos)PHOETbin= confvalue;
 		}
 	}
+
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
@@ -86,11 +92,14 @@ void pred_sig(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_eventcount = new TH1D("p_eventcount","eventcount",9,0,9);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
+
+	double count_PhoEt_bin[18];
+	for(unsigned ip(0); ip<18; ip++){count_PhoEt_bin[ip] = 0;}
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
 	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/resTree_egsignal_DoubleEG_ReMiniAOD_July22.root");
 	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
 
 	float phoEt(0);
 	float phoEta(0);
@@ -148,7 +157,11 @@ void pred_sig(){
 		
 
 		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
+		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2, HTbin1, HTbin2);
+		if(SigBinIndex >=0 && phoEt > PHOETbin)SigBinIndex = SigBinIndex + 9;
+		if(SigBinIndex >=0){
+			count_PhoEt_bin[SigBinIndex] += 1;
+		}
 		if(SigBinIndex >=0)p_eventcount->Fill( SigBinIndex, 1);
 	}        
 
@@ -197,6 +210,7 @@ void pred_sig(){
 	p_PU->Write();
 	p_eventcount->Write();
 	p_nJet->Write();
+	for(unsigned ip(0); ip<18; ip++)std::cout << "count bin " << ip << " :" << count_PhoEt_bin[ip] << "  error:" << sqrt(count_PhoEt_bin[ip])/count_PhoEt_bin[ip] << std::endl;
 	outputfile->Write();
 	outputfile->Close();
 }

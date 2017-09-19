@@ -30,6 +30,12 @@ bool recoMuon::passHLTSelection(){
     case SingleElectron2016: passHLT = true; break;
     case SingleMuon2016: if(fireSingleTrg(1) || fireSingleTrg(19))passHLT = true; break;
     case DoubleMuon2016: passHLT = true; break;
+    case MCDoubleEG: passHLT = true; break; 
+    case MCMuonEG: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
+    case MCSingleElectron:passHLT = true; break;
+    case MCSingleMuon: if(fireSingleTrg(1) || fireSingleTrg(19))passHLT = true; break;
+    case MCDoubleMuon: passHLT = true; break;
+    case MCMET: passHLT = true; break;
     default: break;
   }
   

@@ -37,19 +37,14 @@ void test_ZG(){//main
 
 	esfScaleFactor  objectESF;
 
-
-	TH1D *p_iso_data = new TH1D("p_iso_data","p_iso_data",130,0,1.3);		
-	TH1D *p_iso_ZG = new TH1D("p_iso_ZG","p_iso_ZG",130,0,1.3);		
-	TH1D *p_status = new TH1D("p_status","p_status",7,0,7);
-
 	Double_t plotEtBins[]={35,50,100,150,200,250,300,400,600,800};
 	Double_t plotPtBins[]={25,30,35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400};
-	TH1D *p_phoEt_data     = new TH1D("p_phoEt_data","",9,plotEtBins);
+	TH1D *p_phoEt_data     = new TH1D("p_phoEt_data","",10,100,500);
 	TH1D *p_mcEt = new TH1D("p_mcEt","",100,0,400);
 	TH1D *p_phoEta_data    = new TH1D("p_phoEta_data","",60,-3,3);
 	TH1D *p_phoPhi_data    = new TH1D("p_phoPhi_data","",64,-3.2, 3.2);
 	TH1D *p_lepPt_data     = new TH1D("p_lepPt_data","",9,plotEtBins);
-	TH1D *p_trailPt_data     = new TH1D("p_trail_data","",9,plotEtBins);
+	TH1D *p_trailPt_data     = new TH1D("p_trail_data","",20,0,200);
 	TH1D *p_lepEta_data    = new TH1D("p_lepEta_data","",60,-3,3);
 	TH1D *p_lepPhi_data    = new TH1D("p_lepPhi_data","",64,-3.2, 3.2);
 	TH1D *p_sigMET_data    = new TH1D("p_sigMET_data","",100,0,400);
@@ -62,12 +57,13 @@ void test_ZG(){//main
 	TH1D *p_nJet_data      = new TH1D("p_nJet_data","",10,-0.5,9.5);
 	TH1D *p_invmass_data   = new TH1D("p_invmass_data","",100,30,130);
 	TH1D *p_llmass_data   = new TH1D("p_llmass_data","",100,30,130);
+	TH1D *p_JetPt         = new TH1D("p_JetPt","p_JetPt",9,plotEtBins);
 
-	TH1D *p_phoEt_ZG     = new TH1D("p_phoEt_ZG","",9,plotEtBins);
+	TH1D *p_phoEt_ZG     = new TH1D("p_phoEt_ZG","",10,100,500);
 	TH1D *p_phoEta_ZG    = new TH1D("p_phoEta_ZG","",60,-3,3);
 	TH1D *p_phoPhi_ZG    = new TH1D("p_phoPhi_ZG","",64,-3.2, 3.2);
 	TH1D *p_lepPt_ZG     = new TH1D("p_lepPt_ZG","",9,plotEtBins);
-	TH1D *p_trailPt_ZG     = new TH1D("p_trail_ZG","",9,plotEtBins);
+	TH1D *p_trailPt_ZG     = new TH1D("p_trail_ZG","",20,0,200);
 	TH1D *p_lepEta_ZG    = new TH1D("p_lepEta_ZG","",60,-3,3);
 	TH1D *p_lepPhi_ZG    = new TH1D("p_lepPhi_ZG","",64,-3.2, 3.2);
 	TH1D *p_sigMET_ZG    = new TH1D("p_sigMET_ZG","",100,0,400);
@@ -80,20 +76,22 @@ void test_ZG(){//main
 	TH1D *p_nJet_ZG      = new TH1D("p_nJet_ZG","",10,-0.5,9.5);
 	TH1D *p_invmass_ZG   = new TH1D("p_invmass_ZG","",20,80,100);
 	TH1D *p_llmass_ZG   = new TH1D("p_llmass_ZG","",100,30,130);
+	TH1D *p_JetPt_ZG     = new TH1D("p_JetPt_ZG","p_JetPt_ZG",9,plotEtBins);
 
 	TProfile *p_scalefactor  = new TProfile("p_scalefactor","p_scalefactor",50,-2.5,2.5);
 //************ Signal Tree **********************//
   TChain *tree = new TChain("ZTree");
-  tree->Add("/uscms_data/d3/mengleis/test/resTree_ZISR_DY.root");
+  tree->Add("/uscms_data/d3/mengleis/test/resTree_ISR_ZG.root");
+	float MCweight(0);
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
-	float phoChIso(0);
-	float phoNeuIso(0);
   float lepPt(0);
   float lepEta(0);
   float lepPhi(0);
 	float trailPt(0);
+	float trailEta(0);
+	float trailPhi(0);
   float sigMT(0);
   float sigMET(0);
   float sigMETPhi(0);
@@ -104,16 +102,19 @@ void test_ZG(){//main
   float nJet(0);
 	float threeMass(0);
 	float dilepMass(0);
+	float JetPt(0);
 
-//  tree->SetBranchAddress("phoEt",     &phoEt);
-//  tree->SetBranchAddress("phoEta",    &phoEta);
-//  tree->SetBranchAddress("phoPhi",    &phoPhi);
-//	tree->SetBranchAddress("phoChIso",  &phoChIso);
-//	tree->SetBranchAddress("phoNeuIso", &phoNeuIso);
+	
+  tree->SetBranchAddress("MCweight",  &MCweight);
+  tree->SetBranchAddress("phoEt",     &phoEt);
+  tree->SetBranchAddress("phoEta",    &phoEta);
+  tree->SetBranchAddress("phoPhi",    &phoPhi);
   tree->SetBranchAddress("lepPt",     &lepPt);
   tree->SetBranchAddress("lepEta",    &lepEta);
   tree->SetBranchAddress("lepPhi",    &lepPhi);
   tree->SetBranchAddress("trailPt",   &trailPt);
+  tree->SetBranchAddress("trailEta",  &trailEta);
+  tree->SetBranchAddress("trailPhi",  &trailPhi);
   tree->SetBranchAddress("sigMT",     &sigMT);
   tree->SetBranchAddress("sigMET",    &sigMET);
   tree->SetBranchAddress("sigMETPhi", &sigMETPhi);
@@ -124,22 +125,19 @@ void test_ZG(){//main
   tree->SetBranchAddress("nJet",      &nJet);
 //	tree->SetBranchAddress("threeMass", &threeMass);
 	tree->SetBranchAddress("dilepMass", &dilepMass);
+	tree->SetBranchAddress("JetPt",     &JetPt);
 	
   for(unsigned ievt(0); ievt<tree->GetEntries(); ++ievt){//loop on entries
 		tree->GetEntry(ievt);
 
-		if(fabs(nJet-0) >= 0.1)continue;
-		if(dilepMass < 80 || dilepMass > 100)continue;
-		//double weight = 35.8*1000*4895.0/122053259; 
-		double weight = 1; 
+		double weight = MCweight; 
 
-		if(fabs(nJet-0) < 0.1)sum_data_1+=weight;
-		if( dilepMass >= 80 && dilepMass <= 100)sum_data_2 +=weight;
-	
-		p_iso_data->Fill(phoNeuIso, weight);			
-		p_phoEt_data->Fill(phoEt, weight); 
-		p_phoEta_data->Fill(phoEta, weight);
-		p_phoPhi_data->Fill(phoPhi, weight);
+		if(dilepMass < 80)continue;
+		//if(fabs(phoEta) > 1.4442)continue;
+		if(DeltaR(trailEta, trailPhi, phoEta, phoPhi) < 0.5)continue;
+		if( phoEt < 140)continue;
+
+		p_phoEt_data->Fill(phoEt, weight);	
 		p_lepPt_data->Fill(lepPt, weight);
 		p_lepEta_data->Fill(lepEta, weight);
 		p_lepPhi_data->Fill(lepPhi, weight);
@@ -149,11 +147,12 @@ void test_ZG(){//main
 		p_sigMETPhi_data->Fill(sigMETPhi, weight);
 		p_dPhiLepMET_data->Fill(dPhiLepMET, weight);
 		p_nVertex_data->Fill(nVertex, weight);
-		p_dRPhoLep_data->Fill(dRPhoLep, weight);
+		p_dRPhoLep_data->Fill( DeltaR(trailEta, trailPhi, phoEta, phoPhi), weight);
 		p_HT_data->Fill(HT, weight);
 		p_nJet_data->Fill(nJet, weight);
 		p_invmass_data->Fill(91.5, 1.44);
 		p_llmass_data->Fill(dilepMass, weight);
+		p_JetPt->Fill(JetPt, weight);
 	}//loop on  events
 
 
@@ -161,12 +160,11 @@ void test_ZG(){//main
 
 //************ Signal Tree **********************//
   TChain *ZGtree = new TChain("ZTree");
-  ZGtree->Add("/uscms_data/d3/mengleis/test/resTree_ZISR_DYLO.root");
+  ZGtree->Add("/uscms_data/d3/mengleis/test/resTree_ISR_ZG130_NLO.root");
+	float ZG_MCweight(0);
   float ZG_phoEt(0);
   float ZG_phoEta(0);
   float ZG_phoPhi(0);
-	float ZG_phoChIso(0);
-	float ZG_phoNeuIso(0);
   float ZG_lepPt(0);
   float ZG_lepEta(0);
   float ZG_lepPhi(0);
@@ -184,6 +182,7 @@ void test_ZG(){//main
   float ZG_nJet(0);
 	float ZG_threeMass(0);
 	float ZG_dilepMass(0);
+	float ZG_JetPt(0);
   std::vector<int>   *ZG_mcPID=0;
   std::vector<float> *ZG_mcEta=0;
   std::vector<float> *ZG_mcPhi=0;
@@ -192,17 +191,16 @@ void test_ZG(){//main
   std::vector<int>   *ZG_mcGMomPID=0;
 	std::vector<int>   *ZG_mcStatus=0;
 
- // ZGtree->SetBranchAddress("phoEt",     &ZG_phoEt);
- // ZGtree->SetBranchAddress("phoEta",    &ZG_phoEta);
- // ZGtree->SetBranchAddress("phoPhi",    &ZG_phoPhi);
- // ZGtree->SetBranchAddress("phoChIso",  &ZG_phoChIso);
- // ZGtree->SetBranchAddress("phoNeuIso", &ZG_phoNeuIso);
+  ZGtree->SetBranchAddress("MCweight",  &ZG_MCweight);
+  ZGtree->SetBranchAddress("phoEt",     &ZG_phoEt);
+  ZGtree->SetBranchAddress("phoEta",    &ZG_phoEta);
+  ZGtree->SetBranchAddress("phoPhi",    &ZG_phoPhi);
   ZGtree->SetBranchAddress("lepPt",     &ZG_lepPt);
   ZGtree->SetBranchAddress("lepEta",    &ZG_lepEta);
   ZGtree->SetBranchAddress("lepPhi",    &ZG_lepPhi);
 	ZGtree->SetBranchAddress("trailPt",   &ZG_trailPt);
-//	ZGtree->SetBranchAddress("trailEta",  &ZG_trailEta);
-//	ZGtree->SetBranchAddress("trailPhi",  &ZG_trailPhi);
+	ZGtree->SetBranchAddress("trailEta",  &ZG_trailEta);
+	ZGtree->SetBranchAddress("trailPhi",  &ZG_trailPhi);
   ZGtree->SetBranchAddress("sigMT",     &ZG_sigMT);
   ZGtree->SetBranchAddress("sigMET",    &ZG_sigMET);
   ZGtree->SetBranchAddress("sigMETPhi", &ZG_sigMETPhi);
@@ -214,6 +212,7 @@ void test_ZG(){//main
   ZGtree->SetBranchAddress("nJet",      &ZG_nJet);
 //	ZGtree->SetBranchAddress("threeMass", &ZG_threeMass);
 	ZGtree->SetBranchAddress("dilepMass", &ZG_dilepMass);
+	ZGtree->SetBranchAddress("JetPt",     &ZG_JetPt);
   ZGtree->SetBranchAddress("mcPID",    &ZG_mcPID);
   ZGtree->SetBranchAddress("mcEta",    &ZG_mcEta);
   ZGtree->SetBranchAddress("mcPhi",    &ZG_mcPhi);
@@ -225,30 +224,13 @@ void test_ZG(){//main
   for(unsigned ievt(0); ievt<ZGtree->GetEntries(); ++ievt){//loop on entries
 		ZGtree->GetEntry(ievt);
 
-		if( fabs(ZG_nJet-0) > 0.25 )continue;
-		if(ZG_dilepMass < 80 || ZG_dilepMass > 100)continue;
-		double weight = 35.8*1000*4895.0/48166771; 
+		double weight = ZG_MCweight;
+		if(ZG_dilepMass < 80)continue;
+		//if(fabs(ZG_phoEta) > 1.4442)continue;
+		if( DeltaR(ZG_trailEta, ZG_trailPhi, ZG_phoEta, ZG_phoPhi) < 0.5)continue;
+		if( ZG_phoEt < 140)continue;
 
-	//	bool   isTruePho(false);
-	//	double mindR(0.3);
-	//	unsigned phoIndex(0);
-	//	for(unsigned iMC(0); iMC< ZG_mcPID->size(); iMC++){
-	//		double dR1 = DeltaR((*ZG_mcEta)[iMC], (*ZG_mcPhi)[iMC], ZG_phoEta, ZG_phoPhi);
-	//		double dE1 = fabs((*ZG_mcPt)[iMC] - ZG_phoEt)/ZG_phoEt;
-	//		if(dR1 < mindR && dE1 < 0.2){mindR=dR1; phoIndex=iMC;}
-	//	}
-	//	if(mindR < 0.1){
-	//		if((*ZG_mcPID)[phoIndex] == 22 && (fabs((*ZG_mcMomPID)[phoIndex]) == 23 || fabs((*ZG_mcMomPID)[phoIndex]) == 13 || fabs((*ZG_mcMomPID)[phoIndex])==999)){
-	//			isTruePho=true;
-	//			for(int i(0); i < 7; i++)if(( ((*ZG_mcStatus)[i] >> i)&1) == 1)p_status->Fill(i);
-	//		}
-	//	}
-
-		p_iso_ZG->Fill(ZG_phoNeuIso, weight);	
-	
-		p_phoEt_ZG->Fill(ZG_phoEt, weight); 
-		p_phoEta_ZG->Fill(ZG_phoEta, weight);
-		p_phoPhi_ZG->Fill(ZG_phoPhi, weight);
+		p_phoEt_ZG->Fill(ZG_phoEt, weight);
 		p_lepPt_ZG->Fill(ZG_lepPt, weight);
 		p_lepEta_ZG->Fill(ZG_lepEta, weight);
 		p_lepPhi_ZG->Fill(ZG_lepPhi, weight);
@@ -258,19 +240,18 @@ void test_ZG(){//main
 		p_sigMETPhi_ZG->Fill(ZG_sigMETPhi, weight);
 		p_dPhiLepMET_ZG->Fill(ZG_dPhiLepMET, weight);
 		p_nVertex_ZG->Fill(ZG_nVertex, weight);
-		p_dRPhoLep_ZG->Fill(ZG_dRPhoLep, weight);
+		p_dRPhoLep_ZG->Fill( DeltaR(ZG_trailEta, ZG_trailPhi, ZG_phoEta, ZG_phoPhi), weight);
 		p_HT_ZG->Fill(ZG_HT, weight);
 		p_nJet_ZG->Fill(ZG_nJet, weight);
 		p_invmass_ZG->Fill(ZG_threeMass, weight);
 		p_llmass_ZG->Fill(ZG_dilepMass, weight);
+		p_JetPt_ZG->Fill(ZG_JetPt, weight);
 	}//loop on  events
 
-	TCanvas *can_phoEt     = new TCanvas("can_phoEt",       "can_phoEt", 600,600); 
-	TCanvas *can_phoEta    = new TCanvas("can_phoEta",      "can_phoEta",600,600); 
-	TCanvas *can_phoPhi    = new TCanvas("can_phoPhi",      "can_phoPhi",600,600); 
+	TCanvas *can_phoEt     = new TCanvas("can_phoEt",       "can_phoEt",600,600); 
 	TCanvas *can_lepPt     = new TCanvas("can_lepPt",       "can_lepPt",600,600); 
 	TCanvas *can_lepEta    = new TCanvas("can_lepEta",      "can_lepEta",600,600); 
-	TCanvas *can_lepPhi    = new TCanvas("can_lepPhi",      "can_lepPhi",600,600); 
+	TCanvas *can_trail    = new TCanvas("can_trail",      "can_trail",600,600); 
 	TCanvas *can_sigMET    = new TCanvas("can_sigMET",      "can_sigMET",600,600); 
 	TCanvas *can_sigMT     = new TCanvas("can_sigMT",       "can_sigMT",600,600); 
 	TCanvas *can_sigMETPhi = new TCanvas("can_sigMETPhi",   "can_sigMETPhi",600,600); 
@@ -281,51 +262,17 @@ void test_ZG(){//main
 	TCanvas *can_nJet      = new TCanvas("can_nJet",        "can_nJet",600,600); 
 	TCanvas *can_invmass   = new TCanvas("can_invmass",     "can_invmass", 600,600);    
 	TCanvas *can_llmass   = new TCanvas("can_llmass",     "can_llmass", 600,600);   
-	TCanvas *can_scalefactor = new TCanvas("can_scale",   "can_scale", 600,600); 
 
-	//float scalefactor = p_llmass_data->Integral(50,70)/p_llmass_ZG->Integral(50,70);
-	float scalefactor = p_nJet_data->Integral(1,2)/p_nJet_ZG->Integral(1,2);
+	float scalefactor = p_phoEt_data->Integral(2,4)/p_phoEt_ZG->Integral(2,4);
+	std::cout << "scale = " << scalefactor << std::endl;
 	can_phoEt->cd();
-	TPad *phoEt_pad1 = new TPad("phoEt_pad1", "phoEt_pad1", 0, 0.3, 1, 1.0);
-	phoEt_pad1->SetBottomMargin(0.1);
-	phoEt_pad1->Draw();  
-	phoEt_pad1->cd();  
-	phoEt_pad1->SetLogy();
+	gPad->SetLogy();
 	p_phoEt_data->Draw();
 	p_phoEt_ZG->SetLineColor(kRed);
 	p_phoEt_ZG->Scale(scalefactor);
 	p_phoEt_ZG->Draw("same");
-	TLegend *leg=new TLegend(0.6,0.9,0.75,0.9);
-	leg->AddEntry(p_phoEt_data,"observed");
-	leg->AddEntry(p_phoEt_ZG,"ZG");
-	leg->Draw("same");
 
-	can_phoEt->cd();
-	TPad *phoEt_pad2 = new TPad("phoEt_pad2", "phoEt_pad2", 0, 0.05, 1, 0.25);
-	phoEt_pad2->Draw();
-	phoEt_pad2->cd();
-	TLine *flatratio_eventcount = new TLine(0,1,600,1);
-	TH1D *ratio_phoEt = (TH1D*)p_phoEt_ZG->Clone("ratio_phoEt");
-	ratio_phoEt->Divide(p_phoEt_data);
-	ratio_phoEt->Draw();
-	flatratio_eventcount->Draw("same");
-	for(int ibin(1); ibin < ratio_phoEt->GetSize(); ibin++){
-		std::cout << ibin << " " << ratio_phoEt->GetBinContent(ibin) << std::endl;
-	}
-	
-
-	can_phoEta->cd();
-	p_phoEta_data->Draw();
-	p_phoEta_ZG->SetLineColor(kRed);
-	p_phoEta_ZG->Scale(scalefactor);
-	p_phoEta_ZG->Draw("same");
-
-	can_phoPhi->cd();
-	p_phoPhi_data->Draw();
-	p_phoPhi_ZG->SetLineColor(kRed);
-	p_phoPhi_ZG->Scale(scalefactor);
-	p_phoPhi_ZG->Draw("same");
-
+ 
 	can_lepPt->cd();
 	gPad->SetLogy();
 	p_lepPt_data->Draw();
@@ -342,11 +289,11 @@ void test_ZG(){//main
 		if(p_lepEta_data->GetBinContent(ibin) > 0)std::cout << p_lepEta_ZG->GetBinCenter(ibin) << " " << p_lepEta_ZG->GetBinContent(ibin)/p_lepEta_data->GetBinContent(ibin) << std::endl;
 	} 
 
-	can_lepPhi->cd();
-	p_lepPhi_data->Draw();
-	p_lepPhi_ZG->SetLineColor(kRed);
-	p_lepPhi_ZG->Scale(scalefactor);
-	p_lepPhi_ZG->Draw("same");
+	can_trail->cd();
+	p_trailPt_data->Draw();
+	p_trailPt_ZG->SetLineColor(kRed);
+	p_trailPt_ZG->Scale(scalefactor);
+	p_trailPt_ZG->Draw("same");
 
 	can_sigMET->cd();
 	p_sigMET_data->Draw();
@@ -392,10 +339,10 @@ void test_ZG(){//main
 	p_HT_ZG->Draw("same");
 
 	can_nJet->cd();
-	p_nJet_data->Draw();
-	p_nJet_ZG->SetLineColor(kRed);
-	p_nJet_ZG->Scale(scalefactor);
-	p_nJet_ZG->Draw("same");
+	p_JetPt->Draw();
+	p_JetPt_ZG->Scale(scalefactor);
+	p_JetPt_ZG->SetLineColor(kRed);
+	p_JetPt_ZG->Draw("same");
 
 	can_invmass->cd();
 	p_invmass_data->Draw();
@@ -409,8 +356,6 @@ void test_ZG(){//main
 	p_llmass_ZG->Scale(scalefactor);
 	p_llmass_ZG->Draw("same");
 
-	can_scalefactor->cd();
-	p_status->Draw();
 }
 
 

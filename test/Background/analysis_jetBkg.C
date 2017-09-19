@@ -90,8 +90,8 @@ void analysis_jetBkg(){
 	
 	std::stringstream JetFakeRateFile;
   JetFakeRateFile.str();
-	if(channelType==1)JetFakeRateFile << "validateresult/JetFakeRate-transferfactor-DoubleEG-tmp.txt";
-	if(channelType==2)JetFakeRateFile << "validateresult/JetFakeRate-transferfactor-MuonEG-Aug3.txt";
+	if(channelType==1)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/JetFakeRate-transferfactor-DoubleEG-tmp.txt";
+	if(channelType==2)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/JetFakeRate-transferfactor-MuonEG-Aug3.txt";
 	std::ifstream jetfakefile(JetFakeRateFile.str().c_str());
 	std::string paratype;
 	float paravalue;	
@@ -127,6 +127,7 @@ void analysis_jetBkg(){
 	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
+	TH1D *p_nBJet = new TH1D("p_nBJet","p_nBJet",5,0,5);
 
 	TH1D *h_jetfakepho_norm            = new TH1D("h_jetfakepho_norm","eventcount",9,0,9);
 	TH1D *h_jetfakepho_syserr_jes      = new TH1D("h_jetfakepho_syserr_jes","",9,0,9);	
@@ -175,8 +176,10 @@ void analysis_jetBkg(){
 
 	/************ jet tree **************************/ 
 		TChain *jettree = new TChain("jetTree");
-		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+		//if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
+		//if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.root");
+		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
 
 		float phoEt(0);
 		float phoEta(0);
@@ -193,7 +196,8 @@ void analysis_jetBkg(){
 		float threeMass(0);
 		float HT(0);
 		float nJet(0);
-		
+		int   nBJet(0);	
+	
 		jettree->SetBranchAddress("phoEt",     &phoEt);
 		jettree->SetBranchAddress("phoEta",    &phoEta);
 		jettree->SetBranchAddress("phoPhi",    &phoPhi);
@@ -209,6 +213,7 @@ void analysis_jetBkg(){
 		jettree->SetBranchAddress("threeMass", &threeMass);
 		jettree->SetBranchAddress("HT",        &HT);
 		jettree->SetBranchAddress("nJet",      &nJet);
+		jettree->SetBranchAddress("nBJet",     &nBJet);
 	 
 		for (unsigned ievt(0); ievt<jettree->GetEntries(); ++ievt){//loop on entries
 			jettree->GetEntry(ievt);
@@ -243,9 +248,9 @@ void analysis_jetBkg(){
 			p_dPhiEleMET->Fill(fabs(dPhiLepMET), w_jet);
 			p_nJet->Fill(nJet, w_jet);
 
-			int SigBinIndex(-1);
-			SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
-			h_jetfakepho_norm->Fill( SigBinIndex, w_jet);
+			//if(phoEt > 200 && sigMET > 200 && HT > 400)p_nBJet->Fill(nBJet, w_jet);
+			p_nBJet->Fill(nBJet, w_jet);
+
 			for(unsigned ih(0); ih<NTOY; ih++){
 				
 				toy_PhoEt[ih]->Fill(phoEt,w_jet*(1+sysJetFakePho*randomweight_jet[ih]));
@@ -254,7 +259,6 @@ void analysis_jetBkg(){
 				toy_HT[ih]->Fill(HT, w_jet*(1+sysJetFakePho*randomweight_jet[ih]));
 				toy_LepPt[ih]->Fill(lepPt,w_jet*(1+sysJetFakePho*randomweight_jet[ih]));
 				toy_dPhiEleMET[ih]->Fill(fabs(dPhiLepMET), w_jet*(1+sysJetFakePho*randomweight_jet[ih]));
-				toy_eventcount[ih]->Fill(SigBinIndex, w_jet*(1+sysJetFakePho*randomweight_jet[ih]));
 			}
 		} 
 
@@ -312,23 +316,6 @@ void analysis_jetBkg(){
 		p_HT->SetBinError(ibin, totalerror);
 		delete temphist;
 	}
-	for(int ibin(1); ibin < h_jetfakepho_norm->GetSize(); ibin++){
-		float lowcount(h_jetfakepho_norm->GetBinContent(ibin)), highcount(h_jetfakepho_norm->GetBinContent(ibin));
-		for(unsigned it(0); it < NTOY; it++){
-			if(toy_eventcount[it]->GetBinContent(ibin) < lowcount)lowcount = toy_eventcount[it]->GetBinContent(ibin);
-			else if(toy_eventcount[it]->GetBinContent(ibin) > highcount)highcount = toy_eventcount[it]->GetBinContent(ibin);
-		}
-		float err1 = fabs(h_jetfakepho_norm->GetBinContent(ibin) - lowcount);
-		float err2 = fabs(highcount - h_jetfakepho_norm->GetBinContent(ibin));
-		h_jetfakepho_syserr_jetshape->SetBinContent(ibin, err1>err2? err1: err2);
-		h_jetfakepho_syserr_eleshape->SetBinContent(ibin, -1);
-		h_jetfakepho_syserr_jes->SetBinContent(ibin, -1);
-		h_jetfakepho_syserr_jer->SetBinContent(ibin, -1);
-		h_jetfakepho_syserr_esf->SetBinContent(ibin, -1);
-		h_jetfakepho_syserr_scale->SetBinContent(ibin, -1);
-		h_jetfakepho_syserr_xs->SetBinContent(ibin, -1);     
-		h_jetfakepho_syserr_lumi->SetBinContent(ibin, -1);      
-	}
 		
 		
 	std::ostringstream outputname;
@@ -354,6 +341,7 @@ void analysis_jetBkg(){
 	p_dPhiEleMET->Write();
 	p_PU->Write();
 	p_nJet->Write();
+	p_nBJet->Write();
 	h_jetfakepho_norm->Write();             
 	h_jetfakepho_syserr_jes->Write();       
 	h_jetfakepho_syserr_jer->Write();       

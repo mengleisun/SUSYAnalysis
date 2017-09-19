@@ -45,14 +45,15 @@ void analysis_ISRMC(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/test/resTree_ISR_DY.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/test/resTree_ISR_TT.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/test/resTree_ISR_ZGNLO130.log"); 
+  logfile.open("/uscms_data/d3/mengleis/test/resTree_ISR_TT.log"); 
 
   logfile << "analysis_mg()" << std::endl;
 
   RunType datatype(MC); 
   TChain* es = new TChain("ggNtuplizer/EventTree");
+	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
 //	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
 //	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_nlo.root");
 //	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WWG_RunIISummer16MiniAODv2-TrancheIV_v6_ext1.root");
@@ -60,7 +61,7 @@ void analysis_ISRMC(){//main
 //	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WWG_RunIISummer16MiniAODv2-TrancheIV_v6_ext1.root");
 //	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZG_RunIISummer16MiniAODv2-TrancheIV_v6.root");
 //	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZLLGJets_MonoPhoton_PtG-130.root")es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/skim-DYJetsToLL_M-50_nlo.root");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
+//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
   const unsigned nEvts = es->GetEntries(); 
 	//float MCweight = 4895*35.8*1000.0/nEvts;	
 	//float MCweight = 3.697*35.8*1000.0/nEvts;	
@@ -68,7 +69,8 @@ void analysis_ISRMC(){//main
 	//float MCweight = 0.04*35.8*1000.0/nEvts;//WZG
 	//float MCweight = 177.8*35.8*1000.0/nEvts;	
 	//float MCweight = 0.143*35.8*1000.0/nEvts;	
-	float MCweight = 0.140*35.8*1000.0/nEvts;	
+	//float MCweight = 0.140*35.8*1000.0/nEvts;	
+	float MCweight = 831.76*35.8*1000.0/nEvts;
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
   logfile << "Output file: " << outputname << std::endl;
@@ -277,7 +279,7 @@ void analysis_ISRMC(){//main
 					for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
 						if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getEt()>2.0)FSRVeto=false;
 
-					if(itpho->getChIso()<20 && itpho->getSigma()< 0.02 && itpho->isEB()){
+					if(itpho->getChIso()<20 && itpho->getSigma()< 0.02){
 							if(GSFveto && PixelVeto && FSRVeto)jetPhoCollection.push_back(itpho);
 					}
 					if(!itpho->passSignalSelection())continue;
@@ -312,7 +314,7 @@ void analysis_ISRMC(){//main
 			}
 
 			/*********  ZG tree************/ 
-			if(hasPho && hasLep && signalPho->isEB()){
+			if(hasPho && hasLep){
 				double dRlepphoton = DeltaR(signalPho->getEta(), signalPho->getPhi(), signalLep->getEta(), signalLep->getPhi());
 				if(dRlepphoton > 0.8){
 					if(passMETFilter(METFilter)){ 
@@ -401,7 +403,6 @@ void analysis_ISRMC(){//main
 			std::vector<recoMuon>::iterator jetMuon = signalLep; 
 			for(unsigned ip(0); ip < jetPhoCollection.size(); ip++){
 				std::vector<recoPhoton>::iterator jetPho = jetPhoCollection[ip];
-				if(!jetPho->isEB())continue;
 				double dRlepphoton = DeltaR(jetPho->getEta(), jetPho->getPhi(), jetMuon->getEta(), jetMuon->getPhi());
 				if(dRlepphoton>0.8){
 				if(passMETFilter(METFilter)){

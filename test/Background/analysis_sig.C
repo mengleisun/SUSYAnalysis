@@ -86,11 +86,14 @@ void analysis_sig(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_eventcount = new TH1D("p_eventcount","eventcount",9,0,9);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
+	TH1D *p_nBJet = new TH1D("p_nBJet","p_nBJet",5,0,5);
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
 	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/resTree_egsignal_DoubleEG_ReMiniAOD_July22.root");
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
+	//if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.root");
+	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
 
 	float phoEt(0);
 	float phoEta(0);
@@ -106,7 +109,8 @@ void analysis_sig(){
 	int   nVertex(0);
 	float dRPhoLep(0);
 	float threeMass(0);
-	float nJet(0);	
+	float nJet(0);
+	int   nBJet(0);	
 	sigtree->SetBranchAddress("phoEt",     &phoEt);
 	sigtree->SetBranchAddress("phoEta",    &phoEta);
 	sigtree->SetBranchAddress("phoPhi",    &phoPhi);
@@ -122,6 +126,7 @@ void analysis_sig(){
 	sigtree->SetBranchAddress("dRPhoLep",  &dRPhoLep);
 	sigtree->SetBranchAddress("threeMass", &threeMass);
 	sigtree->SetBranchAddress("nJet",      &nJet);
+	sigtree->SetBranchAddress("nBJet",     &nBJet);
 
 	for (unsigned ievt(0); ievt<sigtree->GetEntries(); ++ievt){//loop on entries
 		sigtree->GetEntry(ievt);
@@ -146,10 +151,8 @@ void analysis_sig(){
 		p_dPhiEleMET->Fill(fabs(dPhiLepMET));
 		p_nJet->Fill(nJet);
 		
-
-		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
-		if(SigBinIndex >=0)p_eventcount->Fill( SigBinIndex, 1);
+		//if(phoEt > 200 && sigMET > 200 && HT > 400)p_nBJet->Fill(nBJet);
+		p_nBJet->Fill(nBJet);
 	}        
 
 	std::ostringstream outputname;
@@ -197,6 +200,7 @@ void analysis_sig(){
 	p_PU->Write();
 	p_eventcount->Write();
 	p_nJet->Write();
+	p_nBJet->Write();
 	outputfile->Write();
 	outputfile->Close();
 }

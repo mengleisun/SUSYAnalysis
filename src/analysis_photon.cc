@@ -139,6 +139,13 @@ bool recoPhoton::passHLTSelection(){
     case SingleElectron2016: passHLT = true; break;
     case SingleMuon2016: passHLT = true; break;
     case DoubleMuon2016: passHLT = true; break;
+		case MET2016:  passHLT = true; break;
+    case MCDoubleEG: if(fireDoubleTrg(5) || fireDoubleTrg(6))passHLT = true; break;
+    case MCMuonEG:   if(fireDoubleTrg(28)|| fireDoubleTrg(29) || fireDoubleTrg(30))passHLT = true; break;
+    case MCSingleElectron: passHLT = true; break;
+    case MCSingleMuon: passHLT = true; break;
+    case MCDoubleMuon: passHLT = true; break;
+    case MCMET:  passHLT = true; break;
     default: break;
   }
   

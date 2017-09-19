@@ -8,7 +8,7 @@
 #include "TTree.h"
 #include "TF1.h"
 #include "TF3.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TH2F.h"
 #include "TCanvas.h"
 #include "TStyle.h"
@@ -41,6 +41,7 @@
 #include "RooFitResult.h"
 #include "RooAbsReal.h"
 #include "RooMultiVarGaussian.h"
+#include "TGraphAsymmErrors.h"
 
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
@@ -51,8 +52,8 @@
 #include "../../../include/analysis_fakes.h"
 
 #define NTOY 10000
-#define NBIN 19
-#define REBINSIZE 2
+#define NBIN 18
+#define REBINSIZE 1
 
 Double_t tmpjetfake_func(Double_t *x, Double_t *par)
 {
@@ -71,7 +72,7 @@ Double_t tmpjetfake_func(Double_t *x, Double_t *par)
 }
 
 void fitJetFunc(int detType){
-	int channel = 1; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose;
+	int channel = 2; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose;
 
 	setTDRStyle();
 	gStyle->SetOptStat(0);
@@ -81,15 +82,15 @@ void fitJetFunc(int detType){
 
 	TChain *sigtree = new TChain("signalTree");
 	if(channel == 1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/test/resTree_mgsignal_MuonEG_FebReminiAOD_MiniIso_JES.root");
+	else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
 
 	TChain *controltree = new TChain("jetTree");
 	if(channel == 1)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/test/resTree_mgsignal_MuonEG_FebReminiAOD_MiniIso_JES.root");
+	else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
 
 	std::stringstream fakerate_filename;
 	fakerate_filename.str("");
-	fakerate_filename << "JetFakeRate-DoubleEG-"; 
+	fakerate_filename << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-"; 
 	if(detType == 1)fakerate_filename << "EB.txt";
 	else if(detType == 2)fakerate_filename << "EE.txt";
 	std::ifstream jetfake_file(fakerate_filename.str().c_str());
@@ -146,29 +147,34 @@ void fitJetFunc(int detType){
 	/*  double vtx_constant = par[5]; */
 	/*  double vtx_slope = par[6];    */
 	/**********************************/
-	TF3 f3("f3", fakerate_func,10,1000,0,100,0,1.5,7);
+	TF3 f3("f3", fakerate_func,10,1000,0,100,0,2.5,7);
 	f3.SetParameters(scalefactor, ptslope, ptconstant, ptindex, 1.0, vtxconst, vtxslope);
 
-	TH1F *p_controlPhoEt = new TH1F("p_controlPhoEt",";p_{T} (GeV);Events",115,35,150);
-	TH1F *p_sigPhoEt  = new TH1F("p_sigPhoEt",";p_{T} (GeV);Events",115,35,150);
-	TH1F *p_fakesPhoEt = new TH1F("p_fakesPhoEt",";p_{T} (GeV);Events",115,35,150);
-	TH1F *p_elebkgPhoEt = new TH1F("p_elebkgPhoEt",";p_{T} (GeV);Events",115,35,150);
+
+	TH1D *p_controlPhoEt = new TH1D("p_controlPhoEt",";p_{T} (GeV);Events",265,35,300);
+	TH1D *p_sigPhoEt  = new TH1D("p_sigPhoEt",";p_{T} (GeV);Events",265,35,300);
+	TH1D *p_fakesPhoEt = new TH1D("p_fakesPhoEt",";p_{T} (GeV);Events",265,35,300);
+	TH1D *p_elebkgPhoEt = new TH1D("p_elebkgPhoEt",";p_{T} (GeV);Events",265,35,300);
 
 	if(detType == 1){
 		sigtree->Draw("phoEt >> p_sigPhoEt", " phoEt >35 && sigMET < 70 && fabs(phoEta) < 1.4442");
+		std::cout << "signal " << p_sigPhoEt->GetEntries() << std::endl;
 		controltree->Draw("phoEt >> p_controlPhoEt", "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442");
 	}
 	if(detType == 2){
-		sigtree->Draw("phoEt >> p_sigPhoEt", " phoEt >35 && sigMET < 70 && fabs(phoEta) > 1.56");
-		controltree->Draw("phoEt >> p_controlPhoEt", "phoEt > 35 && sigMET < 70 && fabs(phoEta) > 1.56");
+		sigtree->Draw("phoEt >> p_sigPhoEt", " phoEt >35 && sigMET < 70 && fabs(phoEta) > 1.56 && fabs(phoEta) < 2.1");
+		std::cout << "signal " << p_sigPhoEt->GetEntries() << std::endl;
+		controltree->Draw("phoEt >> p_controlPhoEt", "phoEt > 35 && sigMET < 70 && fabs(phoEta) > 1.56 && fabs(phoEta) < 2.1");
 	}
   
 	p_sigPhoEt->Sumw2();
 	p_controlPhoEt->Sumw2();
+
+
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
 	if(channel == 1)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/test/resTree_mgsignal_MuonEG_FebReminiAOD_MiniIso_JES.root");
+	else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
 
 	float proxyphoEt(0);
 	float proxyphoEta(0);
@@ -186,7 +192,7 @@ void fitJetFunc(int detType){
 		proxytree->GetEntry(ievt);
 		if(proxysigMET > 70)continue;
 		if(detType == 1 && fabs(proxyphoEta) > 1.4442)continue;
-		else if(detType == 2 && fabs(proxyphoEta) < 1.56)continue;
+		else if(detType == 2 && (fabs(proxyphoEta) < 1.56 || fabs(proxyphoEta) > 2.1))continue;
 		if(proxyphoEt < 35)continue;
 		double w_ele = 1;
 		w_ele = f3(proxyphoEt, proxynVertex, fabs(proxyphoEta)); 
@@ -210,6 +216,7 @@ void fitJetFunc(int detType){
 		double binerror = p_sigPhoEt->GetBinError(ibin);  
 		if(binvalue == 0)continue;
 		double totalerror = sqrt(binvalue*binvalue*fracerror*fracerror + binerror*binerror*frac*frac);
+		std::cout << "fake " << p_fakesPhoEt->GetBinCenter(ibin) << " fakerate=" << frac << std::endl;
 		p_fakesPhoEt->SetBinContent(ibin, binvalue);
 		p_fakesPhoEt->SetBinError(ibin, binerror);
 	}
@@ -221,20 +228,52 @@ void fitJetFunc(int detType){
 	can_pad1->SetBottomMargin(0.1);
 	can_pad1->Draw();          
 	can_pad1->cd();          
-	gPad->SetLogy();
-	TH1F *new_controlPhoEt = (TH1F*)p_controlPhoEt->Rebin(REBINSIZE);
-	TH1F *new_fakesPhoEt = (TH1F*)p_fakesPhoEt->Rebin(REBINSIZE);
-	new_controlPhoEt->SetMinimum(new_fakesPhoEt->GetBinContent(new_fakesPhoEt->GetSize()-1));
-	new_fakesPhoEt->SetMinimum(new_fakesPhoEt->GetBinContent(new_fakesPhoEt->GetSize()-1));
+
+	TGraphAsymmErrors *new_controlPhoEt = new TGraphAsymmErrors(85);
+	TGraphAsymmErrors *new_fakesPhoEt   = new TGraphAsymmErrors(85);
+	for(unsigned ibin(1); ibin <= 65; ibin++){
+		double new_control_value = p_controlPhoEt->GetBinContent(ibin); 
+		double new_fakes_value = p_fakesPhoEt->GetBinContent(ibin);
+		double new_control_error = p_controlPhoEt->GetBinError(ibin); 
+		double new_fakes_error = p_fakesPhoEt->GetBinError(ibin);
+		new_controlPhoEt->SetPoint(ibin,p_controlPhoEt->GetBinCenter(ibin),  new_control_value);
+		new_controlPhoEt->SetPointError(ibin,0, 0, min(new_control_error, new_control_value-0.001), new_control_error);
+		new_fakesPhoEt->SetPoint(ibin, p_fakesPhoEt->GetBinCenter(ibin),  new_fakes_value);
+		new_fakesPhoEt->SetPointError(ibin,0, 0, min(new_fakes_error, new_fakes_value - 0.001), new_fakes_error);
+	}
+	for(unsigned ibin(66); ibin <= 85; ibin++){
+		double new_control_value = 0;
+		double new_fakes_value = 0;
+		double new_control_error = 0;
+		double new_fakes_error = 0;
+		for(unsigned j(1); j <=10; j++){
+			new_control_value += p_controlPhoEt->GetBinContent(65+(ibin-66)*10+j); 
+			new_fakes_value += p_fakesPhoEt->GetBinContent(65+(ibin-66)*10+j);
+			new_control_error += p_controlPhoEt->GetBinError(65+(ibin-66)*10+j); 
+			new_fakes_error += p_fakesPhoEt->GetBinError(65+(ibin-66)*10+j);
+		}
+		new_control_value /=10.0;
+		new_fakes_value  /=10.0;
+		new_control_error  /=10.0;
+		new_fakes_error  /=10.0;
+		new_controlPhoEt->SetPoint(ibin,p_controlPhoEt->GetBinCenter(70+(ibin-66)*10),  new_control_value);
+		new_controlPhoEt->SetPointError(ibin,0, 0, min(new_control_error, new_control_value-0.001), new_control_error);
+		new_fakesPhoEt->SetPoint(ibin, p_fakesPhoEt->GetBinCenter(70+(ibin-66)*10),  new_fakes_value);
+		new_fakesPhoEt->SetPointError(ibin,0, 0, min(new_fakes_error, new_fakes_value - 0.001), new_fakes_error);
+	}
+	
 	new_fakesPhoEt->GetXaxis()->SetTitle("p_{T} (GeV)");
 	new_controlPhoEt->GetXaxis()->SetTitle("p_{T} (GeV)");
 	new_controlPhoEt->GetXaxis()->SetTitleOffset(1);
 	new_controlPhoEt->GetXaxis()->SetTitleSize(20);
-	new_controlPhoEt->Sumw2();
-	new_fakesPhoEt->Sumw2();
-	new_controlPhoEt->GetXaxis()->SetRangeUser(35,145);
-	new_fakesPhoEt->GetXaxis()->SetRangeUser(35,145);
-	new_controlPhoEt->Draw("EP");
+	new_controlPhoEt->GetXaxis()->SetRangeUser(35,300);
+	new_fakesPhoEt->GetXaxis()->SetRangeUser(35,300);
+	gPad->SetLogy();
+	TH1D *new_dummy=new TH1D("dummy","",265,35,300);
+	new_dummy->SetMinimum(0.001);
+	new_dummy->SetMaximum(100000);
+	new_dummy->Draw();
+	new_controlPhoEt->Draw("P same");
 	new_controlPhoEt->SetLineColor(kBlack);
 	new_controlPhoEt->SetMarkerStyle(20);
 	new_fakesPhoEt->SetLineColor(kRed);
@@ -249,36 +288,35 @@ void fitJetFunc(int detType){
 	leg->AddEntry(new_fakesPhoEt,"fake photons");
 	leg->Draw("same");
 
-
 	TCanvas* mccan = new TCanvas("mccan","mccan",1200,600) ;
 	mccan->Divide(2);
-	mccan->cd(1);
-	new_controlPhoEt->Draw();
-	mccan->cd(2);
-	new_fakesPhoEt->Draw();
-	
+
 	//********************   denominator *****************************************************//
 	new_controlPhoEt->Fit("expo");
 	TF1 *inifitden = new_controlPhoEt->GetFunction("expo");
 	double iniLambda_den1 = inifitden->GetParameter(1);
 	double iniCoeff_den   = exp(inifitden->GetParameter(0))/2;
-	double iniLambda_den2 = (log(new_controlPhoEt->GetBinContent(38)- 2*iniCoeff_den*exp(iniLambda_den1*new_controlPhoEt->GetBinCenter(38))) - log(new_controlPhoEt->GetBinContent(56)- 2*iniCoeff_den*exp(iniLambda_den1*new_controlPhoEt->GetBinCenter(56))) )/(new_controlPhoEt->GetBinCenter(38)-new_controlPhoEt->GetBinCenter(56));
-	TF1 *fitfunc_den= new TF1("fitfunc_den", tmpjetfake_func, 35, 150, 4);
+	//double iniLambda_den2 = (log(new_controlPhoEt->GetBinContent(38)- 2*iniCoeff_den*exp(iniLambda_den1*new_controlPhoEt->GetBinCenter(38))) - log(new_controlPhoEt->GetBinContent(56)- 2*iniCoeff_den*exp(iniLambda_den1*new_controlPhoEt->GetBinCenter(56))) )/(new_controlPhoEt->GetBinCenter(38)-new_controlPhoEt->GetBinCenter(56));
+	double iniLambda_den2 = (log(new_controlPhoEt->Eval(111)- 2*iniCoeff_den*exp(iniLambda_den1*111.0)) - log(new_controlPhoEt->Eval(250)- 2*iniCoeff_den*exp(iniLambda_den1*250.0)) )/( 111.0-250.0);
+ 	TF1 *fitfunc_den= new TF1("fitfunc_den", tmpjetfake_func, 35, 300, 4);
 	if(iniLambda_den2 > 0 && iniLambda_den2 < 1e6)fitfunc_den->SetParameters(iniCoeff_den, iniCoeff_den/10, iniLambda_den1, iniLambda_den2);
 	else fitfunc_den->SetParameters(iniCoeff_den, iniCoeff_den/10, iniLambda_den1, iniLambda_den1);
 	new_controlPhoEt->Fit("fitfunc_den","S");
 	TF1 *fitden = new_controlPhoEt->GetFunction("fitfunc_den");
 	ofstream myfile;
-	if(detType == 1)myfile.open("JetFakeRate-transferfactor-DoubleEG-EB.txt");
-	else if(detType == 2)myfile.open("JetFakeRate-transferfactor-DoubleEG-EE.txt");
+	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB.txt");
+	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EE.txt");
 
-	TH1F *ratio=(TH1F*)new_fakesPhoEt->Clone("transfer factor");
-	ratio->Divide(new_controlPhoEt);
+	TH1D *ratio = new TH1D("transfer fraction","",int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE),35,300);
+	for(unsigned ibin(1); ibin < int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE); ibin++){
+		ratio->SetBinContent(ibin, new_fakesPhoEt->Eval(35+(ibin-1)*2 +1)/new_controlPhoEt->Eval(35+(ibin-1)*2 +1));
+	}
+ 
 	myfile << "den_coeff1 " << fitden->GetParameter(0) << std::endl;
 	myfile << "den_coeff2 " << fitden->GetParameter(1) << std::endl;
 	myfile << "den_lambd1 " << fitden->GetParameter(2) << std::endl;
 	myfile << "den_lambd2 " << fitden->GetParameter(3) << std::endl;
-	
+   
 	TFitResultPtr rden = new_controlPhoEt->Fit("fitfunc_den","S");
 	TMatrixDSym covden = rden->GetCovarianceMatrix(); 
 	rden->Print("V");     
@@ -297,10 +335,10 @@ void fitJetFunc(int detType){
 	RooDataSet* toymcdataden = mvgden.generate(RooArgSet(central_coeff1_den,central_coeff2_den,central_lambda1_den,central_lambda2_den),NTOY);
 	std::ostringstream modelnameden;
 	TF1 *gen_den[NTOY];
-	TH1F *den_upper = new TH1F("den_upper","den_upper",115,35,150);
-	TH1F *den_lower = new TH1F("den_lower","den_lower",115,35,150);
+	TH1D *den_upper = new TH1D("den_upper","den_upper",265,35,300);
+	TH1D *den_lower = new TH1D("den_lower","den_lower",265,35,300);
 	can_pad1->cd();          
-	for(unsigned ibin(1); ibin <= 115; ibin++)den_lower->SetBinContent(ibin, fitfunc_den->Eval(den_upper->GetBinCenter(ibin)));
+	for(unsigned ibin(1); ibin <= 265; ibin++)den_lower->SetBinContent(ibin, fitfunc_den->Eval(den_upper->GetBinCenter(ibin)));
 	for(int i(0); i<NTOY; i++){
 		double data1 = toymcdataden->get(i)->getRealValue("central_coeff1_den");
 		double data2 = toymcdataden->get(i)->getRealValue("central_coeff2_den");
@@ -308,65 +346,64 @@ void fitJetFunc(int detType){
 		double data4 = toymcdataden->get(i)->getRealValue("central_lambda2_den");
 		modelnameden.str("");
 		modelnameden << "gen_den_" << i;
-		gen_den[i] = new TF1(modelnameden.str().c_str(), tmpjetfake_func, 35, 150, 4);
+		gen_den[i] = new TF1(modelnameden.str().c_str(), tmpjetfake_func, 35, 300, 4);
 		gen_den[i]->SetParameters(data1, data2, data3, data4);
 		gen_den[i]->SetLineColorAlpha(kBlue, 0.35);
 		//gen_den[i]->Draw("same");
-	 	for(unsigned ibin(1); ibin <= 115; ibin++){
+	 	for(unsigned ibin(1); ibin <= 265; ibin++){
 			double estimated = gen_den[i]->Eval(den_upper->GetBinCenter(ibin));
 			if(den_upper->GetBinContent(ibin) < estimated)den_upper->SetBinContent(ibin, estimated);
 			if(den_lower->GetBinContent(ibin) > estimated)den_lower->SetBinContent(ibin, estimated);
 		}
 	}
-
+	
 	den_upper->Draw("L same");
 	den_lower->Draw("L same");
-
-
-
-	// *************************  Numerator ******************************************************************//
-
-	new_fakesPhoEt->Fit("expo");
-	TF1 *inifit = new_fakesPhoEt->GetFunction("expo");
-	double iniLambda_num1 = inifit->GetParameter(1);
-	double iniCoeff_num  	= exp(inifit->GetParameter(0))/2;
-	double iniLambda_num2 = (log(new_fakesPhoEt->GetBinContent(38)- 2*iniCoeff_num*exp(iniLambda_num1*new_fakesPhoEt->GetBinCenter(38))) - log(new_fakesPhoEt->GetBinContent(56)- 2*iniCoeff_num*exp(iniLambda_num1*new_fakesPhoEt->GetBinCenter(56))) )/(new_fakesPhoEt->GetBinCenter(38)-new_fakesPhoEt->GetBinCenter(56));
-	TF1 *fitfunc_num= new TF1("fitfunc_num", tmpjetfake_func, 35, 150, 4);
-	//fitfunc_num->SetParameters(iniCoeff_num, iniCoeff_num/10, iniLambda_num1, iniLambda_num2);
-	if(channel == 1)fitfunc_num->SetParameters(iniCoeff_num, 750, iniLambda_num1, -0.03);
-	else if(channel == 2)fitfunc_num->SetParameters(iniCoeff_num, 110, iniLambda_num1, -0.82);
-	TVirtualFitter::SetMaxIterations(1000000);
-	TFitResultPtr r = new_fakesPhoEt->Fit("fitfunc_num","R S");
-	TF1 *fit = new_fakesPhoEt->GetFunction("fitfunc_num");
-	myfile << "num_coeff1 " << fit->GetParameter(0) << std::endl;
-	myfile << "num_coeff2 " << fit->GetParameter(1) << std::endl;
-	myfile << "num_lambd1 " << fit->GetParameter(2) << std::endl;
-	myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
-	
-	//std::ostringstream testname;
-	//TF1 *test_num[200][200];
-	//for(unsigned i(0); i < 200; i++){
-	//	for(unsigned j(0); j < 200; j++){
-	//		testname.str("");
-	//		testname << "test_" << i << "_" << j;
-	//		test_num[i][j] = new TF1(testname.str().c_str(), tmpjetfake_func, 35, 150, 4);
-	//		test_num[i][j]->SetParameters(iniCoeff_num, 20+i*5, iniLambda_num1, -0.001-0.001*j);
-	//		//TVirtualFitter::SetMaxIterations(1000000);
-	//	  int status = new_fakesPhoEt->Fit(testname.str().c_str(),"R");
-	//		TF1 *tmpf1 = new_fakesPhoEt->GetFunction(testname.str().c_str());
-	//		float diff = fabs(tmpf1->Eval(new_fakesPhoEt->GetBinCenter(55)) - new_fakesPhoEt->GetBinContent(55))/new_fakesPhoEt->GetBinContent(55);
-	//		if(tmpf1->GetParError(0)/tmpf1->GetParameter(0) < 1 && tmpf1->GetParError(1)/tmpf1->GetParameter(1) < 1 && tmpf1->GetParError(2)/tmpf1->GetParameter(2) < 1 && tmpf1->GetParError(3)/tmpf1->GetParameter(3) < 1 && diff < 0.2	)std::cout << "good point " << i*5 << " " << -1+0.005*j << " status = " << status << std::endl;
-	//		delete tmpf1;
-	//	}
-	//}
-	//
-	
+// *************************  Numerator ******************************************************************//
+ 
+new_fakesPhoEt->Fit("expo");
+TF1 *inifit = new_fakesPhoEt->GetFunction("expo");
+double iniLambda_num1 = inifit->GetParameter(1);
+double iniCoeff_num  	= exp(inifit->GetParameter(0))/2;
+//double iniLambda_num2 = (log(new_fakesPhoEt->GetBinContent(38)- 2*iniCoeff_num*exp(iniLambda_num1*new_fakesPhoEt->GetBinCenter(38))) - log(new_fakesPhoEt->GetBinContent(56)- 2*iniCoeff_num*exp(iniLambda_num1*new_fakesPhoEt->GetBinCenter(56))) )/(new_fakesPhoEt->GetBinCenter(38)-new_fakesPhoEt->GetBinCenter(56));
+double iniLambda_num2 = (log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) - log(new_fakesPhoEt->Eval(250)- 2*iniCoeff_num*exp(iniLambda_num1*250.0)) )/(111.0-250.0);
+std::cout << "log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) = " << log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) << "  log(new_fakesPhoEt->Eval(250)- 2*iniCoeff_num*exp(iniLambda_num1*250.0)) = " << log(new_fakesPhoEt->Eval(250)- 2*iniCoeff_num*exp(iniLambda_num1*250.0))  << "  lambda2 = " << iniLambda_num2 << std::endl;
+TF1 *fitfunc_num= new TF1("fitfunc_num", tmpjetfake_func, 35, 300, 4);
+//fitfunc_num->SetParameters(iniCoeff_num, iniCoeff_num/10, iniLambda_num1, iniLambda_num2);
+if(channel == 1)fitfunc_num->SetParameters(iniCoeff_num, 750, iniLambda_num1, -0.03);
+else if(channel == 2)fitfunc_num->SetParameters(iniCoeff_num, iniCoeff_num/10, iniLambda_num1, iniLambda_num2);
+TVirtualFitter::SetMaxIterations(1000000);
+TFitResultPtr r = new_fakesPhoEt->Fit("fitfunc_num","R S");
+TF1 *fit = new_fakesPhoEt->GetFunction("fitfunc_num");
+myfile << "num_coeff1 " << fit->GetParameter(0) << std::endl;
+myfile << "num_coeff2 " << fit->GetParameter(1) << std::endl;
+myfile << "num_lambd1 " << fit->GetParameter(2) << std::endl;
+myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
+ 
+//std::ostringstream testname;
+//TF1 *test_num[200][200];
+//for(unsigned i(0); i < 200; i++){
+//	for(unsigned j(0); j < 200; j++){
+//		testname.str("");
+//		testname << "test_" << i << "_" << j;
+//		test_num[i][j] = new TF1(testname.str().c_str(), tmpjetfake_func, 35, 150, 4);
+//		test_num[i][j]->SetParameters(iniCoeff_num, 20+i*5, iniLambda_num1, -0.001-0.001*j);
+//		//TVirtualFitter::SetMaxIterations(1000000);
+//	  int status = new_fakesPhoEt->Fit(testname.str().c_str(),"R");
+//		TF1 *tmpf1 = new_fakesPhoEt->GetFunction(testname.str().c_str());
+//		float diff = fabs(tmpf1->Eval(new_fakesPhoEt->GetBinCenter(55)) - new_fakesPhoEt->GetBinContent(55))/new_fakesPhoEt->GetBinContent(55);
+//		if(tmpf1->GetParError(0)/tmpf1->GetParameter(0) < 1 && tmpf1->GetParError(1)/tmpf1->GetParameter(1) < 1 && tmpf1->GetParError(2)/tmpf1->GetParameter(2) < 1 && tmpf1->GetParError(3)/tmpf1->GetParameter(3) < 1 && diff < 0.2	)std::cout << "good point " << i*5 << " " << -1+0.005*j << " status = " << status << std::endl;
+//		delete tmpf1;
+//	}
+//}
+//
+ 
 	can_pad1->cd();          
 	TMatrixDSym cov = r->GetCovarianceMatrix(); 
 	r->Print("V");     
 	fitfunc_num->Draw("same");
-	float nominalvalue_num[115];
-	for(unsigned ibin(0); ibin < 115; ibin++){
+	float nominalvalue_num[265];
+	for(unsigned ibin(0); ibin < 265; ibin++){
 		nominalvalue_num[ibin] =  fitfunc_num->Eval(35+ibin);
 	}
 	TVectorD mu(4) ;
@@ -383,12 +420,12 @@ void fitJetFunc(int detType){
 	RooDataSet* toymcdata = mvg.generate(RooArgSet(central_coeff1_num,central_coeff2_num,central_lambda1_num,central_lambda2_num),NTOY);
 	std::ostringstream modelname;
 	TF1 *gen_num[NTOY];
-	TH1F *num_upper = new TH1F("num_upper","num_upper",115,35,150);
-	TH1F *num_lower = new TH1F("num_lower","num_lower",115,35,150);
-	float toyptvalue[115][NTOY];
-	float lowtoyptvalue[115];
-	float hightoyptvalue[115];
-	for(unsigned ii(0); ii < 115; ii++){
+	TH1D *num_upper = new TH1D("num_upper","num_upper",265,35,300);
+	TH1D *num_lower = new TH1D("num_lower","num_lower",265,35,300);
+	float toyptvalue[265][NTOY];
+	float lowtoyptvalue[265];
+	float hightoyptvalue[265];
+	for(unsigned ii(0); ii < 265; ii++){
 		lowtoyptvalue[ii] = 100000;
 		hightoyptvalue[ii] = 0;
 	}
@@ -401,18 +438,18 @@ void fitJetFunc(int detType){
 		if(data1 < 1e8 && data2 < 1e8 && data3 < 1e8 && data4 < 1e8){
 			modelname.str("");
 			modelname << "gen_num_" << i;
-			gen_num[i] = new TF1(modelname.str().c_str(), tmpjetfake_func, 35, 150, 4);
+			gen_num[i] = new TF1(modelname.str().c_str(), tmpjetfake_func, 35, 300, 4);
 			gen_num[i]->SetParameters(data1, data2, data3, data4);
 			gen_num[i]->SetLineColorAlpha(kBlue, 0.35);
 			//gen_num[i]->Draw("same");
 			bool exception(false);
-			std::cout << std::endl;
-			for(unsigned ibin(1); ibin < new_fakesPhoEt->GetSize(); ibin++){
-				std::cout << gen_num[i]->Eval(new_fakesPhoEt->GetBinCenter(ibin)) << " " << new_fakesPhoEt->GetBinContent(ibin) << std::endl; 
-				if(gen_num[i]->Eval(new_fakesPhoEt->GetBinCenter(ibin)) - new_fakesPhoEt->GetBinContent(ibin) < -1*1.5*new_fakesPhoEt->GetBinError(ibin))exception=true;
-			}
+			//std::cout << std::endl;
+			//for(unsigned ibin(1); ibin < new_fakesPhoEt->GetSize(); ibin++){
+			//	std::cout << gen_num[i]->Eval(new_fakesPhoEt->GetBinCenter(ibin)) << " " << new_fakesPhoEt->GetBinContent(ibin) << std::endl; 
+			//	if(gen_num[i]->Eval(new_fakesPhoEt->GetBinCenter(ibin)) - new_fakesPhoEt->GetBinContent(ibin) < -1*1.5*new_fakesPhoEt->GetBinError(ibin))exception=true;
+			//}
 			if(exception)continue; 
-			for(unsigned ibin(0); ibin < 115; ibin++){
+			for(unsigned ibin(0); ibin < 265; ibin++){
 				double estimated = gen_num[i]->Eval(35+ibin);
 				toyptvalue[ibin][i] = estimated;
 				if(lowtoyptvalue[ibin] > estimated)lowtoyptvalue[ibin] = estimated;
@@ -423,7 +460,7 @@ void fitJetFunc(int detType){
 	
 	TCanvas *cangaus = new TCanvas("cangaus","",600,600);
 	cangaus->cd();
-	for(unsigned ibin(0); ibin < 115; ibin++){
+	for(unsigned ibin(0); ibin < 265; ibin++){
 		num_upper->SetBinContent(ibin, hightoyptvalue[ibin]); 
 		num_lower->SetBinContent(ibin, lowtoyptvalue[ibin]);
 	}
@@ -435,10 +472,10 @@ void fitJetFunc(int detType){
 	new_fakesPhoEt->Draw("EP same");
 	
 	
-	for(unsigned ii(1); ii <= 115; ii++){
+	for(unsigned ii(1); ii <= 265; ii++){
 		myfile << "numerror " << ii-1 << " " <<  num_upper->GetBinContent(ii) - num_lower->GetBinContent(ii) << std::endl;
 	} 
-	for(unsigned ii(1); ii <= 115; ii++){
+	for(unsigned ii(1); ii <= 265; ii++){
 		myfile << "denerror " << ii-1 << " " <<  den_upper->GetBinContent(ii) - den_lower->GetBinContent(ii) << std::endl;
 	}
 	
@@ -447,9 +484,9 @@ void fitJetFunc(int detType){
 		myfile << "ratio " << ibin << " = " << ratio->GetBinContent(ibin) << "  est=" << fitfunc_num->Eval(ratio->GetBinCenter(ibin))/fitfunc_den->Eval(ratio->GetBinCenter(ibin)) << std::endl;
 	}
 	myfile.close();
-
-	if(detType == 1)c_pt->SaveAs("JetFakeRate_transfer_eg_EB.pdf");
-	else if(detType == 2)c_pt->SaveAs("JetFakeRate_transfer_eg_EE.pdf");
+	       
+	if(detType == 1)c_pt->SaveAs("JetFakeRate_transfer_mg_EB.pdf");
+	else if(detType == 2)c_pt->SaveAs("JetFakeRate_transfer_mg_EE.pdf");
 }
 
 

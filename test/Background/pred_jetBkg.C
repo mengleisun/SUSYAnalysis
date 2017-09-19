@@ -30,6 +30,7 @@
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_fakes.h"
+#include "../../include/analysis_binning.h"
 
 #define NTOY 1000
 
@@ -48,7 +49,7 @@ void pred_jetBkg(){
 	std::string conftype;
 	double confvalue;
 	if(configfile.is_open()){
-  	for(int i(0); i<8; i++){ 
+  	for(int i(0); i<9; i++){ 
 			configfile >> conftype >> confvalue; 
 			if(conftype.find("ichannel")!=std::string::npos)ichannel = confvalue;
 			if(conftype.find("anatype")!=std::string::npos)anatype = confvalue;
@@ -65,13 +66,21 @@ void pred_jetBkg(){
 
 	std::ifstream binfile("binConfig.txt");
 	float METbin1(200), METbin2(300);
+	float HTbin1(100),  HTbin2(400);
+	float PHOETbin(100);
+	int   NBIN(0);
 	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
+		for(int i(0); i<6; i++){
 			binfile >> conftype >> confvalue;
+			if(conftype.find("NBIN")!=std::string::npos)NBIN = int(confvalue);
 			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
 			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
+			if(conftype.find("HTbin1")!=std::string::npos)HTbin1= confvalue;
+			if(conftype.find("HTbin2")!=std::string::npos)HTbin2= confvalue;
+			if(conftype.find("PHOETbin")!=std::string::npos)PHOETbin= confvalue;
 		}
 	}
+	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
@@ -90,8 +99,8 @@ void pred_jetBkg(){
 	
 	std::stringstream JetFakeRateFile;
   JetFakeRateFile.str();
-	if(channelType==1)JetFakeRateFile << "validateresult/JetFakeRate-transferfactor-DoubleEG-tmp.txt";
-	if(channelType==2)JetFakeRateFile << "validateresult/JetFakeRate-transferfactor-MuonEG-Aug3.txt";
+	if(channelType==1)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/JetFakeRate-transferfactor-DoubleEG-tmp.txt";
+	if(channelType==2)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/JetFakeRate-transferfactor-MuonEG-Aug3.txt";
 	std::ifstream jetfakefile(JetFakeRateFile.str().c_str());
 	std::string paratype;
 	float paravalue;	
@@ -128,6 +137,13 @@ void pred_jetBkg(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 
+	TH1D *p_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){
+		histname.str("");
+		histname << "p_PhoEt_bin" << ip;
+	 	p_PhoEt_bin[ip] = new TH1D(histname.str().c_str(),"#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
+	}
+
 	TH1D *h_jetfakepho_norm;
 	TH1D *h_jetfakepho_syserr_jes;
 	TH1D *h_jetfakepho_syserr_jer;
@@ -138,26 +154,26 @@ void pred_jetBkg(){
 	TH1D *h_jetfakepho_syserr_xs;
 	TH1D *h_jetfakepho_syserr_lumi;
 	if(channelType==1){
-		h_jetfakepho_norm            = new TH1D("eg_jetfakepho_norm","eventcount",9,0,9);
-		h_jetfakepho_syserr_jes      = new TH1D("eg_jetfakepho_syserr_jes","",9,0,9);	
-		h_jetfakepho_syserr_jer      = new TH1D("eg_jetfakepho_syserr_jer","",9,0,9);	
-		h_jetfakepho_syserr_esf      = new TH1D("eg_jetfakepho_syserr_esf","",9,0,9);	
-		h_jetfakepho_syserr_scale    = new TH1D("eg_jetfakepho_syserr_scale","",9,0,9);	
-		h_jetfakepho_syserr_eleshape = new TH1D("eg_jetfakepho_syserr_eleshape","",9,0,9);	
-		h_jetfakepho_syserr_jetshape = new TH1D("eg_jetfakepho_syserr_jetshape","",9,0,9);	
-		h_jetfakepho_syserr_xs       = new TH1D("eg_jetfakepho_syserr_xs","",9,0,9);	
-		h_jetfakepho_syserr_lumi     = new TH1D("eg_jetfakepho_syserr_lumi","",9,0,9);
+		h_jetfakepho_norm            = new TH1D("eg_jetfakepho_norm","eventcount",NBIN,0,NBIN);
+		h_jetfakepho_syserr_jes      = new TH1D("eg_jetfakepho_syserr_jes","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_jer      = new TH1D("eg_jetfakepho_syserr_jer","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_esf      = new TH1D("eg_jetfakepho_syserr_esf","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_scale    = new TH1D("eg_jetfakepho_syserr_scale","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_eleshape = new TH1D("eg_jetfakepho_syserr_eleshape","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_jetshape = new TH1D("eg_jetfakepho_syserr_jetshape","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_xs       = new TH1D("eg_jetfakepho_syserr_xs","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_lumi     = new TH1D("eg_jetfakepho_syserr_lumi","",NBIN,0,NBIN);
 	} 
 	else if(channelType==2){
-		h_jetfakepho_norm            = new TH1D("mg_jetfakepho_norm","eventcount",9,0,9);
-		h_jetfakepho_syserr_jes      = new TH1D("mg_jetfakepho_syserr_jes","",9,0,9);	
-		h_jetfakepho_syserr_jer      = new TH1D("mg_jetfakepho_syserr_jer","",9,0,9);	
-		h_jetfakepho_syserr_esf      = new TH1D("mg_jetfakepho_syserr_esf","",9,0,9);	
-		h_jetfakepho_syserr_scale    = new TH1D("mg_jetfakepho_syserr_scale","",9,0,9);	
-		h_jetfakepho_syserr_eleshape = new TH1D("mg_jetfakepho_syserr_eleshape","",9,0,9);	
-		h_jetfakepho_syserr_jetshape = new TH1D("mg_jetfakepho_syserr_jetshape","",9,0,9);	
-		h_jetfakepho_syserr_xs       = new TH1D("mg_jetfakepho_syserr_xs","",9,0,9);	
-		h_jetfakepho_syserr_lumi     = new TH1D("mg_jetfakepho_syserr_lumi","",9,0,9);
+		h_jetfakepho_norm            = new TH1D("mg_jetfakepho_norm","eventcount",NBIN,0,NBIN);
+		h_jetfakepho_syserr_jes      = new TH1D("mg_jetfakepho_syserr_jes","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_jer      = new TH1D("mg_jetfakepho_syserr_jer","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_esf      = new TH1D("mg_jetfakepho_syserr_esf","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_scale    = new TH1D("mg_jetfakepho_syserr_scale","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_eleshape = new TH1D("mg_jetfakepho_syserr_eleshape","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_jetshape = new TH1D("mg_jetfakepho_syserr_jetshape","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_xs       = new TH1D("mg_jetfakepho_syserr_xs","",NBIN,0,NBIN);	
+		h_jetfakepho_syserr_lumi     = new TH1D("mg_jetfakepho_syserr_lumi","",NBIN,0,NBIN);
 	} 
 	
 	TH1D *toy_PhoEt[NTOY];
@@ -188,7 +204,7 @@ void pred_jetBkg(){
 		toy_dPhiEleMET[ih] = new TH1D(histname.str().c_str(), histname.str().c_str(),32,0,3.2);
 		histname.str("");
 		histname << "toy_eventcount_" << ih;
-		toy_eventcount[ih] = new TH1D(histname.str().c_str(), histname.str().c_str(),9,0,9);
+		toy_eventcount[ih] = new TH1D(histname.str().c_str(), histname.str().c_str(),NBIN,0,NBIN);
 	}
 	TH1D *p_transfer = new TH1D("p_transfer","",965,35,1000);
 	for(int ibin(1); ibin <= 965; ibin++){
@@ -198,7 +214,7 @@ void pred_jetBkg(){
 	/************ jet tree **************************/ 
 		TChain *jettree = new TChain("jetTree");
 		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
 
 		float phoEt(0);
 		float phoEta(0);
@@ -266,8 +282,11 @@ void pred_jetBkg(){
 			p_nJet->Fill(nJet, w_jet);
 
 			int SigBinIndex(-1);
-			SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
+			SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 			h_jetfakepho_norm->Fill( SigBinIndex, w_jet);
+
+			if(SigBinIndex >=0)p_PhoEt_bin[SigBinIndex]->Fill( phoEt,w_jet);
+
 			for(unsigned ih(0); ih<NTOY; ih++){
 				
 				toy_PhoEt[ih]->Fill(phoEt,w_jet*(1+sysJetFakePho*randomweight_jet[ih]));
@@ -394,6 +413,7 @@ void pred_jetBkg(){
 		toy_dPhiEleMET[it]->Write();
 	}
 	p_transfer->Write();
+	for(unsigned ip(0); ip<NBIN; ip++)p_PhoEt_bin[ip]->Write();
 	outputfile->Write();
 	outputfile->Close();
 

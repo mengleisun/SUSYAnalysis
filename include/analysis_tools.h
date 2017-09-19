@@ -13,7 +13,8 @@ enum MCType{
 	TT = 11,
 	WW = 12,
 	WZ = 13,
-  nMCType = 14
+	generalMC = 14,
+  nMCType = 15
 };
 
 double MC_XS[14] = {1, 311.16/*WGJetInclusive*/, 12.7/*WGJet40*/, 0.83/*WGJet130*/, 117.8/*ZGInclusive*/, 5670/*DY*/, 3.697/*TTG*/, 0.21/*WWG*/,0.04/*WZG*/, 18610, 0.143, 831.76/*TTBar*/,63.21/*WW*/,22.82/*WZ*/};
@@ -37,29 +38,6 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 	if(deltaPhi > TMath::Pi())
 	deltaPhi = TMath::TwoPi() - deltaPhi;
 		return TMath::Sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
-}
-
-int findSignalBin(float MET, float HT, float METbin1=200, float METbin2=300);
-
-int findSignalBin(float MET, float HT, float METbin1, float METbin2){
-
-		int SigBinIndex(-1);
-		if(MET > 120 && MET <= METbin1){
-			if(HT  < 100)SigBinIndex = 0;
-			else if(HT  > 100 && HT < 400)SigBinIndex = 1;
-			else if(HT >= 400)SigBinIndex = 2; 
-		}
-		else if(MET > METbin1 && MET <= METbin2){
-			if(HT  < 100)SigBinIndex = 3;
-			else if(HT  > 100 && HT < 400)SigBinIndex = 4; 
-			else if(HT >= 400)SigBinIndex = 5;
-		}
-		else if(MET > METbin2){ 
-			if(HT  < 100)SigBinIndex = 6;
-			else if(HT  > 100 && HT < 400)SigBinIndex = 7; 
-			else if(HT >= 400)SigBinIndex = 8;
-		}
-		return SigBinIndex;
 }
 
 bool isHad(int PID, int momID){
@@ -266,7 +244,8 @@ float getPUESF(int nvertex){
 }
 
 
-Double_t bkgEtBins[]={35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
+//Double_t bkgEtBins[]={35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
+Double_t bkgEtBins[]={35,40,50,60,70,80,90,100,110,120,130,140,150,160,170,185,200,215,230,250,275,290, 305,325,345,370,400,500,800};
 int nBkgEtBins= sizeof(bkgEtBins)/sizeof(bkgEtBins[0]) -1;
 Double_t bkgPtBins[]={25,30,35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
 int nBkgPtBins= sizeof(bkgPtBins)/sizeof(bkgPtBins[0])-1;

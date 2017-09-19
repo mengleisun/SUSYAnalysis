@@ -45,11 +45,16 @@ bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
     bool matched=false;
     for(std::vector<mcData>::iterator itMC = genParticles.begin(); itMC!= genParticles.end(); itMC++){
       if(matched)break;
-      if (itMC->getStatus()!=23 || abs(itMC->getPID())>5) continue;
+			bool isPromptFinal(false);
       int momid = abs(itMC->getMomPID());
-      if(!(momid==6 || momid==23 || momid==24 || momid==25 || momid>1e6)) continue;
+      if(abs(itMC->getPID())<=5 && (momid==6 || momid==23 || momid==24 || momid==25))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 11 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 13 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 15 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 22 && (momid == 11 || momid == 13 || momid == 15 || momid==23 || momid==24))isPromptFinal = true;
+			if(!isPromptFinal)continue;
 			if(DeltaR(jetEta, jetPhi, itMC->getEta(), itMC->getPhi()) < 0.3){
-				std::cout << "match " << itMC->getPID() << " " << itMC->getMomPID() << std::endl; 
+				//std::cout << "match " << itMC->getPID() << " " << itMC->getMomPID() << " status:" << itMC->getStatus() << std::endl; 
       	matched = true;
 			}
     } // Loop over MC particles
@@ -61,16 +66,16 @@ void analysis_VGamma(){//main
 	
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/resTree_VGamma_TT.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WZG.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_TT.log"); 
+  logfile.open("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WZG.log"); 
 
   logfile << "analysis_VGamma()" << std::endl;
 
   RunType datatype(MC);
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
-  logfile << "root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root" << std::endl;
+	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZG_RunIISummer16MiniAODv2-TrancheIV_v6.root");
+  logfile << "root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZG_RunIISummer16MiniAODv2-TrancheIV_v6.root" << std::endl;
 	logfile << "muon MiniIso" << std::endl;
  
   const unsigned nEvts = es->GetEntries(); 
@@ -80,17 +85,22 @@ void analysis_VGamma(){//main
   TFile *outputfile = TFile::Open(outputname,"RECREATE");
   outputfile->cd();
 
+  //int mcType = MCType::WGJet40;
   //int mcType = MCType::WGJet130;
   //int mcType = MCType::ZGInclusive;
   //int mcType = MCType::WGJetInclusive;
-  int mcType = MCType::TT;
+  //int mcType = MCType::TT;
+  //int mcType = MCType::DYLL50;
+  //int mcType = MCType::TTG;
+  int mcType = MCType::WZG;
   if(datatype == MC && mcType == MCType::NOMC){std::cout << "wrong MC type" << std::endl; throw;} 
   logfile << "mcType" << mcType << std::endl;
 
   float crosssection = MC_XS[mcType];
   float ntotalevent = es->GetEntries();
 	float PUweight(1);
-	float llmass(0); 
+	float llmass(0);
+	int   nBJet(0); 
 //************ Signal Tree **********************//
   TTree *egtree = new TTree("egTree","egTree");
   float eg_phoEt(0);
@@ -108,6 +118,7 @@ void analysis_VGamma(){//main
   float eg_HT(0);
   float eg_nJet(0);
 	int   eg_nISRJet(0);
+	float eg_ISRJetPt(0);
   float eg_invmass(0);
 	float eg_bosonPt(0);
 	float eg_sigMETJESup(0);
@@ -149,7 +160,9 @@ void analysis_VGamma(){//main
   egtree->Branch("dRPhoLep",  &eg_dRPhoLep);
   egtree->Branch("HT",        &eg_HT);
   egtree->Branch("nJet",      &eg_nJet);
+  egtree->Branch("nBJet",     &nBJet);
   egtree->Branch("nISRJet",   &eg_nISRJet);
+	egtree->Branch("ISRJetPt",  &eg_ISRJetPt);
   egtree->Branch("invmass",   &eg_invmass);
 	egtree->Branch("bosonPt",   &eg_bosonPt);
 	egtree->Branch("sigMETJESup",     &eg_sigMETJESup);
@@ -193,6 +206,7 @@ void analysis_VGamma(){//main
   float mg_HT(0);
   float mg_nJet(0);
   float mg_nISRJet(0);
+	float mg_ISRJetPt(0);
 	float mg_bosonPt(0);
 	float mg_sigMETJESup(0);
 	float mg_sigMETJESdo(0);
@@ -234,7 +248,9 @@ void analysis_VGamma(){//main
   mgtree->Branch("dRPhoLep",  &mg_dRPhoLep);
   mgtree->Branch("HT",        &mg_HT);
   mgtree->Branch("nJet",      &mg_nJet);
+  mgtree->Branch("nBJet",     &nBJet);
   mgtree->Branch("nISRJet",   &mg_nISRJet);
+	mgtree->Branch("ISRJetPt",  &mg_ISRJetPt);
 	mgtree->Branch("bosonPt",   &mg_bosonPt);
 	mgtree->Branch("sigMETJESup",     &mg_sigMETJESup);
 	mgtree->Branch("sigMETJESdo",     &mg_sigMETJESdo);
@@ -280,6 +296,7 @@ void analysis_VGamma(){//main
   int nVtx(0);
   int jetNumber(0);
   int METFilter(0);
+	float ISRJetPt(0);
   logfile << "RunType: " << datatype << std::endl;
 
   std::cout << "Total evetns : " << nEvts << std::endl;
@@ -316,6 +333,11 @@ void analysis_VGamma(){//main
 	
         if(raw.nPho <1)continue;
 
+				nBJet = 0;
+				for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
+					if(itJet->getPt() < 20)continue;
+					if(itJet->isBJet())nBJet+=1;
+				}
 				//process MC first  ****************************/
 				llmass = -1;
 				double WGPt = -1;
@@ -420,7 +442,14 @@ void analysis_VGamma(){//main
 						}
 					}
         }
-
+	
+				ISRJetPt = 0;
+				TLorentzVector JetVec(0,0,0,0);	
+				for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
+					if(!itJet->passSignalSelection())continue;
+					if(!nisrMatch(itJet->getEta(), itJet->getPhi(), MCData))JetVec = JetVec + itJet->getP4();
+				}
+				ISRJetPt = JetVec.Pt();	
 ///*************************   eg filters *****************************//
  //       if(hasegPho && hasEle && (((raw.HLTPho >> 14)&1)==1)){
  //         double dReg = DeltaR(egsignalPho->getEta(), egsignalPho->getPhi(), signalEle->getEta(), signalEle->getPhi()); 
@@ -470,24 +499,26 @@ void analysis_VGamma(){//main
 								eg_HTJESdo = 0;
 								for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 									if(!itJet->passSignalSelection())continue;
-									bool isLep(false);
-          				for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
-										if(!itEle->isMedium() || itEle->getMiniIso() > 0.1 || itEle->getPt() < 25)continue;
-										if(DeltaR(itJet->getEta(), itJet->getPhi(), itEle->getEta(), itEle->getPhi()) <= 0.4 && fabs(itJet->getPt() - itEle->getPt())/itEle->getPt() < 1)isLep=true;
-									}
-									for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
-										if(!itMu->isMedium() || itMu->getMiniIso() > 0.2 || itMu->getPt() < 25)continue;
-										if(DeltaR(itJet->getEta(), itJet->getPhi(), itMu->getEta(), itMu->getPhi()) <= 0.4 && fabs(itJet->getPt() - itMu->getPt())/itMu->getPt() < 1)isLep=true;
-									}
-									if(isLep)continue;
+								//	bool isLep(false);
+          			//	for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
+								//		if(!itEle->isMedium() || itEle->getMiniIso() > 0.1 || itEle->getPt() < 25)continue;
+								//		if(DeltaR(itJet->getEta(), itJet->getPhi(), itEle->getEta(), itEle->getPhi()) <= 0.4 && fabs(itJet->getPt() - itEle->getPt())/itEle->getPt() < 1)isLep=true;
+								//	}
+								//	for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
+								//		if(!itMu->isMedium() || itMu->getMiniIso() > 0.2 || itMu->getPt() < 25)continue;
+								//		if(DeltaR(itJet->getEta(), itJet->getPhi(), itMu->getEta(), itMu->getPhi()) <= 0.4 && fabs(itJet->getPt() - itMu->getPt())/itMu->getPt() < 1)isLep=true;
+								//	}
+								//	if(isLep)continue;
 									
 									if(!nisrMatch(itJet->getEta(), itJet->getPhi(), MCData))eg_nISRJet += 1;
+									if(DeltaR(itJet->getEta(), itJet->getPhi(), signalEle->getEta(), signalEle->getPhi()) <= 0.4)continue;
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), egsignalPho->getEta(),egsignalPho->getPhi()) <= 0.4)continue;	
 									eg_nJet += 1;
 									eg_HT += itJet->getPt();
 									eg_HTJESup += itJet->getPt()*(1+itJet->getPtUnc());
 									eg_HTJESdo += itJet->getPt()*(1-itJet->getPtUnc());
-								}	
+								}
+								eg_ISRJetPt = ISRJetPt;	
  
 								if(datatype == MC){
 									eg_mcPID.clear();
@@ -565,24 +596,26 @@ void analysis_VGamma(){//main
 						mg_HTJESdo = 0;
 						for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 							if(!itJet->passSignalSelection())continue;
-							bool isLep(false);
-							for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
-								if(!itEle->isMedium() || itEle->getMiniIso() > 0.1 || itEle->getPt() < 25)continue;
-								if(DeltaR(itJet->getEta(), itJet->getPhi(), itEle->getEta(), itEle->getPhi()) <= 0.4 && fabs(itJet->getPt() - itEle->getPt())/itEle->getPt() < 1)isLep=true;
-							}
-							for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
-								if(!itMu->isMedium() || itMu->getMiniIso() > 0.2 || itMu->getPt() < 25)continue;
-								if(DeltaR(itJet->getEta(), itJet->getPhi(), itMu->getEta(), itMu->getPhi()) <= 0.4 && fabs(itJet->getPt() - itMu->getPt())/itMu->getPt() < 1)isLep=true;
-							}
-							if(isLep)continue;
+						//	bool isLep(false);
+						//	for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
+						//		if(!itEle->isMedium() || itEle->getMiniIso() > 0.1 || itEle->getPt() < 25)continue;
+						//		if(DeltaR(itJet->getEta(), itJet->getPhi(), itEle->getEta(), itEle->getPhi()) <= 0.4 && fabs(itJet->getPt() - itEle->getPt())/itEle->getPt() < 1)isLep=true;
+						//	}
+						//	for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
+						//		if(!itMu->isMedium() || itMu->getMiniIso() > 0.2 || itMu->getPt() < 25)continue;
+						//		if(DeltaR(itJet->getEta(), itJet->getPhi(), itMu->getEta(), itMu->getPhi()) <= 0.4 && fabs(itJet->getPt() - itMu->getPt())/itMu->getPt() < 1)isLep=true;
+						//	}
+						//	if(isLep)continue;
 
 							if(!nisrMatch(itJet->getEta(), itJet->getPhi(), MCData))mg_nISRJet += 1;
+							if(DeltaR(itJet->getEta(), itJet->getPhi(), signalMu->getEta(), signalMu->getPhi()) <= 0.4)continue;
 							if(DeltaR(itJet->getEta(), itJet->getPhi(), mgsignalPho->getEta(),mgsignalPho->getPhi()) <= 0.4)continue;	
 							mg_nJet += 1;
 							mg_HT += itJet->getPt();
 							mg_HTJESup += itJet->getPt()*(1+itJet->getPtUnc());
 							mg_HTJESdo += itJet->getPt()*(1-itJet->getPtUnc());
 						}	
+						mg_ISRJetPt = ISRJetPt;
 
 						if(datatype == MC){
 						 mg_mcPID.clear();

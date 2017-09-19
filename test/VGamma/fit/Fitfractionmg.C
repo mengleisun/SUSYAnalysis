@@ -57,26 +57,26 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 
 	std::ostringstream filename;
 	filename.str("");
-	filename << "../../Background/controlTree_mg_signal_ReMiniAOD" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << "../../Background/controlTree_mg_signal_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_sig = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_mg_eleBkg_ReMiniAOD" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << "../../Background/controlTree_mg_eleBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_ele = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_mg_jetbkg_ReMiniAOD" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << "../../Background/controlTree_mg_jetbkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_jet = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_mg_rareBkg_ReMiniAOD" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << "../../Background/controlTree_mg_rareBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_rare = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_mg_qcd_ReMiniAOD" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << "_iso" << isocut << ".root";
+	filename << "../../Background/controlTree_mg_qcd_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << "_iso" << isocut << ".root";
 	TFile *file_qcd = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_mg_VGBkg_wgt" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << "../../Background/controlTree_mg_VGBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_VG = TFile::Open(filename.str().c_str());
 
 	TH1D  *p_sig = (TH1D*)file_sig->Get("p_dPhiEleMET");
-	TH1D  *p_rare = (TH1D*)file_rare->Get("p_dPhiEleMET");
+	TH1D  *p_rare = (TH1D*)file_rare->Get("p_reweight_dPhiEleMET");
 	histname.str("");
 	if(ih == 0)histname << "p_dPhiEleMET";
 	else histname << "toy_eledPhiEleMET_" << ih;
@@ -90,8 +90,7 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	p_target->Add(p_jet, -1);
 	p_target->Sumw2();
   TH1D *p_proxy = (TH1D*)file_qcd->Get("p_dPhiEleMET");
-  TH1D *p_MC = (TH1D*)file_VG->Get("p_reweight_dPhiEleMET"); 
-  //TH1D *p_MC = (TH1D*)file_VG->Get("p_dPhiEleMET"); 
+  TH1D *p_MC = (TH1D*)file_VG->Get("p_dPhiEleMET"); 
   //TH1D *p_MC = (TH1D*)file_VG->Get("jesup_dPhiEleMET"); 
 	gRandom = new TRandom3(0);
 	gRandom->SetSeed(0);

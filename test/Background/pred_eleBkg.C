@@ -30,6 +30,7 @@
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_fakes.h"
+#include "../../include/analysis_binning.h"
 
 #define NTOY 1000
 
@@ -64,14 +65,22 @@ void pred_eleBkg(){
 	configfile.close();
 
 	std::ifstream binfile("binConfig.txt");
+	int   NBIN(0);
 	float METbin1(200), METbin2(300);
+	float HTbin1(100),  HTbin2(400);
+	float PHOETbin(100);
 	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
+		for(int i(0); i<6; i++){
 			binfile >> conftype >> confvalue;
+			if(conftype.find("NBIN")!=std::string::npos)NBIN = int(confvalue);
 			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
 			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
+			if(conftype.find("HTbin1")!=std::string::npos)HTbin1= confvalue;
+			if(conftype.find("HTbin2")!=std::string::npos)HTbin2= confvalue;
+			if(conftype.find("PHOETbin")!=std::string::npos)PHOETbin= confvalue;
 		}
 	}
+	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
@@ -85,7 +94,7 @@ void pred_eleBkg(){
 	/*	double vtx_constant = par[5];	*/
 	/*	double vtx_slope = par[6];		*/
   /**********************************/
-	std::ifstream elefake_file("validateresult/EleFakeRate-ByPtVtx.txt");
+	std::ifstream elefake_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/EleFakeRate-ByPtVtx.txt");
 	double scalefactor(0);
 	double ptslope(0);
 	double ptconstant(0);
@@ -113,7 +122,7 @@ void pred_eleBkg(){
 
 	TF3 *h_toymc_fakerate[NTOY];
 	std::ostringstream funcname;
-	std::ifstream elefake_toyfile("validateresult/ToyFakeRate_Aug3.txt");
+	std::ifstream elefake_toyfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/ToyFakeRate_Aug3.txt");
 	if(elefake_toyfile.is_open()){
   	for(int i(0); i<NTOY; i++){ 
 			elefake_toyfile >> scalefactor >> ptslope >> ptconstant >> ptindex >>  vtxconst >> vtxslope;
@@ -138,6 +147,15 @@ void pred_eleBkg(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 
+	TH1D *p_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){
+		histname.str("");
+		histname << "p_PhoEt_bin" << ip;
+	 	p_PhoEt_bin[ip] = new TH1D(histname.str().c_str(),"#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
+	}
+	double count_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){count_PhoEt_bin[ip] = 0;}
+
 	TH1D *h_elefakepho_norm;
 	TH1D *h_elefakepho_syserr_jes;
 	TH1D *h_elefakepho_syserr_jer;
@@ -149,28 +167,28 @@ void pred_eleBkg(){
 	TH1D *h_elefakepho_syserr_lumi;
 	TH1D *h_elefakepho_syserr_isr;
 	if(channelType==1){
-		h_elefakepho_norm            = new TH1D("eg_elefakepho_norm","eventcount",9,0,9);
-		h_elefakepho_syserr_jes      = new TH1D("eg_elefakepho_syserr_jes","",9,0,9);	
-		h_elefakepho_syserr_jer      = new TH1D("eg_elefakepho_syserr_jer","",9,0,9);	
-		h_elefakepho_syserr_esf      = new TH1D("eg_elefakepho_syserr_esf","",9,0,9);	
-		h_elefakepho_syserr_scale    = new TH1D("eg_elefakepho_syserr_scale","",9,0,9);	
-		h_elefakepho_syserr_eleshape = new TH1D("eg_elefakepho_syserr_eleshape","",9,0,9);	
-		h_elefakepho_syserr_jetshape = new TH1D("eg_elefakepho_syserr_jetshape","",9,0,9);	
-		h_elefakepho_syserr_xs       = new TH1D("eg_elefakepho_syserr_xs","",9,0,9);	
-		h_elefakepho_syserr_lumi     = new TH1D("eg_elefakepho_syserr_lumi","",9,0,9);	
-		h_elefakepho_syserr_isr      = new TH1D("eg_elefakepho_syserr_isr","",9,0,9); 
+		h_elefakepho_norm            = new TH1D("eg_elefakepho_norm","eventcount",NBIN,0,NBIN);
+		h_elefakepho_syserr_jes      = new TH1D("eg_elefakepho_syserr_jes","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_jer      = new TH1D("eg_elefakepho_syserr_jer","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_esf      = new TH1D("eg_elefakepho_syserr_esf","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_scale    = new TH1D("eg_elefakepho_syserr_scale","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_eleshape = new TH1D("eg_elefakepho_syserr_eleshape","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_jetshape = new TH1D("eg_elefakepho_syserr_jetshape","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_xs       = new TH1D("eg_elefakepho_syserr_xs","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_lumi     = new TH1D("eg_elefakepho_syserr_lumi","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_isr      = new TH1D("eg_elefakepho_syserr_isr","",NBIN,0,NBIN); 
 	} 
 	else if(channelType==2){
-		h_elefakepho_norm            = new TH1D("mg_elefakepho_norm","eventcount",9,0,9);
-		h_elefakepho_syserr_jes      = new TH1D("mg_elefakepho_syserr_jes","",9,0,9);	
-		h_elefakepho_syserr_jer      = new TH1D("mg_elefakepho_syserr_jer","",9,0,9);	
-		h_elefakepho_syserr_esf      = new TH1D("mg_elefakepho_syserr_esf","",9,0,9);	
-		h_elefakepho_syserr_scale    = new TH1D("mg_elefakepho_syserr_scale","",9,0,9);	
-		h_elefakepho_syserr_eleshape = new TH1D("mg_elefakepho_syserr_eleshape","",9,0,9);	
-		h_elefakepho_syserr_jetshape = new TH1D("mg_elefakepho_syserr_jetshape","",9,0,9);	
-		h_elefakepho_syserr_xs       = new TH1D("mg_elefakepho_syserr_xs","",9,0,9);	
-		h_elefakepho_syserr_lumi     = new TH1D("mg_elefakepho_syserr_lumi","",9,0,9);	
-		h_elefakepho_syserr_isr      = new TH1D("mg_elefakepho_syserr_isr","",9,0,9); 
+		h_elefakepho_norm            = new TH1D("mg_elefakepho_norm","eventcount",NBIN,0,NBIN);
+		h_elefakepho_syserr_jes      = new TH1D("mg_elefakepho_syserr_jes","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_jer      = new TH1D("mg_elefakepho_syserr_jer","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_esf      = new TH1D("mg_elefakepho_syserr_esf","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_scale    = new TH1D("mg_elefakepho_syserr_scale","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_eleshape = new TH1D("mg_elefakepho_syserr_eleshape","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_jetshape = new TH1D("mg_elefakepho_syserr_jetshape","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_xs       = new TH1D("mg_elefakepho_syserr_xs","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_lumi     = new TH1D("mg_elefakepho_syserr_lumi","",NBIN,0,NBIN);	
+		h_elefakepho_syserr_isr      = new TH1D("mg_elefakepho_syserr_isr","",NBIN,0,NBIN); 
 	} 
 
 	TH1D *toy_PhoEt[NTOY];
@@ -201,12 +219,12 @@ void pred_eleBkg(){
 		toy_dPhiEleMET[ih] = new TH1D(histname.str().c_str(), histname.str().c_str(),32,0,3.2);
 		histname.str("");
 		histname << "toy_eventcount_" << ih;
-		toy_eventcount[ih] = new TH1D(histname.str().c_str(), histname.str().c_str(),9,0,9);
+		toy_eventcount[ih] = new TH1D(histname.str().c_str(), histname.str().c_str(),NBIN,0,NBIN);
 	}
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
 	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
 
 	float phoEt(0);
 	float phoEta(0);
@@ -263,8 +281,13 @@ void pred_eleBkg(){
 		p_nJet->Fill(nJet, w_ele);
 
 		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
+		SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 		if(SigBinIndex >=0)h_elefakepho_norm->Fill( SigBinIndex, w_ele);
+	
+		if(SigBinIndex >=0){
+			p_PhoEt_bin[SigBinIndex]->Fill( phoEt,w_ele);
+			count_PhoEt_bin[SigBinIndex] += 1;
+		}
 
 		for(unsigned it(0); it < NTOY; it++){
 			double toy_ele = h_toymc_fakerate[it]->Eval(phoEt,nVertex,fabs(phoEta));
@@ -394,6 +417,8 @@ void pred_eleBkg(){
 	//	toy_HT[it]->Write();
 		toy_dPhiEleMET[it]->Write();
 	}
+	for(unsigned ip(0); ip<NBIN; ip++)p_PhoEt_bin[ip]->Write();
+	for(unsigned ip(0); ip<NBIN; ip++)std::cout << "count bin " << ip << " :" << count_PhoEt_bin[ip] << "  error:" << sqrt(count_PhoEt_bin[ip])/count_PhoEt_bin[ip] << std::endl;
 	outputfile->Write();
 	outputfile->Close();
 }

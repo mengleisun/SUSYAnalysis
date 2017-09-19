@@ -33,11 +33,11 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 void plot_Mixing(){//main 
 
   double scalefactor1 = 35.87*1000*311.16/6103732;
-//	double scalefactor2 = 35.87*1000*12.7/5077584.0;
-//	double scalefactor3 = 35.87*1000*0.83/502176.0;
+	double scalefactor2 = 35.87*1000*12.7/5077584.0;
+	double scalefactor3 = 35.87*1000*0.83/502176.0;
 
-  double scalefactor2 = 35.87*1000*117.8/14372399;
-	double scalefactor3 = 35.87*1000*0.143/489423;
+//  double scalefactor2 = 35.87*1000*117.8/14372399;
+//	double scalefactor3 = 35.87*1000*0.143/489423;
 
   TH1D *mugamma_phoEt_1 = new TH1D("mugamma_phoEt_1","",40,0,400); 
   TH1D *mugamma_phoEt_2 = new TH1D("mugamma_phoEt_2","",40,0,400); 
@@ -57,7 +57,7 @@ void plot_Mixing(){//main
   TH1D *mugamma_dR_3 = new TH1D("mugamma_dR_3","",32,0,3.2); 
 
   TChain *mgtree = new TChain("mgTree");
-	mgtree->Add("/uscms_data/d3/mengleis/test/mixing_all_TH1D.root");
+	mgtree->Add("/uscms_data/d3/mengleis/Sep1/mixing_all_TH1D.root");
   float mg_phoEt=0;
   float mg_phoEta=0;
   float mg_phoPhi=0;
@@ -74,7 +74,7 @@ void plot_Mixing(){//main
 
 	for(unsigned ievt(0); ievt < mgtree->GetEntries(); ievt++){
 		mgtree->GetEntry(ievt);
-		if(fabs(mg_phoEta) > 1.4442)continue;
+		//if(fabs(mg_phoEta) > 1.4442)continue;
 		mugamma_phoEt_1->Fill(mg_phoEt, scalefactor1);		
 		
 		if(mg_phoEt > 140 && mg_phoEt < 300){
@@ -86,7 +86,7 @@ void plot_Mixing(){//main
 
 
   TChain *mg40tree = new TChain("mgTree");
-	mg40tree->Add("/uscms_data/d3/mengleis/test/mixing_WG40_TH1D.root");
+	mg40tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG40_TH1D.root");
   float mg40_phoEt=0;
   float mg40_phoEta=0;
   float mg40_phoPhi=0;
@@ -103,7 +103,7 @@ void plot_Mixing(){//main
 
 	for(unsigned ievt(0); ievt < mg40tree->GetEntries(); ievt++){
 		mg40tree->GetEntry(ievt);
-		if(fabs(mg40_phoEta) > 1.4442)continue;
+		//if(fabs(mg40_phoEta) > 1.4442)continue;
 		mugamma_phoEt_2->Fill(mg40_phoEt, scalefactor2);			
 		if(mg40_phoEt > 50 && mg40_phoEt < 130){
 			mugamma_lepPt_2->Fill(mg40_lepPt, scalefactor2);
@@ -113,7 +113,7 @@ void plot_Mixing(){//main
 	}
 
   TChain *mg130tree = new TChain("mgTree");
-	mg130tree->Add("/uscms_data/d3/mengleis/test/mixing_ZG_TH1D.root");
+	mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
   float mg130_phoEt=0;
   float mg130_phoEta=0;
   float mg130_phoPhi=0;
@@ -130,7 +130,7 @@ void plot_Mixing(){//main
 
 	for(unsigned ievt(0); ievt < mg130tree->GetEntries(); ievt++){
 		mg130tree->GetEntry(ievt);
-		if(fabs(mg130_phoEta) > 1.4442)continue;
+		//if(fabs(mg130_phoEta) > 1.4442)continue;
 		mugamma_phoEt_3->Fill(mg130_phoEt, scalefactor3);			
 		if(mg130_phoEt > 140 && mg130_phoEt < 300){
 			mugamma_lepPt_3->Fill(mg130_lepPt, scalefactor3);
@@ -140,7 +140,7 @@ void plot_Mixing(){//main
 	}
 
   TChain *egtree = new TChain("egTree");
-	egtree->Add("/uscms_data/d3/mengleis/test/mixing_all_TH1D.root");
+	egtree->Add("/uscms_data/d3/mengleis/Sep1/mixing_all_TH1D.root");
   float eg_phoEt=0;
   float eg_phoEta=0;
   float eg_phoPhi=0;
@@ -151,13 +151,13 @@ void plot_Mixing(){//main
 
 	for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
 		egtree->GetEntry(ievt);
-		if(fabs(eg_phoEta) > 1.4442)continue;
+		//if(fabs(eg_phoEta) > 1.4442)continue;
 		egamma_phoEt_1->Fill(eg_phoEt, scalefactor1);			
 	}
 
 
   TChain *eg40tree = new TChain("egTree");
-	eg40tree->Add("/uscms_data/d3/mengleis/test/mixing_WG40_TH1D.root");
+	eg40tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG40_TH1D.root");
   float eg40_phoEt=0;
   float eg40_phoEta=0;
   float eg40_phoPhi=0;
@@ -168,12 +168,12 @@ void plot_Mixing(){//main
 
 	for(unsigned ievt(0); ievt < eg40tree->GetEntries(); ievt++){
 		eg40tree->GetEntry(ievt);
-		if(fabs(eg40_phoEta) > 1.4442)continue;
+		//if(fabs(eg40_phoEta) > 1.4442)continue;
 		egamma_phoEt_2->Fill(eg40_phoEt, scalefactor2);			
 	}
 
   TChain *eg130tree = new TChain("egTree");
-	eg130tree->Add("/uscms_data/d3/mengleis/test/mixing_ZG_TH1D.root");
+	eg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
   float eg130_phoEt=0;
   float eg130_phoEta=0;
   float eg130_phoPhi=0;
@@ -184,18 +184,26 @@ void plot_Mixing(){//main
 
 	for(unsigned ievt(0); ievt < eg130tree->GetEntries(); ievt++){
 		eg130tree->GetEntry(ievt);
-		if(fabs(eg130_phoEta) > 1.4442)continue;
+		//if(fabs(eg130_phoEta) > 1.4442)continue;
 		egamma_phoEt_3->Fill(eg130_phoEt, scalefactor3);			
 	}
 
-  double ratio4 = egamma_phoEt_1->Integral(6,8)/egamma_phoEt_2->Integral(6,8);
-  double ratio5 = mugamma_phoEt_1->Integral(6,8)/mugamma_phoEt_2->Integral(6,8);
+	egamma_phoEt_3->Add(egamma_phoEt_2);
+	mugamma_phoEt_3->Add(mugamma_phoEt_2);
+  double ratio1 = egamma_phoEt_1->Integral(6,8)/egamma_phoEt_2->Integral(6,8);
+  double ratio2 = mugamma_phoEt_1->Integral(6,8)/mugamma_phoEt_2->Integral(6,8);
 
-  double ratio4_70 = egamma_phoEt_1->Integral(7,10)/egamma_phoEt_2->Integral(7,10);
-  double ratio5_70 = mugamma_phoEt_1->Integral(7,10)/mugamma_phoEt_2->Integral(7,10);
+  double ratio1_70 = egamma_phoEt_1->Integral(7,10)/egamma_phoEt_2->Integral(7,10);
+  double ratio2_70 = mugamma_phoEt_1->Integral(7,10)/mugamma_phoEt_2->Integral(7,10);
 
-  double ratio4_130 = egamma_phoEt_1->Integral(15,30)/egamma_phoEt_3->Integral(15,30);
-  double ratio5_130 = mugamma_phoEt_1->Integral(15,30)/mugamma_phoEt_3->Integral(15,30);
+  double ratio1_130 = egamma_phoEt_1->Integral(15,30)/egamma_phoEt_3->Integral(15,30);
+  double ratio2_130 = mugamma_phoEt_1->Integral(15,30)/mugamma_phoEt_3->Integral(15,30);
+
+  double ratio3_130 = egamma_phoEt_1->Integral(16,40)/egamma_phoEt_3->Integral(16,40);
+  double ratio4_130 = mugamma_phoEt_1->Integral(16,40)/mugamma_phoEt_3->Integral(16,40);
+
+	std::cout << "ratio3_130=" <<ratio3_130 <<std::endl;
+	std::cout << "ratio4_130=" <<ratio4_130 <<std::endl;
 
   TLatex* latex = new TLatex();
 	std::ostringstream textname;
@@ -213,19 +221,19 @@ void plot_Mixing(){//main
   egamma_phoEt_1->SetTitle("e+gamma channel photon");
 	egamma_phoEt_1->Draw();
 	egamma_phoEt_2->SetLineColor(kRed);
-	egamma_phoEt_2->Scale(ratio4);
+	egamma_phoEt_2->Scale(ratio1);
 	egamma_phoEt_2->Draw("same");
 	egamma_phoEt_3->SetLineColor(kGreen);
-	egamma_phoEt_3->Scale(ratio4_130);
+	egamma_phoEt_3->Scale(ratio1_130);
 	egamma_phoEt_3->Draw("same");
   textname.str("");
-  textname << "ratio(50~70) =" << ratio4;
+  textname << "ratio(50~70) =" << ratio1;
   latex->DrawLatex(200,0.01*egamma_phoEt_1->GetMaximum(), textname.str().c_str() );
   textname.str("");
-  textname << "ratio(70~100) =" << ratio4_70;
+  textname << "ratio(70~100) =" << ratio1_70;
   latex->DrawLatex(200,0.005*egamma_phoEt_1->GetMaximum(), textname.str().c_str() );
   textname.str("");
-  textname << "WG130 =" << ratio4_130; 
+  textname << "WG130 =" << ratio1_130; 
   latex->DrawLatex(200,0.001*egamma_phoEt_1->GetMaximum(), textname.str().c_str() );
 	can1->SaveAs("ZGMixingScale_eg.pdf");
 
@@ -235,19 +243,19 @@ void plot_Mixing(){//main
   mugamma_phoEt_1->SetTitle("mu+gamma channel photon");
 	mugamma_phoEt_1->Draw();
 	mugamma_phoEt_2->SetLineColor(kRed);
-	mugamma_phoEt_2->Scale(ratio5);
+	mugamma_phoEt_2->Scale(ratio2);
 	mugamma_phoEt_2->Draw("same");
 	mugamma_phoEt_3->SetLineColor(kGreen);
-	mugamma_phoEt_3->Scale(ratio5_130);
+	mugamma_phoEt_3->Scale(ratio2_130);
 	mugamma_phoEt_3->Draw("same");
   textname.str("");
-  textname << "ratio(50~70) =" << ratio5;
+  textname << "ratio(50~70) =" << ratio2;
   latex->DrawLatex(200,0.01*mugamma_phoEt_1->GetMaximum(), textname.str().c_str() );
   textname.str("");
-  textname << "ratio(70~100) =" << ratio5_70;
+  textname << "ratio(70~100) =" << ratio2_70;
   latex->DrawLatex(200,0.005*mugamma_phoEt_1->GetMaximum(), textname.str().c_str() );
   textname.str("");
-  textname << "WG130 =" << ratio5_130; 
+  textname << "WG130 =" << ratio2_130; 
   latex->DrawLatex(200,0.001*mugamma_phoEt_1->GetMaximum(), textname.str().c_str() );
 	can2->SaveAs("ZGMixingScale_mg.pdf");
 
@@ -258,7 +266,7 @@ void plot_Mixing(){//main
   mugamma_lepPt_1->SetTitle("e+gamma channel photon");
 	mugamma_lepPt_1->Draw();
 	mugamma_lepPt_3->SetLineColor(kRed);
-	mugamma_lepPt_3->Scale(ratio5_130);
+	mugamma_lepPt_3->Scale(ratio2_130);
 	mugamma_lepPt_3->Draw("same");
 
 	TCanvas *can4 = new TCanvas("can4","",600,600);
@@ -267,7 +275,7 @@ void plot_Mixing(){//main
   mugamma_sigMET_1->SetTitle("e+gamma channel photon");
 	mugamma_sigMET_1->Draw();
 	mugamma_sigMET_3->SetLineColor(kRed);
-	mugamma_sigMET_3->Scale(ratio5_130);
+	mugamma_sigMET_3->Scale(ratio2_130);
 	mugamma_sigMET_3->Draw("same");
 
 	TCanvas *can5 = new TCanvas("can5","",600,600);
@@ -276,7 +284,7 @@ void plot_Mixing(){//main
   mugamma_dR_1->SetTitle("e+gamma channel photon");
 	mugamma_dR_1->Draw();
 	mugamma_dR_3->SetLineColor(kRed);
-	mugamma_dR_3->Scale(ratio5_130);
+	mugamma_dR_3->Scale(ratio2_130);
 	mugamma_dR_3->Draw("same");
 }
 

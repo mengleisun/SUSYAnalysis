@@ -282,7 +282,7 @@ void analysis_ISR(){//main
 			}
 
 			/*********  ZG tree************/ 
-			if(hasPho && hasLep && signalPho->isEB()){
+			if(hasPho && hasLep){
 				double dRlepphoton = DeltaR(signalPho->getEta(), signalPho->getPhi(), signalLep->getEta(), signalLep->getPhi());
 				if(dRlepphoton > 0.8){
 					if(passMETFilter(METFilter)){ 

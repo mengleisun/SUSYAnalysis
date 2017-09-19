@@ -57,7 +57,7 @@ float METLOWCUT = 0;
 float METHIGHCUT = 70;
 
 int
-FitJetFake(float lowercut, float uppercut, int detType){
+RunJetFake(float lowercut, float uppercut, int detType, float loweta, float higheta){
 
 	setTDRStyle();   
 	time_t now = time(0);
@@ -65,11 +65,12 @@ FitJetFake(float lowercut, float uppercut, int detType){
 	std::cout << "start fitting " << std::endl;
 	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 	ofstream myfile;
-	myfile.open("JetFakeRate-DoubleEG-FullEcal.txt", std::ios_base::app | std::ios_base::out);
+	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-EB.txt", std::ios_base::app | std::ios_base::out);
+	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-EE.txt", std::ios_base::app | std::ios_base::out);
 	std::ostringstream datasetname;
 	datasetname.str("");
-	//datasetname << "/uscms_data/d3/mengleis/usefuldata/plot_hadron_DoubleEG_ReMiniAOD.root";
-	datasetname << "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root";
+	//datasetname << "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root";
+	datasetname << "/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root";
 
 	char lowername[3];
 	sprintf(lowername, "%d", (int)lowercut);
@@ -174,7 +175,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		}
 	}
 
-	TFile *outputfile = TFile::Open("JetFakeRate-DoubleEG-FullEcal.root","RECREATE");
+	TFile *outputfile = TFile::Open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-FullEcal.root","RECREATE");
 	outputfile->cd();
 	hname.str("");
 	hname << "fracHad2D_" << lowername << "-" << uppername;
@@ -186,9 +187,8 @@ FitJetFake(float lowercut, float uppercut, int detType){
 
 //************ Signal Tree **********************//
 	TChain *mctree = new TChain("egTree");
-	mctree->Add("/uscms_data/d3/mengleis/Sep1/plot_hadron_GJet.root");
-	//mctree->Add("/uscms_data/d3/mengleis/usefuldata/plot_hadron_mgGJet.root");
-	//mctree->Add("/uscms_data/d3/mengleis/plot_hadron_mgGJet.root");
+	//mctree->Add("/uscms_data/d3/mengleis/Sep1/plot_hadron_GJet.root");
+	mctree->Add("/uscms_data/d3/mengleis/Sep1/plot_hadron_mgGJet.root");
 	float mc_phoEt(0);
 	float mc_phoEta(0); 
 	float mc_phoPhi(0); 
@@ -263,7 +263,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		if(mc_phoEt < lowercut || mc_phoEt > uppercut)continue;
 		if(mc_sigMET < METLOWCUT || mc_sigMET > METHIGHCUT)continue;
 		if(detType == 1 && fabs(mc_phoEta) > 1.4442)continue;
-		else if(detType == 2 && fabs(mc_phoEta) < 1.56)continue;
+		else if(detType == 2 && (fabs(mc_phoEta) < loweta || fabs(mc_phoEta) > higheta) )continue;
 
 		bool isFake(true);
 		unsigned mcIndex(0);
@@ -311,10 +311,11 @@ FitJetFake(float lowercut, float uppercut, int detType){
 
 	for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
 		egtree->GetEntry(ievt);
+		if(sigMET < METLOWCUT || sigMET > METHIGHCUT)continue;
 
 		for(unsigned iele(0); iele < eleproxyEt->size(); iele++){
 			if(detType == 1 && fabs( (*eleproxyEta)[iele]) > 1.4442)continue;
-			else if(detType == 1 && fabs( (*eleproxyEta)[iele]) < 1.56)continue;
+			else if(detType == 2 && ( fabs( (*eleproxyEta)[iele]) < loweta || fabs( (*eleproxyEta)[iele]) > higheta) )continue;
 			double w_ele = -1.0*f_elefake( (*eleproxyEt)[iele], (*eleproxynVertex)[iele], fabs( (*eleproxyEta)[iele]));
 			if( (*eleproxyEt)[iele] < lowercut || (*eleproxyEt)[iele]  > uppercut)continue;
 
@@ -340,7 +341,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		if(phoEt < lowercut || phoEt > uppercut )continue;
 		if(sigMET < METLOWCUT || sigMET > METHIGHCUT)continue;
 		if(detType == 1 && fabs(phoEta) > 1.4442)continue;
-		else if(detType == 2 && fabs(phoEta) < 1.56)continue;
+		else if(detType == 2 && ( fabs(phoEta) < loweta || fabs(phoEta) > higheta) )continue;
 
 		if(phoSigma <= StandardCut){
 			h_target->Fill(phoChIso);
@@ -475,9 +476,9 @@ FitJetFake(float lowercut, float uppercut, int detType){
 					leg->AddEntry(mc_predict[iLower][iUpper], "hadrons");
 					leg->Draw("same");
 					hname.str("");
-					hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/frac-" << lowername << "-" << uppername << "-DoubleEG-FullEcal";
+					hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/frac-" << lowername << "-" << uppername << "-MuonEG-FullEcal";
 					if(detType == 1)hname << "-EB.pdf";
-					else if(detType == 1)hname << "-EE.pdf";
+					else if(detType == 2)hname << "-EE.pdf";
 					can[iLower][iUpper]->SaveAs(hname.str().c_str());
 				}
 				if(fracBkg >0 && fracBkg < 1)fracHad2D->Fill(SigmaCutLower[iLower]+0.00005, SigmaCutUpper[iUpper]+0.00005, num*fracBkg/den);
@@ -492,7 +493,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		hadfrac = fracHad1D->GetMean();	
 	}
 
-	hname.str(""); hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/can2D-" << lowername << "-" << uppername << "-DoubleEG-FullEcal.pdf";
+	hname.str(""); hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/can2D-" << lowername << "-" << uppername << "-MuonEG-FullEcal.pdf";
 	can2D->cd();
 	fracHad2D->Draw("colz");
 	can2D->SaveAs(hname.str().c_str());

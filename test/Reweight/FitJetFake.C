@@ -4,7 +4,7 @@
 #include<sstream>
 #include<algorithm>
 #include<ctime>
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TFile.h"
 #include "TCanvas.h"
 #include "TChain.h"
@@ -54,47 +54,73 @@
 bool useMC = true;
 bool doIterate = true;
 float METLOWCUT = 0;
-float METHIGHCUT = 1000;
+float METHIGHCUT = 70;
 
 int
-FitJetFake(float lowercut, float uppercut){
+FitJetFake(float lowercut, float uppercut, int detType){
 
 	setTDRStyle();   
-  time_t now = time(0);
+	time_t now = time(0);
 
+	std::cout << "start fitting " << std::endl;
 	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 	ofstream myfile;
-	myfile.open("JetFakeRate-ISR.txt", std::ios_base::app | std::ios_base::out);
+	if(detType == 1)myfile.open("JetFakeRate-ISR-EB.txt", std::ios_base::app | std::ios_base::out);
+	else if(detType == 2)myfile.open("JetFakeRate-ISR-EE.txt", std::ios_base::app | std::ios_base::out);
+	std::ostringstream datasetname;
+	datasetname.str("");
+	//datasetname << "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root";
+	datasetname << "/uscms_data/d3/mengleis/test/plot_hadron_ISR.root";
 
-  char lowername[3];
-  sprintf(lowername, "%d", (int)lowercut);
-  char uppername[3];
-  if(uppercut < 1000){
-    sprintf(uppername, "%d", (int)uppercut);
-  }
-  else sprintf(uppername, "Inf");
+	char lowername[3];
+	sprintf(lowername, "%d", (int)lowercut);
+	char uppername[3];
+	if(uppercut < 1000){
+	  sprintf(uppername, "%d", (int)uppercut);
+	}
+	else sprintf(uppername, "Inf");
 
-	double SigmaCutLower[]={0.0103,0.0104,0.0105,0.0106,0.0107,0.0108,0.0109,0.011};
-	double SigmaCutUpper[]={0.0140,0.0145,0.0130,0.0135};
-	unsigned nUpper = sizeof(SigmaCutUpper)/sizeof(double);
-	unsigned nLower = sizeof(SigmaCutLower)/sizeof(double);
+	double   StandardCut = 0;
+	double   StandardIso = 0;
+	Double_t SigmaCutLower_EB[]={0.0103,0.0104,0.0105,0.0106,0.0107,0.0108,0.0109,0.0110,0.0111,0.0112};
+	Double_t SigmaCutUpper_EB[]={0.0140,0.0145,0.0150,0.0155,0.0160,0.0165,0.0170,0.0175,0.0180,0.0185};
+	Double_t SigmaCutLower_EE[]={0.03013,0.0302,0.0303,0.0304,0.0305,0.0306,0.0307,0.0308,0.0309,0.031};
+	Double_t SigmaCutUpper_EE[]={0.035,0.036,0.037,0.038,0.039,0.04};
+	std::vector<double> SigmaCutLower;
+	std::vector<double> SigmaCutUpper;
+	SigmaCutLower.clear();
+	SigmaCutUpper.clear();
+	if(detType == 1){
+		StandardCut = 0.0103;
+		StandardIso = 1.295;
+		for(unsigned i(0); i<sizeof(SigmaCutLower_EB)/sizeof(Double_t); i++)SigmaCutLower.push_back(SigmaCutLower_EB[i]);
+		for(unsigned i(0); i<sizeof(SigmaCutUpper_EB)/sizeof(Double_t); i++)SigmaCutUpper.push_back(SigmaCutUpper_EB[i]);
+	}
+	else if(detType == 2){
+		StandardCut = 0.03013;
+		StandardIso = 1.011;
+		for(unsigned i(0); i<sizeof(SigmaCutLower_EE)/sizeof(Double_t); i++)SigmaCutLower.push_back(SigmaCutLower_EE[i]);
+		for(unsigned i(0); i<sizeof(SigmaCutUpper_EE)/sizeof(Double_t); i++)SigmaCutUpper.push_back(SigmaCutUpper_EE[i]);
+	}
+	unsigned nUpper = SigmaCutUpper.size(); 
+	unsigned nLower = SigmaCutLower.size();
 	std::ostringstream hname;
-  hname.str(""); hname <<"ChIsoTar-pt-" << lowername << "-" << uppername;
-	TH1F* h_target= new TH1F(hname.str().c_str(),";Iso_{h^{#pm}} (GeV);",10, 0.0, 20); 
-  hname.str(""); hname <<"mcChIso-pt-" <<  lowername << "-" << uppername;
-	TH1F* mc_sig = new TH1F(hname.str().c_str(), ";Iso_{h^#pm} (GeV);",10, 0.0, 20);
-  hname.str(""); hname <<"mcChIso-fake-pt-" << lowername << "-" << uppername;
-	TH1F* mc_fake = new TH1F(hname.str().c_str(),";Iso_{h^#pm} (GeV);",10, 0.0, 20);
-	TH1F* h_bg[nLower][nUpper];
+	hname.str(""); hname <<"ChIsoTar-pt-" << lowername << "-" << uppername;
+	TH1D* h_target= new TH1D(hname.str().c_str(),";Iso_{h^{#pm}} (GeV);",20, 0.0, 20); 
+	hname.str(""); hname <<"mcChIso-pt-" <<  lowername << "-" << uppername;
+	TH1D* mc_sig = new TH1D(hname.str().c_str(), ";Iso_{h^#pm} (GeV);",20, 0.0, 20);
+	hname.str(""); hname <<"mcChIso-fake-pt-" << lowername << "-" << uppername;
+	TH1D* mc_fake = new TH1D(hname.str().c_str(),";Iso_{h^#pm} (GeV);",20, 0.0, 20);
+	TH1D* h_bg[nLower][nUpper];
 	
 	TH1*  mc_predict[nLower][nUpper];
-	TH1F* mc_sbcontamination[nLower][nUpper];
-  float templateCorrFactor[nLower][nUpper];
+	TH1D* mc_sbcontamination[nLower][nUpper];
+	float templateCorrFactor[nLower][nUpper];
 	TObjArray *templateContainer[nLower][nUpper];
 	TFractionFitter* fitter[nLower][nUpper];
-	TH1F* result[nLower][nUpper];
+	TH1D* result[nLower][nUpper];
 	TCanvas *can[nLower][nUpper]; 
-  hname.str(""); hname <<"can2D" << lowername << "-" << uppername;
+	hname.str(""); hname <<"can2D" << lowername << "-" << uppername;
 	TCanvas *can2D = new TCanvas(hname.str().c_str(), hname.str().c_str(),600,600);
 	for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
 		for(unsigned iLower(0); iLower<nLower; iLower++){
@@ -103,34 +129,26 @@ FitJetFake(float lowercut, float uppercut){
 			hname << "can" << lowername << "-" << uppername << "_" << SigmaCutLower[iLower] << "_" << SigmaCutUpper[iUpper] ;
 			can[iLower][iUpper]=new TCanvas(hname.str().c_str(),hname.str().c_str(),600,600);
 			hname.str(""); hname <<"ChIsoHad-pt-" <<  lowername << "-" << uppername << "_" << SigmaCutLower[iLower] << "_" << SigmaCutUpper[iUpper];
-			h_bg[iLower][iUpper] = new TH1F(hname.str().c_str(), hname.str().c_str(), 10, 0.0, 20);
+			h_bg[iLower][iUpper] = new TH1D(hname.str().c_str(), hname.str().c_str(), 20, 0.0, 20);
 			hname.str(""); hname <<"mcChIso-sideband-pt-" <<  lowername << "-" << uppername << "_" << SigmaCutLower[iLower] << "_" << SigmaCutUpper[iUpper];
-			mc_sbcontamination[iLower][iUpper] = new TH1F(hname.str().c_str(), hname.str().c_str(),10, 0.0, 20);   
-		}
-	}
-	TCanvas *cantemplate[nLower][nUpper]; 
-  hname.str(""); hname <<"template" << lowername << "-" << uppername;
-	for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
-		for(unsigned iLower(0); iLower<nLower; iLower++){
-			hname << "_" << iUpper << "_" << iLower;
-			cantemplate[iLower][iUpper]=new TCanvas(hname.str().c_str(),hname.str().c_str(),1200,600);
-			cantemplate[iLower][iUpper]->Divide(2);
+			mc_sbcontamination[iLower][iUpper] = new TH1D(hname.str().c_str(), hname.str().c_str(),20, 0.0, 20);   
 		}
 	}
 
-	TFile *outputfile = TFile::Open("JetFakeRate-ISR.root","RECREATE");
+	TFile *outputfile = TFile::Open("JetFakeRate-ISR-FullEcal.root","RECREATE");
 	outputfile->cd();
 	hname.str("");
 	hname << "fracHad2D_" << lowername << "-" << uppername;
-	TH2F* fracHad2D = new TH2F(hname.str().c_str(),"hadron fraction;Lower #sigma_{i#etai#eta} Threshold(GeV);Upper #sigma_{i#etai#eta} Threshold(GeV)",10,0.0103,0.0113,10,0.014,0.019);
+	TH2F* fracHad2D = new TH2F(hname.str().c_str(),"hadron fraction;Lower #sigma_{i#etai#eta} Threshold(GeV);Upper #sigma_{i#etai#eta} Threshold(GeV)",10,SigmaCutLower[0], SigmaCutLower[SigmaCutLower.size()-1],26,0.014,0.04);
 	hname.str("");
 	hname << "fracHad1D_" << lowername << "-" << uppername;
-	TH1F* fracHad1D = new TH1F(hname.str().c_str(),hname.str().c_str(),500,0,1.0);
+	TH1D* fracHad1D = new TH1D(hname.str().c_str(),hname.str().c_str(),500,0,1.0);
 
 
 //************ Signal Tree **********************//
 	TChain *mctree = new TChain("egTree");
-	mctree->Add("/uscms_data/d3/mengleis/usefuldata/plot_hadron_mgGJet.root");
+	//mctree->Add("/uscms_data/d3/mengleis/Sep1/plot_hadron_GJet.root");
+	mctree->Add("/uscms_data/d3/mengleis/Sep1/plot_hadron_mgGJet.root");
 	float mc_phoEt(0);
 	float mc_phoEta(0); 
 	float mc_phoPhi(0); 
@@ -157,20 +175,21 @@ FitJetFake(float lowercut, float uppercut){
 		mctree->SetBranchAddress("mcMomPID",&mc_mcMomPID);
 	}
 
-  TChain *datatree = new TChain("signalTree");
-  datatree->Add("/uscms_data/d3/mengleis/test/plot_hadron_ISR.root");
-	float data_phoEt(0);
-	float data_sigMET(0);
-	float data_phoSigma(0);
-	float data_phoChIso(0);
-	float data_dilepMass(0);
-	datatree->SetBranchAddress("phoEt",     &data_phoEt);
-	datatree->SetBranchAddress("sigMET",    &data_sigMET);
-	datatree->SetBranchAddress("phoSigma",  &data_phoSigma);
-	datatree->SetBranchAddress("phoChIso",  &data_phoChIso);
-	datatree->SetBranchAddress("dilepMass", &data_dilepMass);
+	TChain *egtree = new TChain("signalTree");
+	egtree->Add(datasetname.str().c_str());
+	float phoEt(0);
+	float phoEta(0);
+	float sigMET(0);
+	float phoSigma(0);
+	float phoChIso(0);
+	egtree->SetBranchAddress("phoEt",     &phoEt);
+	egtree->SetBranchAddress("phoEta",    &phoEta);
+	egtree->SetBranchAddress("sigMET",    &sigMET);
+	egtree->SetBranchAddress("phoSigma",  &phoSigma);
+	egtree->SetBranchAddress("phoChIso",  &phoChIso);
 
-  double hadfrac(0);
+
+	double hadfrac(0);
 	double fittingError(0);
 	double systematicError(0), lowestfrac(1), highestfrac(0);
 	double mcfakerate(0);
@@ -191,6 +210,8 @@ FitJetFake(float lowercut, float uppercut){
 		mctree->GetEntry(ievt);
 		if(mc_phoEt < lowercut || mc_phoEt > uppercut)continue;
 		if(mc_sigMET < METLOWCUT || mc_sigMET > METHIGHCUT)continue;
+		if(detType == 1 && fabs(mc_phoEta) > 1.4442)continue;
+		//else if(detType == 2 && (fabs(mc_phoEta) < 1.56 || fabs(mc_phoEta) > 2.4) )continue;
 
 		bool isFake(true);
 		unsigned mcIndex(0);
@@ -210,10 +231,10 @@ FitJetFake(float lowercut, float uppercut){
 		if(phodR < 0.1)mcIndex = mcPhoIndex;
 		if(hasMatch)isFake = isHad(fabs((*mc_mcPID)[mcIndex]), fabs((*mc_mcMomPID)[mcIndex]));
 
-		bool isTrueTemplate = (mc_phoSigma <= 0.0103 && !isFake);
-		bool isInTargetRegion = (mc_phoSigma <= 0.0103 && mc_phoChIso < 1.295);
+		bool isTrueTemplate = (mc_phoSigma <= StandardCut && !isFake);
+		bool isInTargetRegion = (mc_phoSigma <= StandardCut && mc_phoChIso < StandardIso);
 
-		if(mc_phoSigma <= 0.0103 && isFake)mc_fake->Fill(mc_phoChIso);
+		if(mc_phoSigma <= StandardCut && isFake)mc_fake->Fill(mc_phoChIso);
 		if(isTrueTemplate){
 			mc_sig->Fill(mc_phoChIso);
 			nsignalregion += 1;
@@ -227,59 +248,56 @@ FitJetFake(float lowercut, float uppercut){
 				if(mc_phoSigma > SigmaCutLower[iLower] && mc_phoSigma < SigmaCutUpper[iUpper] && !isFake){
 					mc_sbcontamination[iLower][iUpper]->Fill(mc_phoChIso);
 					nsideband[iLower][iUpper] += 1;
-					if(mc_phoChIso < 1.295)nsbPassIso[iLower][iUpper] += 1;
+					if(mc_phoChIso < StandardIso)nsbPassIso[iLower][iUpper] += 1;
 				}
 			}
 		}					
 	}
+	std::cout << "MC tree has been filled" << std::endl;
 
 	if(nMCtarget > 0)mcfakerate = 1.0*nMCfaketarget/nMCtarget;
 
-	for(unsigned ievt(0); ievt < datatree->GetEntries(); ievt++){
-		datatree->GetEntry(ievt);
-		if(data_phoEt < lowercut || data_phoEt > uppercut )continue;
-		if(data_sigMET < METLOWCUT || data_sigMET > METHIGHCUT)continue;
-		if(data_dilepMass < 80 || data_dilepMass > 100)continue;
-		//if(data_dilepMass > 80 || data_dilepMass < 30)continue;
+	for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
+		egtree->GetEntry(ievt);
+		if(sigMET < METLOWCUT || sigMET > METHIGHCUT)continue;
 
-		if(data_phoSigma <= 0.0103){
-			h_target->Fill(data_phoChIso);
+		if(phoEt < lowercut || phoEt > uppercut )continue;
+		if(sigMET < METLOWCUT || sigMET > METHIGHCUT)continue;
+		if(detType == 1 && fabs(phoEta) > 1.4442)continue;
+		//else if(detType == 2 && ( fabs(phoEta) < 1.56 || fabs(phoEta) > 2.4) )continue;
+
+		if(phoSigma <= StandardCut){
+			h_target->Fill(phoChIso);
 			totalden+=1;
-			if(data_phoChIso < 1.295)nden+=1;
+			if(phoChIso < StandardIso)nden+=1;
 		}
 		else{
 			for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
 				for(unsigned iLower(0); iLower<nLower; iLower++){
-					if(data_phoSigma > SigmaCutLower[iLower] && data_phoSigma < SigmaCutUpper[iUpper]){
-						h_bg[iLower][iUpper]->Fill(data_phoChIso);
+					if(phoSigma > SigmaCutLower[iLower] && phoSigma < SigmaCutUpper[iUpper]){
+						h_bg[iLower][iUpper]->Fill(phoChIso);
 						totalnum[iLower][iUpper] +=1;
-						if(data_phoChIso < 1.295)nnum[iLower][iUpper] +=1;
+						if(phoChIso < StandardIso)nnum[iLower][iUpper] +=1;
 					}
 				}
 			}
 		}
 
 	}
-	for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
-    for(unsigned iLower(0); iLower<nLower; iLower++){
-			cantemplate[iLower][iUpper]->cd(1);
-			h_target->SetLineColor(kRed);
-			h_target->Draw();
-			h_bg[iLower][iUpper]->Draw("same");
-			
-			cantemplate[iLower][iUpper]->cd(2);
-			mc_sig->Draw();
-		}
-	}
-			
 
-	std::cout << "target " << h_target->Integral(1,10) << std::endl;
-	h_target->Sumw2();
-	for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
-		for(unsigned iLower(0); iLower<nLower; iLower++){
-			h_bg[iLower][iUpper]->Sumw2();
-		}
-	}
+	std::cout << "data tree has been filled" << std::endl;
+
+	TCanvas *districan = new TCanvas("districan","",1200,600);
+	districan->Divide(2);
+	districan->cd(1);
+	h_target->Draw();
+	mc_sig->Scale(h_target->Integral(1,20)/mc_sig->Integral(1,20));
+	mc_sig->SetLineColor(kRed);
+	mc_sig->Draw("hist same");	
+	districan->cd(2);
+	h_bg[0][0]->Draw();
+
+	std::cout << "target " << h_target->Integral(1,20) << std::endl;
 
 	for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
 		for(unsigned iLower(0); iLower<nLower; iLower++){
@@ -291,7 +309,7 @@ FitJetFake(float lowercut, float uppercut){
 			if(doIterate){
 				while(iteratorUncertainty > 0.01){
 
-					TH1F *hist_new=(TH1F*)h_bg[iLower][iUpper]->Clone();
+					TH1D *hist_new=(TH1D*)h_bg[iLower][iUpper]->Clone();
 					hist_new->Add(mc_sbcontamination[iLower][iUpper], -1*templateCorrFactor[iLower][iUpper]/mc_sbcontamination[iLower][iUpper]->GetEntries());
 					hist_new->Sumw2();
 					templateContainer[iLower][iUpper]->Add(mc_sig);
@@ -328,7 +346,7 @@ FitJetFake(float lowercut, float uppercut){
 				double numerror = (1.0/sqrt(nnum[iLower][iUpper]) + 1.0/sqrt(totalnum[iLower][iUpper]))*num;
 				double fracBkg, errorBkg;
 				double fracSig, errorSig;
-				result[iLower][iUpper] = (TH1F*)fitter[iLower][iUpper]->GetPlot();
+				result[iLower][iUpper] = (TH1D*)fitter[iLower][iUpper]->GetPlot();
 				result[iLower][iUpper]->SetMinimum(10);
 				fitter[iLower][iUpper]->GetResult(0, fracSig, errorSig);
 				fitter[iLower][iUpper]->GetResult(1, fracBkg, errorBkg);
@@ -337,7 +355,7 @@ FitJetFake(float lowercut, float uppercut){
 				hname.str("");
 				hname << lowername << "< pt <" << uppername; 
 				h_target->SetTitle(hname.str().c_str());
-				h_target->SetMinimum(h_target->GetBinContent(10));
+				h_target->SetMinimum(h_target->GetBinContent(20));
 				result[iLower][iUpper]->SetMinimum(100);
 				gPad->SetLogy();
 				h_target->SetMarkerStyle(20);
@@ -372,8 +390,8 @@ FitJetFake(float lowercut, float uppercut){
 		//		hname << "Hadfrac="<< num*fracBkg/den << " #pm " << (numerror/num + denerror/den + errorBkg/fracBkg)*num*fracBkg/den;
 		//		latex->DrawLatex(2,0.15*h_target->GetMaximum(),hname.str().c_str());
 		 
-				if(SigmaCutLower[iLower] == 0.0103 && SigmaCutUpper[iUpper]==0.014){
-          hadfrac =  num*fracBkg/den;
+				if(SigmaCutLower[iLower] == StandardCut && iUpper == 0){
+					hadfrac =  num*fracBkg/den;
 					fittingError = (numerror/num + denerror/den + errorBkg/fracBkg)*num*fracBkg/den ;
 					TLegend *leg = new TLegend(0.6,0.75,0.87,0.9);
 					leg->AddEntry(h_target, "observed");
@@ -381,24 +399,34 @@ FitJetFake(float lowercut, float uppercut){
 					leg->AddEntry(mc_predict[iLower][iUpper], "hadrons");
 					leg->Draw("same");
 					hname.str("");
-					hname << "frac-" << lowername << "-" << uppername << "_ChIso-MuonEG-July22.pdf";
+					hname << "frac-" << lowername << "-" << uppername << "-ISR-FullEcal";
+					if(detType == 1)hname << "-EB.pdf";
+					else if(detType == 2)hname << "-EE.pdf";
 					can[iLower][iUpper]->SaveAs(hname.str().c_str());
 				}
-				fracHad2D->Fill(SigmaCutLower[iLower]+0.00005, SigmaCutUpper[iUpper]+0.00005, num*fracBkg/den);
-				fracHad1D->Fill(num*fracBkg/den);
+				if(fracBkg >0 && fracBkg < 1)fracHad2D->Fill(SigmaCutLower[iLower]+0.00005, SigmaCutUpper[iUpper]+0.00005, num*fracBkg/den);
+				if(fracBkg >0 && fracBkg < 1)fracHad1D->Fill(num*fracBkg/den);
 				if(lowestfrac > num*fracBkg/den)lowestfrac = num*fracBkg/den;
 				if(highestfrac < num*fracBkg/den)highestfrac = num*fracBkg/den; 
 			}
-    }
-  }
+		}
+	}
 
-	if(hadfrac < 0.001)hadfrac = (highestfrac+lowestfrac)/2;
-  systematicError = highestfrac - lowestfrac;
+	if(hadfrac < 0.001){
+		hadfrac = fracHad1D->GetMean();	
+	}
+
+	hname.str(""); hname << "can2D-" << lowername << "-" << uppername << "-ISR-FullEcal.pdf";
+	can2D->cd();
+	fracHad2D->Draw("colz");
+	can2D->SaveAs(hname.str().c_str());
+	systematicError = highestfrac - lowestfrac;
 	myfile << " " << lowername << " " << uppername << " " << hadfrac << " "; 
-  myfile << sqrt(fittingError*fittingError + systematicError*systematicError) << " ";
-  //myfile << systematicError <<"	" << std::endl;
-  myfile << systematicError << "	" << " ";
-  myfile << mcfakerate  << std::endl;
+	myfile << sqrt(fittingError*fittingError + systematicError*systematicError) << " ";
+	myfile << systematicError << "	" << " ";
+	myfile << mcfakerate;
+        if(detType == 1)myfile << " EB" <<  std::endl;
+        else if(detType == 2)myfile << " EE" <<  std::endl;
 	char* dt = ctime(&now);
 	if(uppercut > 500){
 		myfile<< std::endl;
@@ -409,8 +437,9 @@ FitJetFake(float lowercut, float uppercut){
 		myfile << std::endl;
 		for(unsigned u(0); u < nUpper; u++)myfile << SigmaCutUpper[u] << " ";
 		myfile << std::endl;
+		myfile << datasetname.str().c_str() << std::endl;
 	} 
-  myfile.close();
-  outputfile->Write();
-  return 1;
+	myfile.close();
+	outputfile->Write();
+	return 1;
 }

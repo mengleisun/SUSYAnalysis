@@ -102,6 +102,7 @@ void analysis_rareBkg(){
 	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
+	TH1D *p_nBJet = new TH1D("p_nBJet","p_nBJet",5,0,5);
 
 	TH1D *p_reweight_PhoEt = new TH1D("p_reweight_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
 	TH1D *p_reweight_PhoEta = new TH1D("p_reweight_PhoEta","#gamma #eta; #eta;",60,-3,3);
@@ -168,12 +169,12 @@ void analysis_rareBkg(){
   TChain *mctree;
 	if(channelType == 1)mctree = new TChain("egTree","egTree");
   else if(channelType == 2)mctree = new TChain("mgTree","mgTree");
-  mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_TTG.root");
-  mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_WWG.root");
-  mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_WZG.root");
+  mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WWG.root");
+  mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WZG.root");
   mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_WW.root");
   mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_WZ.root");
- // mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_TT.root");
+  mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_TT.root");
+  mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_TTG.root");
 	float crosssection(0);
 	float ntotalevent(0);
 	float PUweight(1);
@@ -193,7 +194,9 @@ void analysis_rareBkg(){
 	float threeMass(0);
   float HT(0);
   float nJet(0);
+  int   nBJet(0);
 	int   nISRJet(0);
+	float bosonPt(0);
   //float invmass(0);  
 	float sigMETJESup(0);
 	float sigMETJESdo(0);
@@ -235,7 +238,9 @@ void analysis_rareBkg(){
 	mctree->SetBranchAddress("threeMass", &threeMass);
   mctree->SetBranchAddress("HT",        &HT);
   mctree->SetBranchAddress("nJet",      &nJet);
+  mctree->SetBranchAddress("nBJet",     &nBJet);
   mctree->SetBranchAddress("nISRJet",   &nISRJet);
+  mctree->SetBranchAddress("ISRJetPt",     &bosonPt);
   //mctree->SetBranchAddress("invmass",   &invmass);
 	mctree->SetBranchAddress("sigMETJESup",     &sigMETJESup);
 	mctree->SetBranchAddress("sigMETJESdo",     &sigMETJESdo);
@@ -300,14 +305,18 @@ void analysis_rareBkg(){
 		if(highPt > 0 && lepPt > highPt)continue;
 
 		totalevent += 1;
-		double reweightF = 1;
-		if(nISRJet==0)reweightF=reweightF*1.071;
-		else if(nISRJet == 1)reweightF= reweightF*1.071*0.921;
-		else if(nISRJet == 2)reweightF= reweightF*1.071*0.821;
-		else if(nISRJet == 3)reweightF= reweightF*1.071*0.715;
-		else if(nISRJet == 4)reweightF= reweightF*1.071*0.662;
-		else if(nISRJet == 5)reweightF= reweightF*1.071*0.561;
-		else if(nISRJet >= 6)reweightF= reweightF*1.071*0.511;
+		double reweightF(1);
+		if(bosonPt < 50){reweightF = 1.08893;} 
+		else if(bosonPt >= 50 && bosonPt < 80){reweightF  = 1.1675;    }
+		else if(bosonPt >= 80 && bosonPt < 100){reweightF  = 0.908314; }
+		else if(bosonPt >= 100 && bosonPt < 125){reweightF = 0.848379; }
+		else if(bosonPt >= 125 && bosonPt < 150){reweightF = 0.747166; }
+		else if(bosonPt >= 150 && bosonPt < 200){reweightF = 0.714054; }
+		else if(bosonPt >= 200 && bosonPt < 250){reweightF =	0.729144;}
+		else if(bosonPt >= 250 && bosonPt < 300){reweightF =	0.709433;}
+		else if(bosonPt >= 300 && bosonPt < 400){reweightF = 0.768222; }
+		else if(bosonPt >= 400 && bosonPt < 600){reweightF =  0.452023;}
+		else if(bosonPt >= 600){reweightF =  0.252564;}
 
 		totalreweight += reweightF;
 		reweightF = reweightF*weight;	
@@ -316,7 +325,7 @@ void analysis_rareBkg(){
 		double mindRele(0.3), mindRpho(0.3);
 		unsigned eleIndex(0), phoIndex(0);
 		for(unsigned iMC(0); iMC<mcPID->size(); iMC++){
-			std::cout << (*mcPID)[iMC] << " " << (*mcMomPID)[iMC] << " " << (*mcStatus)[iMC] << std::endl;
+			//std::cout << (*mcPID)[iMC] << " " << (*mcMomPID)[iMC] << " " << (*mcStatus)[iMC] << std::endl;
 			double dR1 = DeltaR((*mcEta)[iMC], (*mcPhi)[iMC], lepEta, lepPhi);
 			double dR2 = DeltaR((*mcEta)[iMC], (*mcPhi)[iMC], phoEta,phoPhi);
 			double dE1 = fabs((*mcPt)[iMC] - lepPt)/lepPt;
@@ -326,18 +335,20 @@ void analysis_rareBkg(){
 		}
 		bool isTrueEle(false);
 		if(mindRele < 0.1){
-			if(fabs((*mcPID)[eleIndex]) == 11 && (fabs((*mcMomPID)[eleIndex]) == 24 || fabs((*mcMomPID)[eleIndex]) == 23))isTrueEle = true;
-			else if(fabs((*mcPID)[eleIndex]) == 13 && (fabs((*mcMomPID)[eleIndex]) == 24 || fabs((*mcMomPID)[eleIndex]) == 23))isTrueEle = true;
+			//std::cout << (*mcPID)[eleIndex] << " " << fabs((*mcMomPID)[eleIndex]) << std::endl;
+			if(fabs((*mcPID)[eleIndex]) == 11 && (fabs((*mcMomPID)[eleIndex]) == 24 || fabs((*mcMomPID)[eleIndex]) == 23 || fabs((*mcMomPID)[eleIndex]) == 15))isTrueEle = true;
+			else if(fabs((*mcPID)[eleIndex]) == 13 && (fabs((*mcMomPID)[eleIndex]) == 24 || fabs((*mcMomPID)[eleIndex]) == 23 || fabs((*mcMomPID)[eleIndex]) == 15))isTrueEle = true;
 			else if(fabs((*mcPID)[eleIndex]) == 15 && (fabs((*mcMomPID)[eleIndex]) == 24 || fabs((*mcMomPID)[eleIndex]) == 23))isTrueEle = true;
 		}
 		bool isTruePho(false);
 		if(mindRpho < 0.1){
-			std::cout << (*mcPID)[phoIndex] << " " << fabs((*mcMomPID)[phoIndex]) << std::endl;
+			//std::cout << (*mcPID)[phoIndex] << " " << fabs((*mcMomPID)[phoIndex]) << std::endl;
 			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex]) <= 6 || fabs((*mcMomPID)[phoIndex])==21 || fabs((*mcMomPID)[phoIndex])==11 || fabs((*mcMomPID)[phoIndex])== 999 || fabs((*mcMomPID)[phoIndex]) == 13 ||  fabs((*mcMomPID)[phoIndex]) == 15 || fabs((*mcMomPID)[phoIndex]) == 24))isTruePho = true;
 		}
 		bool isFSRPho(false);
 		if(mindRpho < 0.1){
-			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex])==11 || fabs((*mcMomPID)[phoIndex]) == 13 ||  fabs((*mcMomPID)[phoIndex]) == 15 ))isFSRPho = true;
+			//if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex])==11 || fabs((*mcMomPID)[phoIndex]) == 13 ||  fabs((*mcMomPID)[phoIndex]) == 15 || fabs((*mcMomPID)[phoIndex])==24 || fabs((*mcMomPID)[phoIndex])==6 ))isFSRPho = true;
+			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex])==11 || fabs((*mcMomPID)[phoIndex]) == 13 ||  fabs((*mcMomPID)[phoIndex]) == 15  ))isFSRPho = true;
 		}
 		if(isTrueEle && isTruePho)isFake = false;
 		//if(isTruePho)isFake = false;
@@ -355,6 +366,9 @@ void analysis_rareBkg(){
 		p_dPhiEleMET->Fill(fabs(dPhiLepMET), weight);
 		p_nJet->Fill( nJet, weight);
 
+		//if(phoEt > 200 && sigMET > 200 && HT > 400)p_nBJet->Fill(nBJet, weight);
+		p_nBJet->Fill(nBJet, weight);
+
 		p_reweight_MET->Fill(sigMET, reweightF);
 		p_reweight_PhoEt->Fill(phoEt, reweightF);
 		p_reweight_PhoEta->Fill(phoEta,reweightF);
@@ -363,16 +377,6 @@ void analysis_rareBkg(){
 		p_reweight_Mt->Fill(sigMT, reweightF);
 		p_reweight_HT->Fill(HT, reweightF);
 		p_reweight_dPhiEleMET->Fill(fabs(dPhiLepMET), reweightF);
-
-		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
-		h_rare_norm->Fill( SigBinIndex, weight);
-		h_rare_esfUp->Fill( SigBinIndex, weight_scaleup);
-		h_rare_esfDown->Fill( SigBinIndex, weight_scaledo);
-		if(findSignalBin(sigMETJESup, HTJESup)>=0)h_rare_jesUp->Fill( findSignalBin(sigMETJESup, HTJESup, METbin1, METbin2),  weight);
-		if(findSignalBin(sigMETJESdo, HTJESdo)>=0)h_rare_jesDown->Fill( findSignalBin(sigMETJESdo, HTJESdo, METbin1, METbin2),  weight);
-		if(findSignalBin(sigMETJERup, HT)>=0)h_rare_jerUp->Fill( findSignalBin(sigMETJERup, HT, METbin1, METbin2),       weight);
-		if(findSignalBin(sigMETJERdo, HT)>=0)h_rare_jerDown->Fill( findSignalBin(sigMETJERdo, HT, METbin1, METbin2),       weight); 
 
 		jesup_MET->Fill(sigMETJESup, weight);
 		jesup_Mt->Fill(sigMTJESup, weight);
@@ -423,13 +427,17 @@ void analysis_rareBkg(){
 		double syserror(0);
 		syserror += pow((scaleup_PhoEt->GetBinContent(ibin)-p_PhoEt->GetBinContent(ibin)),2);
 		syserror += pow((scaledo_PhoEt->GetBinContent(ibin)-p_PhoEt->GetBinContent(ibin)),2);
+		syserror += pow((p_PhoEt->GetBinContent(ibin)*0.3),2);
 		p_PhoEt->SetBinError(ibin,sqrt(syserror));
+		p_reweight_PhoEt->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_LepPt->GetSize(); ibin++){
 		double syserror(0);
 		syserror += pow((scaleup_LepPt->GetBinContent(ibin)-p_LepPt->GetBinContent(ibin)),2);
 		syserror += pow((scaledo_LepPt->GetBinContent(ibin)-p_LepPt->GetBinContent(ibin)),2);
+		syserror += pow((p_LepPt->GetBinContent(ibin)*0.3),2);
 		p_LepPt->SetBinError(ibin,sqrt(syserror));
+		p_reweight_LepPt->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_MET->GetSize(); ibin++){
 		double syserror(0);
@@ -439,7 +447,9 @@ void analysis_rareBkg(){
 		syserror += pow((jesdo_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
 		syserror += pow((jerup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
 		syserror += pow((jerdo_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
+		syserror += pow((p_MET->GetBinContent(ibin)*0.3),2);
 		p_MET->SetBinError(ibin,sqrt(syserror));
+		p_reweight_MET->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_Mt->GetSize(); ibin++){
 		double syserror(0);
@@ -449,7 +459,9 @@ void analysis_rareBkg(){
 		syserror += pow((jesdo_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
 		syserror += pow((jerup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
 		syserror += pow((jerdo_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
+		syserror += pow((p_Mt->GetBinContent(ibin)*0.3),2);
 		p_Mt->SetBinError(ibin,sqrt(syserror));
+		p_reweight_Mt->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_HT->GetSize(); ibin++){
 		double syserror(0);
@@ -457,7 +469,9 @@ void analysis_rareBkg(){
 		syserror += pow((scaledo_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
 		syserror += pow((jesup_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
 		syserror += pow((jesdo_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
+		syserror += pow((p_HT->GetBinContent(ibin)*0.3),2);
 		p_HT->SetBinError(ibin,sqrt(syserror));
+		p_reweight_HT->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_dPhiEleMET->GetSize(); ibin++){
 		double syserror(0);
@@ -470,25 +484,6 @@ void analysis_rareBkg(){
 		syserror += pow((jerdo_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
 		p_dPhiEleMET->SetBinError(ibin,sqrt(syserror));
 	}	
-	
-	for(int contbin(1); contbin <=9; contbin++){
-		float nominalsig = h_rare_norm->GetBinContent(contbin); 
-		float jesuperror = fabs(h_rare_jesUp->GetBinContent(contbin)- nominalsig);
-		float jesdoerror = fabs(h_rare_jesDown->GetBinContent(contbin)- nominalsig);
-		float jeruperror = fabs(h_rare_jerUp->GetBinContent(contbin)- nominalsig);
-		float jerdoerror = fabs(h_rare_jerDown->GetBinContent(contbin)- nominalsig);
-		float esfuperror = fabs(h_rare_esfUp->GetBinContent(contbin)- nominalsig); 	
-		float esfdoerror = fabs(h_rare_esfDown->GetBinContent(contbin)- nominalsig); 	
-
-		h_rare_syserr_jetshape->SetBinContent(contbin, -1);  
-		h_rare_syserr_eleshape->SetBinContent(contbin, -1);
-		h_rare_syserr_jes->SetBinContent(contbin, max(jesuperror,jesdoerror));
-		h_rare_syserr_jer->SetBinContent(contbin, max(jeruperror,jerdoerror));
-		h_rare_syserr_esf->SetBinContent(contbin, max(esfuperror,esfdoerror));
-		h_rare_syserr_scale->SetBinContent(contbin, -1);
-		h_rare_syserr_xs->SetBinContent(contbin, 0.5*h_rare_norm->GetBinContent(contbin));     
-		h_rare_syserr_lumi->SetBinContent(contbin, 0.026*h_rare_norm->GetBinContent(contbin));      
-	}
 
 	p_PhoEt->Sumw2();
 	outputfile->Write();

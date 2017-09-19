@@ -31,6 +31,7 @@
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_fakes.h"
 #include "../../include/analysis_scalefactor.h"
+#include "../../include/analysis_binning.h"
 
 void pred_VGBkg(){
 	
@@ -76,13 +77,23 @@ void pred_VGBkg(){
 
 	std::ifstream binfile("binConfig.txt");
 	float METbin1(200), METbin2(300);
+	float HTbin1(100),  HTbin2(400);
+	float PHOETbin(100);
+	int   NBIN(0);
 	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
+		for(int i(0); i<6; i++){
 			binfile >> conftype >> confvalue;
+			if(conftype.find("NBIN")!=std::string::npos)NBIN = int(confvalue);
 			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
 			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
+			if(conftype.find("HTbin1")!=std::string::npos)HTbin1= confvalue;
+			if(conftype.find("HTbin2")!=std::string::npos)HTbin2= confvalue;
+			if(conftype.find("PHOETbin")!=std::string::npos)PHOETbin= confvalue;
 		}
 	}
+	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
+
+
 
 	if(anatype == 0){
 		toDeriveScale = true;
@@ -145,6 +156,16 @@ void pred_VGBkg(){
 	TH1D *p_dPhiEleMET_WG = new TH1D("p_dPhiEleMET_WG","dPhiEleMET",32,0,3.2); 
 	TH1D *p_dPhiEleMET_ZG = new TH1D("p_dPhiEleMET_ZG","dPhiEleMET",32,0,3.2); 
 
+	TH1D *p_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){
+		histname.str("");
+		histname << "p_PhoEt_bin" << ip;
+	 	p_PhoEt_bin[ip] = new TH1D(histname.str().c_str(),"#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
+	}
+	double count_PhoEt_bin[NBIN];
+	for(unsigned ip(0); ip<NBIN; ip++){count_PhoEt_bin[ip] = 0;}
+
+
 //	TH1D *p_reweight_PhoEt = new TH1D("p_reweight_PhoEt","#gamma E_{T}; E_{T} (GeV)",nSigEtBins,sigEtBins);
 //	TH1D *p_reweight_PhoEta = new TH1D("p_reweight_PhoEta","#gamma #eta; #eta;",60,-3,3);
 //	TH1D *p_reweight_LepPt = new TH1D("p_reweight_LepPt","p_reweight_LepPt",nSigPtBins,sigPtBins);
@@ -184,48 +205,48 @@ void pred_VGBkg(){
 	TH1D *h_VGamma_syserr_lumi;
 	TH1D *h_VGamma_syserr_isr;
 	if(channelType==1){
-		h_VGamma_norm            = new TH1D("eg_VGamma_norm","eventcount",9,0,9);
-		h_VGamma_jesUp           = new TH1D("eg_VGamma_jesUp","eventcount",9,0,9);
-		h_VGamma_jesDown         = new TH1D("eg_VGamma_jesDown","eventcount",9,0,9);
-		h_VGamma_jerUp           = new TH1D("eg_VGamma_jerUp","eventcount",9,0,9);
-		h_VGamma_jerDown         = new TH1D("eg_VGamma_jerDown","eventcount",9,0,9);
-		h_VGamma_esfUp           = new TH1D("eg_VGamma_esfUp","eventcount",9,0,9);
-		h_VGamma_esfDown         = new TH1D("eg_VGamma_esfDown","eventcount",9,0,9);
-		h_VGamma_normUp          = new TH1D("eg_VGamma_normUp","eventcount",9,0,9);
-		h_VGamma_normDown        = new TH1D("eg_VGamma_normDown","eventcount",9,0,9);
-		h_VGamma_isrUp           = new TH1D("eg_VGamma_isrUp","eventcount",9,0,9);
-		h_VGamma_isrDown         = new TH1D("eg_VGamma_isrDown","eventcount",9,0,9);
-		h_VGamma_syserr_jes      = new TH1D("eg_VGamma_syserr_jes","",9,0,9);	
-		h_VGamma_syserr_jer      = new TH1D("eg_VGamma_syserr_jer","",9,0,9);	
-		h_VGamma_syserr_esf      = new TH1D("eg_VGamma_syserr_esf","",9,0,9);	
-		h_VGamma_syserr_scale    = new TH1D("eg_VGamma_syserr_scale","",9,0,9);	
-		h_VGamma_syserr_eleshape = new TH1D("eg_VGamma_syserr_eleshape","",9,0,9);	
-		h_VGamma_syserr_jetshape = new TH1D("eg_VGamma_syserr_jetshape","",9,0,9);	
-		h_VGamma_syserr_xs       = new TH1D("eg_VGamma_syserr_xs","",9,0,9);	
-		h_VGamma_syserr_lumi     = new TH1D("eg_VGamma_syserr_lumi","",9,0,9);
-		h_VGamma_syserr_isr      = new TH1D("eg_VGamma_syserr_isr","",9,0,9);
+		h_VGamma_norm            = new TH1D("eg_VGamma_norm","eventcount",NBIN,0,NBIN);
+		h_VGamma_jesUp           = new TH1D("eg_VGamma_jesUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_jesDown         = new TH1D("eg_VGamma_jesDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_jerUp           = new TH1D("eg_VGamma_jerUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_jerDown         = new TH1D("eg_VGamma_jerDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_esfUp           = new TH1D("eg_VGamma_esfUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_esfDown         = new TH1D("eg_VGamma_esfDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_normUp          = new TH1D("eg_VGamma_normUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_normDown        = new TH1D("eg_VGamma_normDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_isrUp           = new TH1D("eg_VGamma_isrUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_isrDown         = new TH1D("eg_VGamma_isrDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_syserr_jes      = new TH1D("eg_VGamma_syserr_jes","",NBIN,0,NBIN);	
+		h_VGamma_syserr_jer      = new TH1D("eg_VGamma_syserr_jer","",NBIN,0,NBIN);	
+		h_VGamma_syserr_esf      = new TH1D("eg_VGamma_syserr_esf","",NBIN,0,NBIN);	
+		h_VGamma_syserr_scale    = new TH1D("eg_VGamma_syserr_scale","",NBIN,0,NBIN);	
+		h_VGamma_syserr_eleshape = new TH1D("eg_VGamma_syserr_eleshape","",NBIN,0,NBIN);	
+		h_VGamma_syserr_jetshape = new TH1D("eg_VGamma_syserr_jetshape","",NBIN,0,NBIN);	
+		h_VGamma_syserr_xs       = new TH1D("eg_VGamma_syserr_xs","",NBIN,0,NBIN);	
+		h_VGamma_syserr_lumi     = new TH1D("eg_VGamma_syserr_lumi","",NBIN,0,NBIN);
+		h_VGamma_syserr_isr      = new TH1D("eg_VGamma_syserr_isr","",NBIN,0,NBIN);
 	} 
 	else if(channelType==2){
-		h_VGamma_norm            = new TH1D("mg_VGamma_norm","eventcount",9,0,9);
-		h_VGamma_jesUp           = new TH1D("mg_VGamma_jesUp","eventcount",9,0,9);
-		h_VGamma_jesDown         = new TH1D("mg_VGamma_jesDown","eventcount",9,0,9);
-		h_VGamma_jerUp           = new TH1D("mg_VGamma_jerUp","eventcount",9,0,9);
-		h_VGamma_jerDown         = new TH1D("mg_VGamma_jerDown","eventcount",9,0,9);
-		h_VGamma_esfUp           = new TH1D("mg_VGamma_esfUp","eventcount",9,0,9);
-		h_VGamma_esfDown         = new TH1D("mg_VGamma_esfDown","eventcount",9,0,9);
-		h_VGamma_normUp          = new TH1D("mg_VGamma_normUp","eventcount",9,0,9);
-		h_VGamma_normDown        = new TH1D("mg_VGamma_normDown","eventcount",9,0,9);
-		h_VGamma_isrUp           = new TH1D("mg_VGamma_isrUp","eventcount",9,0,9);
-		h_VGamma_isrDown         = new TH1D("mg_VGamma_isrDown","eventcount",9,0,9);
-		h_VGamma_syserr_jes      = new TH1D("mg_VGamma_syserr_jes","",9,0,9);	
-		h_VGamma_syserr_jer      = new TH1D("mg_VGamma_syserr_jer","",9,0,9);	
-		h_VGamma_syserr_esf      = new TH1D("mg_VGamma_syserr_esf","",9,0,9);	
-		h_VGamma_syserr_scale    = new TH1D("mg_VGamma_syserr_scale","",9,0,9);	
-		h_VGamma_syserr_eleshape = new TH1D("mg_VGamma_syserr_eleshape","",9,0,9);	
-		h_VGamma_syserr_jetshape = new TH1D("mg_VGamma_syserr_jetshape","",9,0,9);	
-		h_VGamma_syserr_xs       = new TH1D("mg_VGamma_syserr_xs","",9,0,9);	
-		h_VGamma_syserr_lumi     = new TH1D("mg_VGamma_syserr_lumi","",9,0,9);
-		h_VGamma_syserr_isr      = new TH1D("mg_VGamma_syserr_isr","",9,0,9);
+		h_VGamma_norm            = new TH1D("mg_VGamma_norm","eventcount",NBIN,0,NBIN);
+		h_VGamma_jesUp           = new TH1D("mg_VGamma_jesUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_jesDown         = new TH1D("mg_VGamma_jesDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_jerUp           = new TH1D("mg_VGamma_jerUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_jerDown         = new TH1D("mg_VGamma_jerDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_esfUp           = new TH1D("mg_VGamma_esfUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_esfDown         = new TH1D("mg_VGamma_esfDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_normUp          = new TH1D("mg_VGamma_normUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_normDown        = new TH1D("mg_VGamma_normDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_isrUp           = new TH1D("mg_VGamma_isrUp","eventcount",NBIN,0,NBIN);
+		h_VGamma_isrDown         = new TH1D("mg_VGamma_isrDown","eventcount",NBIN,0,NBIN);
+		h_VGamma_syserr_jes      = new TH1D("mg_VGamma_syserr_jes","",NBIN,0,NBIN);	
+		h_VGamma_syserr_jer      = new TH1D("mg_VGamma_syserr_jer","",NBIN,0,NBIN);	
+		h_VGamma_syserr_esf      = new TH1D("mg_VGamma_syserr_esf","",NBIN,0,NBIN);	
+		h_VGamma_syserr_scale    = new TH1D("mg_VGamma_syserr_scale","",NBIN,0,NBIN);	
+		h_VGamma_syserr_eleshape = new TH1D("mg_VGamma_syserr_eleshape","",NBIN,0,NBIN);	
+		h_VGamma_syserr_jetshape = new TH1D("mg_VGamma_syserr_jetshape","",NBIN,0,NBIN);	
+		h_VGamma_syserr_xs       = new TH1D("mg_VGamma_syserr_xs","",NBIN,0,NBIN);	
+		h_VGamma_syserr_lumi     = new TH1D("mg_VGamma_syserr_lumi","",NBIN,0,NBIN);
+		h_VGamma_syserr_isr      = new TH1D("mg_VGamma_syserr_isr","",NBIN,0,NBIN);
 	} 
 
 	TH1D *jesup_MET = new TH1D("jesup_MET","MET; MET (GeV);",nSigMETBins, sigMETBins);
@@ -306,8 +327,8 @@ void pred_VGBkg(){
 	mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_WG_Pt50.root");
   mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_WG_Pt35.root");
 	mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_WG_Pt130.root");
-	mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_ZG.root");
-	mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_DY.root");
+//	mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_ZG.root");
+//	mctree->Add("/uscms_data/d3/mengleis/Sep1/resTree_VGamma_DY.root");
 	//mctree->Add("/uscms_data/d3/mengleis/test/resTree_VGamma_DY10LO.root");
 	float crosssection(0);
 	float ntotalevent(0);
@@ -596,18 +617,23 @@ void pred_VGBkg(){
     }
 
 		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
+		SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 		if(SigBinIndex >=0)h_VGamma_norm->Fill( SigBinIndex, weight*factorMC);
-		h_VGamma_jesUp->Fill( findSignalBin(sigMETJESup, HTJESup, METbin1, METbin2),  weight*factorMC);
-		h_VGamma_jesDown->Fill( findSignalBin(sigMETJESdo, HTJESdo, METbin1, METbin2),  weight*factorMC);
-		h_VGamma_jerUp->Fill( findSignalBin(sigMETJERup, HT, METbin1, METbin2),       weight*factorMC);
-		h_VGamma_jerDown->Fill( findSignalBin(sigMETJERdo, HT, METbin1, METbin2),       weight*factorMC); 
+		if(Bin.findSignalBin(sigMETJESup, HTJESup,  phoEt)>=0)h_VGamma_jesUp->Fill( Bin.findSignalBin(sigMETJESup, HTJESup,  phoEt),  weight*factorMC);
+		if(Bin.findSignalBin(sigMETJESdo, HTJESdo,phoEt)>=0)h_VGamma_jesDown->Fill( Bin.findSignalBin(sigMETJESdo, HTJESdo,phoEt),  weight*factorMC);
+		if(Bin.findSignalBin(sigMETJERup, HT, phoEt)>=0)h_VGamma_jerUp->Fill( Bin.findSignalBin(sigMETJERup, HT, phoEt),       weight*factorMC);
+		if(Bin.findSignalBin(sigMETJERdo, HT, phoEt)>=0)h_VGamma_jerDown->Fill( Bin.findSignalBin(sigMETJERdo, HT, phoEt),       weight*factorMC); 
 		h_VGamma_normUp->Fill( SigBinIndex, weight*factorMCUP); 
 		h_VGamma_normDown->Fill( SigBinIndex, weight*factorMCDO); 
 		h_VGamma_esfUp->Fill( SigBinIndex, weight_scaleup*factorMC); 
 		h_VGamma_esfDown->Fill( SigBinIndex, weight_scaledo*factorMC); 
 		h_VGamma_isrUp->Fill( SigBinIndex, reweightF_up*factorMC); 
 		h_VGamma_isrDown->Fill( SigBinIndex, reweightF_do*factorMC); 
+
+		if(SigBinIndex >=0){
+			p_PhoEt_bin[SigBinIndex]->Fill( phoEt,weight*factorMC);
+			count_PhoEt_bin[SigBinIndex] += 1;
+		}
 
 		jesup_MET->Fill(sigMETJESup, weight*factorMC);
 		jesup_Mt->Fill(sigMTJESup, weight*factorMC);
@@ -750,7 +776,7 @@ void pred_VGBkg(){
 		syserror += pow((jerdo_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
 		p_dPhiEleMET->SetBinError(ibin,sqrt(syserror));
 	}	
-	for(int contbin(1); contbin <=9; contbin++){
+	for(int contbin(1); contbin <=NBIN; contbin++){
 		float nominalsig = h_VGamma_norm->GetBinContent(contbin); 
 		float jesuperror = fabs(h_VGamma_jesUp->GetBinContent(contbin)- nominalsig);
 		float jesdoerror = fabs(h_VGamma_jesDown->GetBinContent(contbin)- nominalsig);
@@ -774,6 +800,7 @@ void pred_VGBkg(){
 		
 	}
 
+	for(unsigned ip(0); ip<NBIN; ip++)std::cout << "count bin " << ip << " :" << count_PhoEt_bin[ip] << "  error:" << sqrt(count_PhoEt_bin[ip])/count_PhoEt_bin[ip] << std::endl;
 	outputfile->Write();
 	outputfile->Close();
 

@@ -34,13 +34,13 @@ void plot_bkg(){//main
 	TFile *file_VG  = TFile::Open("validTree_mg_VGBkg.root");
 	TFile *file_rare= TFile::Open("validTree_mg_rareBkg.root");
 
-	TFile *file_t5 = TFile::Open("signalTree_T5WG.root");
-	TFile *file_tchi=TFile::Open("signalTree_TChiWG.root");
-	TH1D *p_t5wg_MET_valid_1800_1000= (TH1D*)file_t5->Get("p_t5wg_MET_valid_1800_1000");
-	TH1D *p_t5wg_MET_valid_1800_200 = (TH1D*)file_t5->Get("p_t5wg_MET_valid_1800_200");
-
-	TH1D *p_tchiwg_MET_valid_800  = (TH1D*)file_tchi->Get("p_tchiwg_MET_valid_800");
-	TH1D *p_tchiwg_MET_valid_1000 = (TH1D*)file_tchi->Get("p_tchiwg_MET_valid_1000");
+//	TFile *file_t5 = TFile::Open("signalTree_T5WG.root");
+//	TFile *file_tchi=TFile::Open("signalTree_TChiWG.root");
+//	TH1D *p_t5wg_MET_valid_1800_1000= (TH1D*)file_t5->Get("p_t5wg_MET_valid_1800_1000");
+//	TH1D *p_t5wg_MET_valid_1800_200 = (TH1D*)file_t5->Get("p_t5wg_MET_valid_1800_200");
+//
+//	TH1D *p_tchiwg_MET_valid_800  = (TH1D*)file_tchi->Get("p_tchiwg_MET_valid_800");
+//	TH1D *p_tchiwg_MET_valid_1000 = (TH1D*)file_tchi->Get("p_tchiwg_MET_valid_1000");
 
 	Double_t bkgEtBins[]={35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
 	int nBkgEtBins= sizeof(bkgEtBins)/sizeof(bkgEtBins[0]) -1;
@@ -106,11 +106,17 @@ void plot_bkg(){//main
 	TH1F *p_VGHT  = (TH1F*)file_VG->Get("p_HT");
 	TH1F *p_VGPU    = (TH1F*)file_VG->Get("p_PU");
 
-	TH1F *p_rarePhoEt = (TH1F*)file_rare->Get("p_PhoEt");
-	TH1F *p_rareLepPt = (TH1F*)file_rare->Get("p_LepPt");
-	TH1F *p_rareMET   = (TH1F*)file_rare->Get("p_MET");
-	TH1F *p_rareMt    = (TH1F*)file_rare->Get("p_Mt");
-	TH1F *p_rareHT  = (TH1F*)file_rare->Get("p_HT");
+	//TH1F *p_rarePhoEt = (TH1F*)file_rare->Get("p_PhoEt");
+	TH1F *p_rarePhoEt = (TH1F*)file_rare->Get("p_reweight_PhoEt");
+	TH1F *p_rareLepPt = (TH1F*)file_rare->Get("p_reweight_LepPt");
+	TH1F *p_rareMET   = (TH1F*)file_rare->Get("p_reweight_MET");
+	TH1F *p_rareMt    = (TH1F*)file_rare->Get("p_reweight_Mt");
+	TH1F *p_rareHT  = (TH1F*)file_rare->Get("p_reweight_HT");
+//	TH1F *p_rarePhoEt = (TH1F*)file_rare->Get("p_PhoEt");
+//	TH1F *p_rareLepPt = (TH1F*)file_rare->Get("p_LepPt");
+//	TH1F *p_rareMET   = (TH1F*)file_rare->Get("p_MET");
+//	TH1F *p_rareMt    = (TH1F*)file_rare->Get("p_Mt");
+//	TH1F *p_rareHT  = (TH1F*)file_rare->Get("p_HT");
 	TH1F *p_rarePU    = (TH1F*)file_rare->Get("p_PU");
 
 
@@ -148,7 +154,7 @@ void plot_bkg(){//main
 	pt_pad1->cd();  
 	gPad->SetLogy();
 	p_allPhoEt->SetMinimum(0.01);
-	p_allPhoEt->GetXaxis()->SetRangeUser(35,300);
+	p_allPhoEt->GetXaxis()->SetRangeUser(35,800);
 	p_allPhoEt->SetLineColor(1);
 	p_allPhoEt->SetMarkerStyle(20);
 	p_allPhoEt->Draw("P");
@@ -175,10 +181,10 @@ void plot_bkg(){//main
 	for(int ibin(1); ibin < p_VGPhoEt->GetSize(); ibin++){
 		error_PhoEt->SetPoint(ibin-1,p_VGPhoEt->GetBinCenter(ibin), p_VGPhoEt->GetBinContent(ibin));
 		float prederror = p_VGPhoEt->GetBinError(ibin);
-	//	prederror += p_elePhoEt->GetBinError(ibin);
-	//	prederror += p_jetPhoEt->GetBinError(ibin);
-	//	prederror += p_qcdPhoEt->GetBinError(ibin);
-	//	prederror += p_rarePhoEt->GetBinError(ibin);
+		//prederror += p_elePhoEt->GetBinError(ibin);
+		//prederror += p_jetPhoEt->GetBinError(ibin);
+		//prederror += p_qcdPhoEt->GetBinError(ibin);
+		//prederror += p_rarePhoEt->GetBinError(ibin)*0.6;
 		error_PhoEt->SetPointError(ibin-1,(p_VGPhoEt->GetBinLowEdge(ibin+1)-p_VGPhoEt->GetBinLowEdge(ibin))/2,prederror);
 		std::cout << p_elePhoEt->GetBinError(ibin) << " " << p_jetPhoEt->GetBinError(ibin) << " " << p_qcdPhoEt->GetBinError(ibin) << " " << p_rarePhoEt->GetBinError(ibin)  << std::endl;
 		ratioerror_PhoEt->SetPoint(ibin-1,p_VGPhoEt->GetBinCenter(ibin), 1); 
@@ -192,11 +198,11 @@ void plot_bkg(){//main
   error_PhoEt->SetFillColor(2);
   error_PhoEt->SetFillStyle(3001);
 	//error_PhoEt->Draw("E2 same");
-	TLegend *leg_pt =  new TLegend(0.6,0.75,0.9,0.9);
+	TLegend *leg_pt =  new TLegend(0.5,0.65,0.9,0.9);
 	leg_pt->SetFillStyle(0);
 	gStyle->SetLegendBorderSize(1);
 	gStyle->SetLegendFillColor(0);
-	leg_pt->AddEntry(p_allPhoEt,"observed (MET < 100 GeV)");
+	leg_pt->AddEntry(p_allPhoEt,"observed (MT < 100 GeV)");
 	leg_pt->AddEntry(p_rarePhoEt,"t#bar{t}#gamma/WW#gamma/WZ#gamma");
 	leg_pt->AddEntry(p_elePhoEt,"e->#gamma fake");
 	leg_pt->AddEntry(p_jetPhoEt,"j->#gamma fake");
@@ -209,7 +215,7 @@ void plot_bkg(){//main
 	TPad *pt_pad2 = new TPad("pt_pad2", "pt_pad2", 0, 0.05, 1, 0.25);
 	pt_pad2->Draw();
 	pt_pad2->cd();
-  TLine *flatratio = new TLine(35,1,300,1);
+  TLine *flatratio = new TLine(35,1,800,1);
 	TH1F *ratio=(TH1F*)p_allPhoEt->Clone("transfer factor");
 	ratio->SetMinimum(0);
 	ratio->SetMaximum(2);
@@ -285,11 +291,11 @@ void plot_bkg(){//main
   error_MET->SetFillColor(2);
   error_MET->SetFillStyle(3001);
 	//error_MET->Draw("E2 same");
-	TLegend *leg_met =  new TLegend(0.6,0.75,0.9,0.9);
+	TLegend *leg_met =  new TLegend(0.5,0.65,0.9,0.9);
 	leg_met->SetFillStyle(0);
 	gStyle->SetLegendBorderSize(1);
 	gStyle->SetLegendFillColor(0);
-	leg_met->AddEntry(p_allMET,"observed (MET < 100 GeV)");
+	leg_met->AddEntry(p_allMET,"observed (MT < 100 GeV)");
 	leg_met->AddEntry(p_rareMET,"t#bar{t}#gamma/WW#gamma/WZ#gamma");
 	leg_met->AddEntry(p_eleMET,"e->#gamma fake");
 	leg_met->AddEntry(p_jetMET,"j->#gamma fake");
@@ -298,29 +304,29 @@ void plot_bkg(){//main
 	leg_met->Draw("same");
 	p_allMET->Draw("E same");
 
-  p_t5wg_MET_valid_1800_1000->SetLineColor(8);
-  p_t5wg_MET_valid_1800_200->SetLineColor(kBlack);
-  p_t5wg_MET_valid_1800_1000->SetLineWidth(4);
-  p_t5wg_MET_valid_1800_200->SetLineWidth(4);
-  p_t5wg_MET_valid_1800_1000->Draw("same");
-  p_t5wg_MET_valid_1800_200->Draw("same");
-	p_tchiwg_MET_valid_800->SetLineColor(8);
-	p_tchiwg_MET_valid_1000->SetLineColor(kBlack);
-	p_tchiwg_MET_valid_800->SetLineStyle(2);
-	p_tchiwg_MET_valid_1000->SetLineStyle(2);
-	p_tchiwg_MET_valid_800->SetLineWidth(4);
-	p_tchiwg_MET_valid_1000->SetLineWidth(4);
-	p_tchiwg_MET_valid_800->Draw("same");
-	p_tchiwg_MET_valid_1000->Draw("same");
-	TLegend *leg_susy =  new TLegend(0.1,0.75,0.5,0.9);
-	leg_susy->SetFillStyle(0);
-	gStyle->SetLegendBorderSize(1);
-	gStyle->SetLegendFillColor(0);
-  leg_susy->AddEntry(p_t5wg_MET_valid_1800_1000,"T5WG,1800,1000");
-  leg_susy->AddEntry(p_t5wg_MET_valid_1800_200, "T5WG,1800,200");
-	leg_susy->AddEntry(p_tchiwg_MET_valid_800, "TChiWG, 800");
-	leg_susy->AddEntry(p_tchiwg_MET_valid_1000,"TChiWG, 1000");
-	leg_susy->Draw("same");
+//  p_t5wg_MET_valid_1800_1000->SetLineColor(8);
+//  p_t5wg_MET_valid_1800_200->SetLineColor(kBlack);
+//  p_t5wg_MET_valid_1800_1000->SetLineWidth(4);
+//  p_t5wg_MET_valid_1800_200->SetLineWidth(4);
+//  p_t5wg_MET_valid_1800_1000->Draw("same");
+//  p_t5wg_MET_valid_1800_200->Draw("same");
+//	p_tchiwg_MET_valid_800->SetLineColor(8);
+//	p_tchiwg_MET_valid_1000->SetLineColor(kBlack);
+//	p_tchiwg_MET_valid_800->SetLineStyle(2);
+//	p_tchiwg_MET_valid_1000->SetLineStyle(2);
+//	p_tchiwg_MET_valid_800->SetLineWidth(4);
+//	p_tchiwg_MET_valid_1000->SetLineWidth(4);
+//	p_tchiwg_MET_valid_800->Draw("same");
+//	p_tchiwg_MET_valid_1000->Draw("same");
+//	TLegend *leg_susy =  new TLegend(0.1,0.75,0.5,0.9);
+//	leg_susy->SetFillStyle(0);
+//	gStyle->SetLegendBorderSize(1);
+//	gStyle->SetLegendFillColor(0);
+//  leg_susy->AddEntry(p_t5wg_MET_valid_1800_1000,"T5WG,1800,1000");
+//  leg_susy->AddEntry(p_t5wg_MET_valid_1800_200, "T5WG,1800,200");
+//	leg_susy->AddEntry(p_tchiwg_MET_valid_800, "TChiWG, 800");
+//	leg_susy->AddEntry(p_tchiwg_MET_valid_1000,"TChiWG, 1000");
+//	leg_susy->Draw("same");
 
 	c_met->cd();
 	TPad *met_pad2 = new TPad("met_pad2", "met_pad2", 0, 0.05, 1, 0.25);
@@ -358,7 +364,7 @@ void plot_bkg(){//main
 	leppt_pad1->cd();  
 	gPad->SetLogy();
 	p_allLepPt->SetMinimum(0.001);
-	p_allLepPt->GetXaxis()->SetRangeUser(35,300);
+	p_allLepPt->GetXaxis()->SetRangeUser(35,800);
 	p_allLepPt->SetLineColor(1);
 	p_allLepPt->SetMarkerStyle(20);
 	p_allLepPt->Draw("P");
@@ -417,7 +423,7 @@ void plot_bkg(){//main
 	TPad *leppt_pad2 = new TPad("leppt_pad2", "leppt_pad2", 0, 0.05, 1, 0.25);
 	leppt_pad2->Draw();
 	leppt_pad2->cd();
-  TLine *flatratio_leppt = new TLine(25,1,400,1);
+  TLine *flatratio_leppt = new TLine(25,1,800,1);
 	TH1F *ratio_leppt=(TH1F*)p_allLepPt->Clone("transfer factor");
 	ratio_leppt->SetMarkerStyle(20);
 	ratio_leppt->SetLineColor(kBlack);
@@ -506,11 +512,11 @@ void plot_bkg(){//main
 	TPad *mt_pad2 = new TPad("mt_pad2", "mt_pad2", 0, 0.05, 1, 0.25);
 	mt_pad2->Draw();
 	mt_pad2->cd();
-  TLine *flatratio_mt = new TLine(0,1,100,1);
+  TLine *flatratio_mt = new TLine(0,1,800,1);
 	TH1F *ratio_mt=(TH1F*)p_allMt->Clone("transfer factor");
 	ratio_mt->SetMarkerStyle(20);
 	ratio_mt->SetLineColor(kBlack);
-	ratio_mt->GetXaxis()->SetRangeUser(0,100);
+	ratio_mt->GetXaxis()->SetRangeUser(0,800);
 	ratio_mt->GetYaxis()->SetRangeUser(0,2);
 	ratio_mt->SetMinimum(0);
 	ratio_mt->SetMaximum(2);
@@ -537,6 +543,7 @@ void plot_bkg(){//main
 	HT_pad1->SetBottomMargin(0.1);
 	HT_pad1->Draw();  
 	HT_pad1->cd();  
+	gPad->SetLogy();
 	p_allHT->SetMinimum(1);
 	p_allHT->SetLineColor(1);
 	p_allHT->SetMarkerStyle(20);
@@ -560,16 +567,23 @@ void plot_bkg(){//main
 	p_jetHT->Add(p_eleHT);  // jet 3rd
 	p_qcdHT->Add(p_jetHT);  // qcd 4th
 	p_VGHT->Add(p_qcdHT);   // VG  5th
+	for(int ibin(1); ibin < p_VGHT->GetSize(); ibin++){
+		error_HT->SetPoint(ibin-1,p_VGHT->GetBinCenter(ibin), p_VGHT->GetBinContent(ibin));
+		float prederror = p_VGHT->GetBinError(ibin);
+		error_HT->SetPointError(ibin-1,(p_VGHT->GetBinLowEdge(ibin+1)-p_VGHT->GetBinLowEdge(ibin))/2,prederror);
+		ratioerror_HT->SetPoint(ibin-1,p_VGHT->GetBinCenter(ibin), 1); 
+		ratioerror_HT->SetPointError(ibin-1,(p_VGHT->GetBinLowEdge(ibin+1)-p_VGHT->GetBinLowEdge(ibin))/2, prederror/p_VGHT->GetBinContent(ibin)); 
+	}
 	p_VGHT->Draw("hist same");
 	p_qcdHT->Draw("hist same");
 	p_jetHT->Draw("hist same");
 	p_eleHT->Draw("hist same");
 	p_rareHT->Draw("hist same");
-	TLegend *leg_HT =  new TLegend(0.6,0.75,0.9,0.9);
+	TLegend *leg_HT =  new TLegend(0.5,0.65,0.9,0.9);
 	leg_HT->SetFillStyle(0);
 	gStyle->SetLegendBorderSize(1);
 	gStyle->SetLegendFillColor(0);
-	leg_HT->AddEntry(p_allHT,"observed (HT < 100 GeV)");
+	leg_HT->AddEntry(p_allHT,"observed (MT < 100 GeV)");
 	leg_HT->AddEntry(p_rareHT,"t#bar{t}#gamma/WW#gamma/WZ#gamma");
 	leg_HT->AddEntry(p_eleHT,"e->#gamma fake");
 	leg_HT->AddEntry(p_jetHT,"j->#gamma fake");
@@ -578,28 +592,71 @@ void plot_bkg(){//main
 	leg_HT->Draw("same");
 	p_allHT->Draw("E same");
 
-//	c_HT->cd();
-//	TPad *HT_pad2 = new TPad("HT_pad2", "HT_pad2", 0, 0.05, 1, 0.25);
-//	HT_pad2->Draw();
-//	HT_pad2->cd();
-//  TLine *flatratio_HT = new TLine(0,1,400,1);
-//	TH1F *ratio_HT=(TH1F*)p_VGHT->Clone("transfer factor");
-//	ratio_HT->SetMarkerStyle(20);
-//	ratio_HT->SetLineColor(kBlack);
-//	ratio_HT->GetXaxis()->SetRangeUser(0,400);
-//	ratio_HT->SetMinimum(0);
-//	ratio_HT->SetMaximum(2);
-//	ratio_HT->Divide(p_allHT);
-//	ratio_HT->SetTitle("");
-//	ratio_HT->GetYaxis()->SetTitle("observed/bkg");
-//	ratio_HT->GetXaxis()->SetLabelFont(63);
-//	ratio_HT->GetXaxis()->SetLabelSize(14);
-//	ratio_HT->GetYaxis()->SetLabelFont(63);
-//	ratio_HT->GetYaxis()->SetLabelSize(14);
-//	ratio_HT->Draw();
-//	flatratio_HT->Draw("same");
-//	c_HT->SaveAs("VALID_mg_2016ReMiniAOD_HT.pdf");
+	c_HT->cd();
+	TPad *HT_pad2 = new TPad("HT_pad2", "HT_pad2", 0, 0.05, 1, 0.25);
+	HT_pad2->Draw();
+	HT_pad2->cd();
+  TLine *flatratio_HT = new TLine(0,1,999,1);
+	TH1F *ratio_HT=(TH1F*)p_allHT->Clone("transfer factor");
+	ratio_HT->SetMarkerStyle(20);
+	ratio_HT->SetLineColor(kBlack);
+	ratio_HT->GetXaxis()->SetRangeUser(0,999);
+	ratio_HT->GetYaxis()->SetRangeUser(0,2);
+	ratio_HT->SetMinimum(0);
+	ratio_HT->SetMaximum(2);
+	ratio_HT->Divide(p_VGHT);
+	ratio_HT->SetTitle("");
+	ratio_HT->GetYaxis()->SetTitle("observed/bkg");
+	ratio_HT->GetXaxis()->SetLabelFont(63);
+	ratio_HT->GetXaxis()->SetLabelSize(14);
+	ratio_HT->GetYaxis()->SetLabelFont(63);
+	ratio_HT->GetYaxis()->SetLabelSize(14);
+	ratio_HT->Draw();
+	ratioerror_HT->SetFillColor(2);
+	ratioerror_HT->SetFillStyle(3001);
+	ratioerror_HT->Draw("E2 same");
+	flatratio_HT->Draw("same");
+	c_HT->SaveAs("VALID_mg_2016ReMiniAOD_HT.pdf");
 
+
+
+
+	TH1F *p_allnBJet  = (TH1F*)file_sig->Get("p_nBJet");
+	TH1F *p_VGnBJet   = (TH1F*)file_VG->Get("p_nBJet");
+	TH1F *p_rarenBJet = (TH1F*)file_rare->Get("p_nBJet");
+	TH1F *p_elenBJet  = (TH1F*)file_ele->Get("p_nBJet");
+	TH1F *p_jetnBJet  = (TH1F*)file_jet->Get("p_nBJet");
+	TH1F *p_qcdnBJet  = (TH1F*)file_qcd->Get("p_nBJet");
+	TCanvas *can_BJet = new TCanvas("can_BJet","",600,600);
+	can_BJet->cd();
+	p_allnBJet->SetLineColor(1);
+	p_allnBJet->SetMarkerStyle(20);
+	p_allnBJet->Draw();
+	p_VGnBJet->SetFillStyle(1001);
+	p_VGnBJet->SetLineColor(kMagenta);
+	p_VGnBJet->SetFillColor(kMagenta);
+	p_rarenBJet->SetFillStyle(1001);
+	p_rarenBJet->SetLineColor(kYellow-4);
+	p_rarenBJet->SetFillColor(kYellow-4);
+	p_qcdnBJet->SetFillStyle(1001);
+	p_qcdnBJet->SetLineColor(kBlue);
+	p_qcdnBJet->SetFillColor(kBlue);
+	p_elenBJet->SetFillStyle(1001);
+	p_elenBJet->SetLineColor(kRed);
+	p_elenBJet->SetFillColor(kRed);
+	p_jetnBJet->SetFillStyle(1001);
+	p_jetnBJet->SetLineColor(kGreen);
+	p_jetnBJet->SetFillColor(kGreen);
+	p_elenBJet->Add(p_rarenBJet); // ele 2nd
+	p_jetnBJet->Add(p_elenBJet);  // jet 3rd
+	p_qcdnBJet->Add(p_jetnBJet);  // qcd 4th
+	p_VGnBJet->Add(p_qcdnBJet);   // VG  5th
+	p_VGnBJet->Draw("hist same");
+	p_qcdnBJet->Draw("hist same");
+	p_jetnBJet->Draw("hist same");
+	p_elenBJet->Draw("hist same");
+	p_rarenBJet->Draw("hist same");
+	p_allnBJet->Draw("EP same");
 }
 
 

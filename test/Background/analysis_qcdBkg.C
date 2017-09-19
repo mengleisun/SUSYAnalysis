@@ -38,7 +38,8 @@ void analysis_qcdBkg(){
 	double factor_egQCD(0.43);
 	double factorerror_egQCD(sqrt(0.011*0.011 + 0.017*0.017));
 	//double factor_mgQCD(0.416174);
-	double factor_mgQCD(0.56);
+	//double factor_mgQCD(0.56);
+	double factor_mgQCD(0.71);
 	double factorerror_mgQCD(sqrt(0.00044*0.00044 + 0.0229*0.0229));
 
 	std::ifstream configfile("BkgPredConfig.txt");
@@ -105,7 +106,7 @@ void analysis_qcdBkg(){
 	}
 
 	TFile *scaleFile;
-	if(channelType == 1)scaleFile = TFile::Open("qcd_eg_scale.root");
+	if(channelType == 1)scaleFile = TFile::Open("/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/qcd_eg_scale.root");
 //	else if(channelType == 2)scaleFile = TFile::Open("qcd_mg_scale.root");
 	TH1D *p_scale;
 	if(channelType == 1)p_scale = (TH1D*)scaleFile->Get("p_scale");
@@ -123,6 +124,7 @@ void analysis_qcdBkg(){
 	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
+	TH1D *p_nBJet = new TH1D("p_nBJet","p_nBJet",5,0,5);
 
 	TH1D *h_qcdfakelep_norm            = new TH1D("h_qcdfakelep_norm","eventcount",9,0,9);
 	TH1D *h_qcdfakelep_normup          = new TH1D("h_qcdfakelep_normup","eventcount; eventcount (GeV);",9,0,9);
@@ -155,8 +157,10 @@ void analysis_qcdBkg(){
 	TH1D *normdo_dPhiEleMET = new TH1D("normdo_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
-	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	//if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
+	//if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.root");
+	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -174,7 +178,8 @@ void analysis_qcdBkg(){
 	float threeMass(0);
   float HT(0);
   float nJet(0);
-  
+	int   nBJet(0); 
+ 
   fakeEtree->SetBranchAddress("phoEt",     &phoEt);
   fakeEtree->SetBranchAddress("phoEta",    &phoEta);
   fakeEtree->SetBranchAddress("phoPhi",    &phoPhi);
@@ -192,6 +197,7 @@ void analysis_qcdBkg(){
 	fakeEtree->SetBranchAddress("threeMass", &threeMass);
   fakeEtree->SetBranchAddress("HT",        &HT);
   fakeEtree->SetBranchAddress("nJet",      &nJet);
+  fakeEtree->SetBranchAddress("nBJet",     &nBJet);
 
 	for(unsigned ievt(0); ievt < fakeEtree->GetEntries(); ievt++){
 		fakeEtree->GetEntry(ievt);
@@ -231,12 +237,10 @@ void analysis_qcdBkg(){
 		p_HT->Fill(HT, factorQCD);
 		p_dPhiEleMET->Fill(fabs(dPhiLepMET), factorQCD);
 		p_nJet->Fill(nJet, factorQCD);	
+
+		//if(phoEt > 200 && sigMET > 200 && HT > 400)p_nBJet->Fill(nBJet, factorQCD);
+		p_nBJet->Fill(nBJet, factorQCD);
 	
-		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
-		if(SigBinIndex >=0)h_qcdfakelep_norm->Fill( SigBinIndex, factorQCD);
-		h_qcdfakelep_normup->Fill( SigBinIndex, factorQCDUP); 
-		h_qcdfakelep_normdo->Fill( SigBinIndex, factorQCDDO); 
 
 		normup_PhoEt->Fill(phoEt, factorQCDUP);
 		normup_PhoEta->Fill(phoEta,factorQCDUP);
@@ -287,19 +291,6 @@ void analysis_qcdBkg(){
 		syserror += pow((normup_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
 		p_HT->SetBinError(ibin,sqrt(syserror));
 	}	
-	for(int ibin(1); ibin < h_qcdfakelep_norm->GetSize(); ibin++){
-		float normuperror = fabs(h_qcdfakelep_normup->GetBinContent(ibin) - h_qcdfakelep_norm->GetBinContent(ibin)); 
-		float normdoerror = fabs(h_qcdfakelep_normdo->GetBinContent(ibin) - h_qcdfakelep_norm->GetBinContent(ibin));
-
-		h_qcdfakelep_syserr_scale->SetBinContent(ibin, max(normuperror, normdoerror)); 
-		h_qcdfakelep_syserr_jetshape->SetBinContent(ibin, -1);
-		h_qcdfakelep_syserr_eleshape->SetBinContent(ibin, -1);
-		h_qcdfakelep_syserr_jes->SetBinContent(ibin, -1);
-		h_qcdfakelep_syserr_jer->SetBinContent(ibin, -1);
-		h_qcdfakelep_syserr_esf->SetBinContent(ibin, -1);
-		h_qcdfakelep_syserr_xs->SetBinContent(ibin, -1);     
-		h_qcdfakelep_syserr_lumi->SetBinContent(ibin, -1);      
-	}	
 
 	std::ostringstream outputname;
 	switch(anatype){
@@ -324,6 +315,7 @@ void analysis_qcdBkg(){
 	p_dPhiEleMET->Write();
 	p_PU->Write();
 	p_nJet->Write();
+	p_nBJet->Write();
 	h_qcdfakelep_norm->Write();             
 	h_qcdfakelep_syserr_jes->Write();       
 	h_qcdfakelep_syserr_jer->Write();       

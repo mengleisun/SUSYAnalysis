@@ -85,7 +85,7 @@ void analysis_eleBkg(){
 	/*	double vtx_constant = par[5];	*/
 	/*	double vtx_slope = par[6];		*/
   /**********************************/
-	std::ifstream elefake_file("validateresult/EleFakeRate-ByPtVtx.txt");
+	std::ifstream elefake_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/EleFakeRate-ByPtVtx.txt");
 	double scalefactor(0);
 	double ptslope(0);
 	double ptconstant(0);
@@ -113,7 +113,7 @@ void analysis_eleBkg(){
 
 	TF3 *h_toymc_fakerate[NTOY];
 	std::ostringstream funcname;
-	std::ifstream elefake_toyfile("validateresult/ToyFakeRate_Aug3.txt");
+	std::ifstream elefake_toyfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/ToyFakeRate_Aug3.txt");
 	if(elefake_toyfile.is_open()){
   	for(int i(0); i<NTOY; i++){ 
 			elefake_toyfile >> scalefactor >> ptslope >> ptconstant >> ptindex >>  vtxconst >> vtxslope;
@@ -137,6 +137,7 @@ void analysis_eleBkg(){
 	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
+	TH1D *p_nBJet = new TH1D("p_nBJet","p_nBJet",5,0,5);
 
 	TH1D *h_elefakepho_norm = new TH1D("h_elefakepho_norm","eventcount",9,0,9);
 	TH1D *h_elefakepho_syserr_jes      = new TH1D("h_elefakepho_syserr_jes","",9,0,9);	
@@ -181,8 +182,10 @@ void analysis_eleBkg(){
 	}
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
-	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	//if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
+	//if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
+	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.root");
+	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
 
 	float phoEt(0);
 	float phoEta(0);
@@ -198,6 +201,7 @@ void analysis_eleBkg(){
 	float dRPhoLep(0);
 	float HT(0);
 	float nJet(0);
+	int   nBJet(0);	
 	
 	proxytree->SetBranchAddress("phoEt",     &phoEt);
 	proxytree->SetBranchAddress("phoEta",    &phoEta);
@@ -213,6 +217,7 @@ void analysis_eleBkg(){
 	proxytree->SetBranchAddress("dRPhoLep",  &dRPhoLep);
 	proxytree->SetBranchAddress("HT",        &HT);
 	proxytree->SetBranchAddress("nJet",      &nJet);
+	proxytree->SetBranchAddress("nBJet",     &nBJet);
  
 	for (unsigned ievt(0); ievt<proxytree->GetEntries(); ++ievt){//loop on entries
 		proxytree->GetEntry(ievt);
@@ -238,9 +243,9 @@ void analysis_eleBkg(){
 		p_dPhiEleMET->Fill(fabs(dPhiLepMET), w_ele);
 		p_nJet->Fill(nJet, w_ele);
 
-		int SigBinIndex(-1);
-		SigBinIndex = findSignalBin(sigMET, HT, METbin1, METbin2);
-		if(SigBinIndex >=0)h_elefakepho_norm->Fill( SigBinIndex, w_ele);
+		//if(phoEt > 200 && sigMET > 200 && HT > 400)p_nBJet->Fill(nBJet, w_ele);
+		p_nBJet->Fill(nBJet, w_ele);
+
 
 		for(unsigned it(0); it < NTOY; it++){
 			double toy_ele = h_toymc_fakerate[it]->Eval(phoEt,nVertex,fabs(phoEta));
@@ -250,7 +255,6 @@ void analysis_eleBkg(){
 			toy_HT[it]->Fill(HT, toy_ele);
 			toy_LepPt[it]->Fill(lepPt, toy_ele);
 			toy_dPhiEleMET[it]->Fill(fabs(dPhiLepMET), toy_ele);
-			if(toy_ele > 0 && SigBinIndex >= 0)toy_eventcount[it]->Fill(SigBinIndex, toy_ele); 
 		}
 	}
 
@@ -308,25 +312,6 @@ void analysis_eleBkg(){
 		p_HT->SetBinError(ibin, totalerror);
 		delete temphist;
 	}
-	for(int ibin(1); ibin < h_elefakepho_norm->GetSize(); ibin++){
-		float lowcount(h_elefakepho_norm->GetBinContent(ibin)), highcount(h_elefakepho_norm->GetBinContent(ibin));
-		for(unsigned it(0); it < NTOY; it++){
-			if(toy_eventcount[it]->GetBinContent(ibin) == 0)continue;
-			if(toy_eventcount[it]->GetBinContent(ibin) < lowcount)lowcount = toy_eventcount[it]->GetBinContent(ibin);
-			else if(toy_eventcount[it]->GetBinContent(ibin) > highcount)highcount = toy_eventcount[it]->GetBinContent(ibin);
-		}
-		float err1 = fabs(h_elefakepho_norm->GetBinContent(ibin) - lowcount);
-		float err2 = fabs(highcount - h_elefakepho_norm->GetBinContent(ibin));
-		h_elefakepho_syserr_eleshape->SetBinContent(ibin, err1>err2? err1: err2);
-		h_elefakepho_syserr_jes->SetBinContent(ibin, -1);
-		h_elefakepho_syserr_jer->SetBinContent(ibin, -1);
-		h_elefakepho_syserr_esf->SetBinContent(ibin, -1);
-		h_elefakepho_syserr_scale->SetBinContent(ibin, -1);
-		h_elefakepho_syserr_jetshape->SetBinContent(ibin, -1);
-		h_elefakepho_syserr_xs->SetBinContent(ibin, -1);     
-		h_elefakepho_syserr_lumi->SetBinContent(ibin, -1);      
-		h_elefakepho_syserr_isr->SetBinContent(ibin, -1);      
-	}
 		
 	std::ostringstream outputname;
 	switch(anatype){
@@ -352,6 +337,7 @@ void analysis_eleBkg(){
 	p_dPhiEleMET->Write();
 	p_PU->Write();
 	p_nJet->Write();
+	p_nBJet->Write();
 	h_elefakepho_norm->Write();
 	h_elefakepho_syserr_jes->Write();       
 	h_elefakepho_syserr_jer->Write();       

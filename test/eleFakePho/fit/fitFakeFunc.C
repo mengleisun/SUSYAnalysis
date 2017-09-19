@@ -50,31 +50,40 @@
 #include "../../../include/RooDCBShape.h"
 #include "../../../include/RooUserPoly.h"
 #include "../../../include/analysis_fakes.h"
-#define NTOY 1000
+#define NTOY 100
 
 bool doEB = false;
 
 Double_t fakerate_ptDependence(Double_t *x, Double_t *par)
 {
-  double slope = par[0];
-  double constant = par[1]; 
-  double index = par[2];
-  double coeff = 1.0; 
-
-  double pt = TMath::Max(x[0],0.000001);
-
-   double arg = 0;
-   arg = slope*pt + constant; 
-   double fitval = pow(arg, index)*coeff; 
-   return fitval;
+	double slope = par[0];
+	double constant = par[1]; 
+	double index = par[2];
+	double coeff = 1.0; 
+	
+	double pt = TMath::Max(x[0],0.000001);
+	
+	double arg = 0;
+	arg = slope*pt + constant; 
+	double fitval = pow(arg, index)*coeff; 
+	return fitval;
 }
 
 Double_t fakerate_etaDependence(Double_t *x, Double_t *par){
+	Double_t weight_eta(0);
+
 	double eta = x[0];
-	for(int ieta(0); ieta < 50; ieta++){
-		if(eta > ieta*0.05 && eta < (ieta+1)*0.05)return etaRates[ieta];
-		else return 0.02;
+	if(eta >= 0 && eta < 1.4442){
+		for(int ieta(0); ieta < 29; ieta++)
+			if(eta > ieta*0.05 && eta <= (ieta+1)*0.05)weight_eta = etaRatesEB[ieta];
 	}
+	else if(eta > 1.56 && eta <= 2.5){
+		for(int ieta(0); ieta < 94; ieta++)
+			if(eta > 1.56 + ieta*0.01 && eta <= 1.56+(ieta+1)*0.01)weight_eta = etaRatesEE[ieta];
+	}
+	else weight_eta = 0;
+
+	return weight_eta;
 }
 	
 
@@ -94,11 +103,11 @@ void fitFakeFunc(){//main
 	unsigned nPtBins = sizeof(PtBins)/sizeof(int);
 	unsigned nEtaBins(0);
 	if(doEB)nEtaBins=30;
-	else nEtaBins = 19;
+	else nEtaBins = 95;
 	float EtaBins[nEtaBins];
 	for(int i(0); i<nEtaBins; i++){
 		if(doEB)EtaBins[i]=0.05*i;
-		else EtaBins[i]=1.5 + 0.05*i;	
+		else EtaBins[i]=1.56 + 0.01*i;	
 	}
 	float VtxBins[]={0,4,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46};
 	unsigned nVtxBins = sizeof(VtxBins)/sizeof(float);
@@ -111,7 +120,7 @@ void fitFakeFunc(){//main
 	TGraphErrors *fr_pt_ratio = new TGraphErrors(nVtxBins-1);
 	TGraphErrors *fr_pt_ratioError = new TGraphErrors(nVtxBins-1);
 	TGraphErrors *fr_vtx_ratio = new TGraphErrors(nVtxBins-1);
-  TGraphErrors *fr_vtx_ratioError = new TGraphErrors(nVtxBins-1);
+	TGraphErrors *fr_vtx_ratioError = new TGraphErrors(nVtxBins-1);
 
 	std::string bintype;
 	std::string numtype;
@@ -136,27 +145,25 @@ void fitFakeFunc(){//main
 	double vtx_num[nVtxBins-1];
 	double vtx_numerror[nVtxBins-1];
 
-//	std::ifstream Pt_file("../Aug3/EleFakeRate-2016ReReco-Bw-ker-pt-40-140.txt");
-//	std::ifstream Pt_DYfile("../Aug3/EleFakeRate-2016ReReco-DY-ker-pt-40-140.txt");
-//	std::ifstream Pt_Polfile("../Aug3/EleFakeRate-2016ReReco-Bw-expo-pt-40-140.txt");
-//	std::ifstream Eta_file("../Aug3/EleFakeRate-2016ReReco-Bw-ker-eta-40-140.txt");
-//	std::ifstream Eta_DYfile("../Aug3/EleFakeRate-2016ReReco-DY-ker-eta-40-140.txt");
-//	std::ifstream Eta_Polfile("../Aug3/EleFakeRate-2016ReReco-Bw-expo-eta-40-140.txt");
-//	std::ifstream Vtx_file("../Aug3/EleFakeRate-2016ReReco-Bw-ker-vtx-40-140.txt");
-//	//std::ifstream Vtx_DYfile("../Aug3/EleFakeRate-2016ReReco-DY-ker-vtx-40-140.txt");
-//	std::ifstream Vtx_DYfile("../Aug3/EleFakeRate-2016ReReco-Bw-expo-vtx-40-140.txt");
-//	std::ifstream Vtx_Polfile("../Aug3/EleFakeRate-2016ReReco-Bw-expo-vtx-40-140.txt");
-//	//std::ifstream Vtx_Polfile("../Aug3/EleFakeRate-2016ReReco-DY-ker-vtx-40-140.txt");
+//	std::ifstream Pt_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-pt-60-120.txt");
+//	std::ifstream Pt_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-pt-60-120.txt");
+//	std::ifstream Pt_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-pt-60-120.txt");
+//	std::ifstream Eta_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-eta-60-120.txt");
+//	std::ifstream Eta_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-eta-60-120.txt");
+//	std::ifstream Eta_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-eta-60-120.txt");
+//	std::ifstream Vtx_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-vtx-60-120.txt");
+//	std::ifstream Vtx_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-vtx-60-120.txt");
+//	std::ifstream Vtx_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-2016ReReco-Bw-ker-vtx-60-120.txt");
 	
-	std::ifstream Pt_file("EleFakeRate-2016ReReco-Bw-ker-pt-40-140.txt");
-	std::ifstream Pt_DYfile("EleFakeRate-2016ReReco-Bw-ker-pt-40-140.txt");
-	std::ifstream Pt_Polfile("EleFakeRate-2016ReReco-Bw-ker-pt-40-140.txt");
-	std::ifstream Eta_file("EleFakeRate-2016ReReco-Bw-ker-eta-40-140.txt");
-	std::ifstream Eta_DYfile("EleFakeRate-2016ReReco-Bw-ker-eta-40-140.txt");
-	std::ifstream Eta_Polfile("EleFakeRate-2016ReReco-Bw-ker-eta-40-140.txt");
-	std::ifstream Vtx_file("EleFakeRate-2016ReReco-Bw-ker-vtx-40-140.txt");
-	std::ifstream Vtx_DYfile("EleFakeRate-2016ReReco-Bw-ker-vtx-40-140.txt");
-	std::ifstream Vtx_Polfile("EleFakeRate-2016ReReco-Bw-ker-vtx-40-140.txt");
+	std::ifstream Pt_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-pt-40-140.txt");
+	std::ifstream Pt_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-pt-40-140.txt");
+	std::ifstream Pt_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-pt-40-140.txt");
+	std::ifstream Eta_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-eta-40-140.txt");
+	std::ifstream Eta_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-eta-40-140.txt");
+	std::ifstream Eta_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-eta-40-140.txt");
+	std::ifstream Vtx_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-vtx-40-140.txt");
+	std::ifstream Vtx_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-vtx-40-140.txt");
+	std::ifstream Vtx_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/FullEcal/EleFakeRate-2016ReReco-Bw-ker-vtx-40-140.txt");
 //************************************ Fill and fit the pt dependence. Calculate ratio **********************************************************// 
 	if(Pt_file.is_open() && Pt_DYfile.is_open() && Pt_Polfile.is_open()){
 		for(unsigned i(0); i<nPtBins-1; i++){ 
@@ -189,28 +196,28 @@ void fitFakeFunc(){//main
     	TF1 *fit_fakerate_pt;
     	TFitResultPtr result_fitpt;
     	TVirtualFitter::SetMaxIterations(1000000);
-   // 	for(int i(1); i<50; i++){
-   // 		for(int j(1); j <50; j++){
-   // 		std::cout << i << " " << j << std::endl;
-   // 	}
-   // 	}
-					//*************** EB ******************//
-    ////	f1->SetParameter(0, 20);
-    ////	f1->SetParLimits(0, 0, 1000);
-    ////	f1->SetParameter(1, 206);
-    ////	f1->SetParameter(2, -1.92);
-    ////	f1->SetParLimits(2, -4, 0);
-    ////	f1->SetParNames("slope","constant","index");
-    ////	result_fitpt = fr_bothcount_pt->Fit("f1","R S");
-					//*************** EE ******************//
-					f1->SetParameter(0, 1);
-					f1->SetParLimits(0, 0, 1000);
-					f1->SetParameter(1, 10);
-					f1->SetParameter(2, -1.92);
-					f1->SetParLimits(2, -4, 0);
-					f1->SetParNames("slope","constant","index");
-					fr_bothcount_pt->Fit("f1","R S");
-    			result_fitpt = fr_bothcount_pt->Fit("f1","R S");
+// 	for(int i(1); i<50; i++){
+// 		for(int j(1); j <50; j++){
+// 			std::cout << i << " " << j << std::endl;
+// 		}
+// 	}
+	//*************** EB ******************//
+////	f1->SetParameter(0, 20);
+////	f1->SetParLimits(0, 0, 1000);
+////	f1->SetParameter(1, 206);
+////	f1->SetParameter(2, -1.92);
+////	f1->SetParLimits(2, -4, 0);
+////	f1->SetParNames("slope","constant","index");
+////	result_fitpt = fr_bothcount_pt->Fit("f1","R S");
+	//*************** EE ******************//
+	f1->SetParameter(0, 1);
+	f1->SetParLimits(0, 0, 1000);
+	f1->SetParameter(1, 10);
+	f1->SetParameter(2, -1.92);
+	f1->SetParLimits(2, -4, 0);
+	f1->SetParNames("slope","constant","index");
+	fr_bothcount_pt->Fit("f1","R S");
+    	result_fitpt = fr_bothcount_pt->Fit("f1","R S");
     
  	fit_fakerate_pt = fr_bothcount_pt->GetFunction("f1");
  	for(unsigned i(0); i<nPtBins-1; i++){
@@ -251,7 +258,7 @@ void fitFakeFunc(){//main
  		fr_eta_sigmaband->SetPoint(i,(EtaBins[i]+EtaBins[i+1])/2.0, fakerate );
  		fr_eta_sigmaband->SetPointError(i, (EtaBins[i+1]-EtaBins[i])/2.0, error);
  	}
-   TF1 *fit_fakerate_eta = new TF1("fit_fakerate_eta", fakerate_etaDependence, 0, 2.5, 0); 
+	TF1 *fit_fakerate_eta = new TF1("fit_fakerate_eta", fakerate_etaDependence, 0, 2.5, 0); 
  
  //******************************** Fill and fit vtx dependence **********************************************************************************//
  	if(Vtx_file.is_open() && Vtx_DYfile.is_open() && Vtx_Polfile.is_open()){
@@ -290,157 +297,160 @@ void fitFakeFunc(){//main
  		fr_vtx_ratio->SetPointError(i, (VtxBins[i+1]-VtxBins[i])/2.0, error/fit_fakerate_vtx->Eval((VtxBins[i]+VtxBins[i+1])/2.0));
  	}
  
- // *****************************************************************************************************************************//
+// *****************************************************************************************************************************//
  
  
-   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libRooFitClasses.so");
+	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libRooFitClasses.so");
+	
+	TH1D* invmass_den = new TH1D("invmass_den", "invmass_den",100,40,140);
+	TH1D* invmass_num = new TH1D("invmass_num", "invmass_num",100,40,140);
+	TH1D* h_invmass_bg  = new TH1D("invmass_bg",  "invmass_bg", 100,40,140);
+	TH1D* invmass_prednum = new TH1D("invmass_prednum", "invmass_prednum",100,40,140);
+	
+	TChain *etree = new TChain("FakeRateTree");
+	etree->Add("/uscms_data/d3/mengleis/Sep1/plot_elefakepho-FullEcalTnP.root");
+	float invmass=0; 
+	float tagPt=0; 
+	float probePt=0; 
+	float probeEta=0;
+	bool  vetovalue=0;
+	bool  FSRveto = 0;
+	int   nVertex=0;
+	etree->SetBranchAddress("invmass",   &invmass); 
+	etree->SetBranchAddress("tagPt",     &tagPt);
+	etree->SetBranchAddress("probePt",   &probePt);
+	etree->SetBranchAddress("probeEta",  &probeEta);
+	etree->SetBranchAddress("vetovalue", &vetovalue);
+	etree->SetBranchAddress("nVertex",   &nVertex);
+	etree->SetBranchAddress("FSRveto",   &FSRveto);
+	
+	std::vector<float> etreeEt;
+	std::vector<float> etreeVtx;
+	std::vector<float> etreeEta;
+	std::vector<float> etreeInvmass;
+	etreeEt.clear();
+	etreeVtx.clear(); 
+	etreeEta.clear();
+	etreeInvmass.clear();
+	for(unsigned iEvt(0); iEvt < etree->GetEntries(); iEvt++){
+		etree->GetEntry(iEvt);
+		     	
+		if(probePt < 35)continue;
+		if(doEB && fabs(probeEta) > 1.4442)continue;
+		else if(!doEB && (fabs(probeEta) < 1.56 || fabs(probeEta) > 2.1))continue;
+
+		if(vetovalue== false)invmass_den->Fill(invmass);
+		else if(vetovalue== true && FSRveto == true)invmass_num->Fill(invmass);
+		
+		float w_ele = fit_fakerate_pt->Eval(probePt)*fit_fakerate_vtx->Eval(nVertex)*fit_fakerate_eta->Eval(fabs(probeEta));
+		if(w_ele > 0.5 || w_ele < 0)std::cout << "etree " << probePt << " " << probeEta << " " << w_ele << std::endl;
+		if(vetovalue==false){
+			invmass_prednum->Fill(invmass, w_ele);
+			etreeEt.push_back(probePt);
+			etreeVtx.push_back(nVertex);
+			etreeEta.push_back(fabs(probeEta));
+			etreeInvmass.push_back(invmass);
+		} 
+	}
+	invmass_prednum->Sumw2();
  
-   TH1D* invmass_den = new TH1D("invmass_den", "invmass_den",60,60,120);
-   TH1D* invmass_num = new TH1D("invmass_num", "invmass_num",60,60,120);
- 	TH1D* h_invmass_bg  = new TH1D("invmass_bg",  "invmass_bg", 60,60,120);
-   TH1D* invmass_prednum = new TH1D("invmass_prednum", "invmass_prednum",60,60,120);
+	TChain *bgtree = new TChain("BGTree");
+	bgtree->Add("/uscms_data/d3/mengleis/Sep1/plot_bgtemplate_FullEcal.root");
+	float invmass_bg=0; 
+	float probePt_bg=0; 
+	float probeEta_bg=0; 
+	bool  vetovalue_bg=0;
+	bool  FSRveto_bg=0;	
+	int   nVertex_bg=0;
+	bgtree->SetBranchAddress("invmass",   &invmass_bg); 
+	bgtree->SetBranchAddress("probePt",   &probePt_bg);
+	bgtree->SetBranchAddress("probeEta",   &probeEta_bg);
+	bgtree->SetBranchAddress("vetovalue", &vetovalue_bg);
+	bgtree->SetBranchAddress("FSRveto",   &FSRveto_bg);
+	bgtree->SetBranchAddress("nVertex",   &nVertex_bg);
+	
+	
+	for(unsigned iEvt(0); iEvt < bgtree->GetEntries(); iEvt++){
+		bgtree->GetEntry(iEvt);
+	
+		if(probePt_bg < 35)continue; 
+		if(doEB && fabs(probeEta_bg) > 1.4442)continue;
+		else if(!doEB && (fabs(probeEta_bg) < 1.56 || fabs(probeEta_bg) > 2.1))continue;
+	     	
+		if(vetovalue_bg== true && FSRveto_bg==true){h_invmass_bg->Fill(invmass_bg);}
+	}
+	
+	RooRealVar mass_axis("invmass","invmass",70,110);
+	TCanvas *c_fitMass = new TCanvas("c_fitMass", "", 600, 600);
+	c_fitMass->cd();
  
-   TChain *etree = new TChain("FakeRateTree");
-   etree->Add("/uscms_data/d3/mengleis/Sep1/plot_elefakepho-FullEcalTnP.root");
-   float invmass=0; 
-   float tagPt=0; 
-   float probePt=0; 
-   float probeEta=0;
-   bool  vetovalue=0;
- 	bool  FSRveto = 0;
-   int   nVertex=0;
-   etree->SetBranchAddress("invmass",   &invmass); 
-   etree->SetBranchAddress("tagPt",     &tagPt);
-   etree->SetBranchAddress("probePt",   &probePt);
-   etree->SetBranchAddress("probeEta",  &probeEta);
-   etree->SetBranchAddress("vetovalue", &vetovalue);
-   etree->SetBranchAddress("nVertex",   &nVertex);
- 	etree->SetBranchAddress("FSRveto",   &FSRveto);
+	RooDataHist datahist_data("both", "", mass_axis, invmass_num);
+	RooDataHist datahist_bg("bg","",mass_axis, h_invmass_bg);
+	RooHistPdf  pdf_bg("pdf_bg","pdf_bg",mass_axis, datahist_bg);
  
- 	std::vector<float> etreeEt;
- 	std::vector<float> etreeVtx;
- 	std::vector<float> etreeEta;
- 	std::vector<float> etreeInvmass;
- 	etreeEt.clear();
- 	etreeVtx.clear(); 
- 	etreeEta.clear();
- 	etreeInvmass.clear();
-   for(unsigned iEvt(0); iEvt < etree->GetEntries(); iEvt++){
-     etree->GetEntry(iEvt);
- 		
- 		if(doEB && fabs(probeEta) > 1.4442)continue;
- 		else if(!doEB && fabs(probeEta) < 1.56)continue;
- 	  //if(vetovalue== false)invmass_den->Fill(invmass);
- 	  //else invmass_num->Fill(invmass);
- 		//if(vetovalue== false && FSRveto == true)invmass_den->Fill(invmass);
- 		if(vetovalue== false)invmass_den->Fill(invmass);
- 		else if(vetovalue== true && FSRveto == true)invmass_num->Fill(invmass);
+	RooRealVar m0( "m0", "m0", 91.188);
+	RooRealVar width( "width", "width", 2.495,0,4);
+	RooRealVar mean("mean", "" ,0.);
+	RooRealVar sigma("sigma", "",2.4 , 0.0, 15.0);
+	RooRealVar alpha("alpha", "", 1.0, 0.0, 20.0);
+	RooRealVar n("n","", 1.0, 0.0, 20.0);
+	RooRealVar alpha2("2ndalpha","", 1.0, 0.0, 20.0);
+	RooRealVar n2("2ndn", "", 1.0, 0.0, 20.0);
+	RooBreitWigner bw("bw", "", mass_axis, m0, width);
+	RooDCBShape *cb;
+	cb = new RooDCBShape("cb","cb", mass_axis, mean, sigma, alpha, n, alpha2, n2);
+	RooGaussian gauss("gs", "gs", mass_axis, mean, sigma);
+	RooFFTConvPdf signalRes("pdf", "pdf",mass_axis, bw, *cb);
+	double iniSig = 0.2*invmass_num->Integral(1,100);
+	int    lowBinNumber = invmass_num->FindBin(70.0);
+	int    highBinNumber= invmass_num->FindBin(110.0);
+	double iniBkg = 40*(invmass_num->GetBinContent(lowBinNumber)+invmass_num->GetBinContent(highBinNumber));
+	RooRealVar nSig("nSig", "", iniSig, 0, invmass_num->GetEntries()*1.2);
+	RooRealVar nBkg("nBkg", "", iniBkg, 0.5*iniBkg, invmass_num->GetEntries());
+	RooAddPdf *model = new RooAddPdf("model", "", RooArgList(pdf_bg, signalRes),RooArgList(nBkg, nSig));   
  
- 		float w_ele = fit_fakerate_pt->Eval(probePt)*fit_fakerate_vtx->Eval(nVertex)*fit_fakerate_eta->Eval(fabs(probeEta));
- 		if(vetovalue==false){
- 			invmass_prednum->Fill(invmass, w_ele);
- 			etreeEt.push_back(probePt);
- 			etreeVtx.push_back(nVertex);
- 			etreeEta.push_back(fabs(probeEta));
- 			etreeInvmass.push_back(invmass);
- 		} 
-   }
- 	invmass_prednum->Sumw2();
+	RooPlot* mass_Frame = mass_axis.frame(RooFit::Title("totalNum"),RooFit::Bins(40));
+	model->fitTo(datahist_data);
+	datahist_data.plotOn(mass_Frame);
+	model->plotOn(mass_Frame, RooFit::Components(pdf_bg),
+		RooFit::LineStyle(kDashed),
+		RooFit::Normalization(1.0, RooAbsReal::RelativeExpected));
+	model->plotOn(mass_Frame,
+		RooFit::Components(RooArgSet(pdf_bg, signalRes)),
+		RooFit::LineStyle(kDotted),
+		RooFit::Normalization(1.0, RooAbsReal::RelativeExpected));
+	model->plotOn(mass_Frame, 
+		RooFit::LineStyle(kSolid));
+	mass_Frame->Draw();
+	c_fitMass->SaveAs("fit_totalNum_new.pdf");
  
-   TChain *bgtree = new TChain("BGTree");
-   bgtree->Add("/uscms_data/d3/mengleis/Sep1/plot_bgtemplate_FullEcal.root");
-   float invmass_bg=0; 
-   float probePt_bg=0; 
-   float probeEta_bg=0; 
-   bool  vetovalue_bg=0;
-   bool  FSRveto_bg=0;	
-   int   nVertex_bg=0;
-   bgtree->SetBranchAddress("invmass",   &invmass_bg); 
-   bgtree->SetBranchAddress("probePt",   &probePt_bg);
-   bgtree->SetBranchAddress("probeEta",   &probeEta_bg);
-   bgtree->SetBranchAddress("vetovalue", &vetovalue_bg);
-   bgtree->SetBranchAddress("FSRveto",   &FSRveto_bg);
-   bgtree->SetBranchAddress("nVertex",   &nVertex_bg);
+	mass_axis.setRange("signal",70,110);
+	RooAbsReal* igx_sig = signalRes.createIntegral(mass_axis,RooFit::NormSet(mass_axis),RooFit::Range("signal"));
+	std::cout << "num = " <<  igx_sig->getVal()*(nSig.getVal()) << " error = " << igx_sig->getVal()*(nSig.getError()) <<  std::endl;
+ 	std::cout << "predict = " << invmass_prednum->Integral(lowBinNumber,highBinNumber) << std::endl; 
+ 	std::cout << "scale factor = " << igx_sig->getVal()*(nSig.getVal())/invmass_prednum->Integral(lowBinNumber,highBinNumber) << std::endl;
  
+	TCanvas *cancompare = new TCanvas("cancompare","",600,600);
+	cancompare->cd();
+	RooPlot* compare_Frame = mass_axis.frame(RooFit::Title("compare"),RooFit::Bins(40));
+	model->plotOn(compare_Frame,
+		RooFit::Components(signalRes),
+		RooFit::LineStyle(kDotted),
+		RooFit::Normalization(1.0, RooAbsReal::RelativeExpected));
+	invmass_prednum->Scale(igx_sig->getVal()*(nSig.getVal())*1.0/invmass_prednum->Integral(lowBinNumber,highBinNumber));
+	RooDataHist datahist_prednum("both", "", mass_axis, invmass_prednum);
+	datahist_prednum.plotOn(compare_Frame, RooFit::MarkerColor(kRed));
+	compare_Frame->Draw();
+	cancompare->SaveAs("compare_predvsnum_new.pdf");
  
-   for(unsigned iEvt(0); iEvt < bgtree->GetEntries(); iEvt++){
- 		bgtree->GetEntry(iEvt);
+//*************************************   Toy MC **************************************************************************//
  
-     if(doEB && fabs(probeEta_bg) > 1.4442)continue;
-     else if(!doEB && fabs(probeEta_bg) < 1.56)continue;
- 		
- 	  if(vetovalue_bg== true && FSRveto_bg==true){h_invmass_bg->Fill(invmass_bg);}
-   }
- 
-   RooRealVar mass_axis("invmass","invmass",60,120);
-   TCanvas *c_fitMass = new TCanvas("c_fitMass", "", 600, 600);
-   c_fitMass->cd();
- 
-   RooDataHist datahist_data("both", "", mass_axis, invmass_num);
- 	RooDataHist datahist_bg("bg","",mass_axis, h_invmass_bg);
- 	RooHistPdf  pdf_bg("pdf_bg","pdf_bg",mass_axis, datahist_bg);
- 
-   RooRealVar m0( "m0", "m0", 91.188);
-   RooRealVar width( "width", "width", 2.495);
-   RooRealVar mean("mean", "" ,0.);
-   RooRealVar sigma("sigma", "",2.4 , 0.0, 15.0);
-   RooRealVar alpha("alpha", "", 1.0, 0.0, 20.0);
-   RooRealVar n("n","", 1.0, 0.0, 20.0);
-   RooRealVar alpha2("2ndalpha","", 1.0, 0.0, 20.0);
-   RooRealVar n2("2ndn", "", 1.0, 0.0, 20.0);
-   RooBreitWigner bw("bw", "", mass_axis, m0, width);
-   RooDCBShape *cb;
-   cb = new RooDCBShape("cb","cb", mass_axis, mean, sigma, alpha, n, alpha2, n2);
-   RooGaussian gauss("gs", "gs", mass_axis, mean, sigma);
-   RooFFTConvPdf signalRes("pdf", "pdf",mass_axis, bw, *cb);
-   double iniSig = 0.2*invmass_num->Integral(1,60);
-   double iniBkg = 30*(invmass_num->GetBinContent(1)+invmass_num->GetBinContent(60));
-   RooRealVar nSig("nSig", "", iniSig, 0, invmass_num->GetEntries()*1.2);
-   RooRealVar nBkg("nBkg", "", iniBkg, 0, invmass_num->GetEntries());
-   RooAddPdf *model = new RooAddPdf("model", "", RooArgList(pdf_bg, signalRes),RooArgList(nBkg, nSig));   
- 
-   RooPlot* mass_Frame = mass_axis.frame(RooFit::Title("totalNum"),RooFit::Bins(60));
-   model->fitTo(datahist_data);
-   datahist_data.plotOn(mass_Frame);
-   model->plotOn(mass_Frame, RooFit::Components(pdf_bg),
- 				 RooFit::LineStyle(kDashed),
- 				 RooFit::Normalization(1.0, RooAbsReal::RelativeExpected));
-   model->plotOn(mass_Frame,
- 			 RooFit::Components(RooArgSet(pdf_bg, signalRes)),
- 			 RooFit::LineStyle(kDotted),
- 			 RooFit::Normalization(1.0, RooAbsReal::RelativeExpected));
-   model->plotOn(mass_Frame, 
- 			 RooFit::LineStyle(kSolid));
-   mass_Frame->Draw();
-   c_fitMass->SaveAs("fit_totalNum_new.pdf");
- 
-   mass_axis.setRange("signal",70,110);
-   RooAbsReal* igx_sig = signalRes.createIntegral(mass_axis,RooFit::NormSet(mass_axis),RooFit::Range("signal"));
-   std::cout << "num = " <<  igx_sig->getVal()*(nSig.getVal()) << " error = " << igx_sig->getVal()*(nSig.getError()) <<  std::endl;
- 	std::cout << "predict = " << invmass_prednum->Integral(11,50) << std::endl; 
- 	std::cout << "scale factor = " << igx_sig->getVal()*(nSig.getVal())/invmass_prednum->Integral(11,50) << std::endl;
- 
- 	TCanvas *cancompare = new TCanvas("cancompare","",600,600);
- 	cancompare->cd();
-   RooPlot* compare_Frame = mass_axis.frame(RooFit::Title("compare"),RooFit::Bins(60));
-   model->plotOn(compare_Frame,
- 			 RooFit::Components(signalRes),
- 			 RooFit::LineStyle(kDotted),
- 			 RooFit::Normalization(1.0, RooAbsReal::RelativeExpected));
- 	invmass_prednum->Scale(igx_sig->getVal()*(nSig.getVal())*1.0/invmass_prednum->Integral(11,50));
-   RooDataHist datahist_prednum("both", "", mass_axis, invmass_prednum);
- 	datahist_prednum.plotOn(compare_Frame, RooFit::MarkerColor(kRed));
- 	compare_Frame->Draw();
- 	cancompare->SaveAs("compare_predvsnum_new.pdf");
- 
- //*************************************   Toy MC **************************************************************************//
- 
-     	double totalnumError = sqrt(pow(0.13*igx_sig->getVal()*(nSig.getVal()), 2) + pow(igx_sig->getVal()*(nSig.getError()), 2));
-     	gRandom = new TRandom3(0);
-     	gRandom->SetSeed(0);
-     	double random_totalnum[NTOY]; 
-     	for(unsigned ir(1); ir<NTOY; ir++)	
-     		random_totalnum[ir] = igx_sig->getVal()*(nSig.getVal()) + totalnumError*(-1+ gRandom->Rndm()*2.0);
+	double totalnumError = sqrt(pow(0.13*igx_sig->getVal()*(nSig.getVal()), 2) + pow(igx_sig->getVal()*(nSig.getError()), 2));
+	gRandom = new TRandom3(0);
+	gRandom->SetSeed(0);
+	double random_totalnum[NTOY]; 
+	for(unsigned ir(1); ir<NTOY; ir++)	
+		random_totalnum[ir] = igx_sig->getVal()*(nSig.getVal()) + totalnumError*(-1+ gRandom->Rndm()*2.0);
      
      	TMatrixDSym cov_pt = result_fitpt->GetCovarianceMatrix(); 
      	result_fitpt->Print("V");     
@@ -510,13 +520,14 @@ void fitFakeFunc(){//main
      		invmass_prednum->Reset();
      		for(unsigned iEvt(0); iEvt < etreeEt.size(); iEvt++){
      			float w_ele = h_toymc_pt[i]->Eval(etreeEt[iEvt])*h_toymc_vtx[i]->Eval(etreeVtx[iEvt])*fit_fakerate_eta->Eval(etreeEta[iEvt]);
+					if(w_ele > 0.5 || w_ele < 0)std::cout << "toy " << etreeEt[iEvt] << " " << etreeEta[iEvt] << " " << w_ele << std::endl;
      			invmass_prednum->Fill(etreeInvmass[iEvt], w_ele); 
      		}
      		invmass_prednum->Sumw2();
      
-     		if(invmass_prednum->Integral(11,50) > 0 && invmass_prednum->Integral(11,50) < 1e20){
-     			myfile << random_totalnum[i]/invmass_prednum->Integral(11,50) << " " << data1 << " " << data2 << " " << data3 <<  " " << data4 << " " << data5 << std::endl;
-     			p_scalefactor->Fill(random_totalnum[i]/invmass_prednum->Integral(11,50));
+     		if(invmass_prednum->Integral(lowBinNumber,highBinNumber) > 0 && invmass_prednum->Integral(lowBinNumber,highBinNumber) < 1e20){
+     			myfile << random_totalnum[i]/invmass_prednum->Integral(lowBinNumber,highBinNumber) << " " << data1 << " " << data2 << " " << data3 <<  " " << data4 << " " << data5 << std::endl;
+     			p_scalefactor->Fill(random_totalnum[i]/invmass_prednum->Integral(lowBinNumber,highBinNumber));
      			for(unsigned ibin(1); ibin <= graphPtBins; ibin++){
      				double estimated = h_toymc_pt[i]->Eval(ptlowedge+0.5*ibin);
      				toyptvalue[ibin-1][i] = estimated;
@@ -654,7 +665,7 @@ void fitFakeFunc(){//main
      	caneta_pad1->SetBottomMargin(0.1);
      	caneta_pad1->Draw();          
      	caneta_pad1->cd();          
-     	TH1D *dummy_eta = new TH1D("",";eta;fake rate",29,0,1.45);
+     	TH1D *dummy_eta = new TH1D("",";eta;fake rate",50,0,2.5);
      	dummy_eta->SetMaximum(0.08);
      	dummy_eta->Draw();
      	fr_bothcount_eta->Draw("EPL same");

@@ -20,7 +20,13 @@ enum RunType{
   SingleMuon2016 = 9,
   DoubleMuon2016 = 10,
   MET2016 = 11,
-  nRunType = 12
+	MCDoubleEG = 12,
+	MCMuonEG = 13,
+	MCSingleElectron = 14,
+	MCSingleMuon = 15,
+	MCDoubleMuon = 16,
+	MCMET = 17,
+  nRunType = 18
 };
 
 
@@ -29,7 +35,7 @@ enum RunType{
   public:
     rawData(TTree *tree, RunType type): runtype_(type)
   {    
-	  if(type == MC){
+	  if(type == MC || type == MCDoubleEG || type == MCMuonEG||  type == MCSingleElectron || type == MCSingleMuon||  type == MCDoubleMuon || type == MCMET ){
 		tree->SetBranchAddress("nMC",          &nMC);
 		tree->SetBranchAddress("mcPID",        &mcPID);
 		tree->SetBranchAddress("mcPt",         &mcPt);
@@ -149,6 +155,7 @@ enum RunType{
       tree->SetBranchAddress("jetPhi",    &jetPhi);
 			tree->SetBranchAddress("jetArea",   &jetArea);
 			tree->SetBranchAddress("jetJECUnc", &jetJECUnc);
+			tree->SetBranchAddress("jetCSV2BJetTags", &jetCSV2BJetTags);
 
 
     }
@@ -161,6 +168,7 @@ enum RunType{
     }
 
     bool passHLT();
+		bool passMETFilter(int filter);
     RunType runtype_;
 
     Int_t     run=0;
@@ -284,6 +292,7 @@ enum RunType{
     std::vector<float>  *jetPhi = 0;
 		std::vector<float>  *jetArea = 0;
 		std::vector<float>  *jetJECUnc = 0;
+		std::vector<float>  *jetCSV2BJetTags = 0;
   };
 
 #endif

@@ -45,9 +45,9 @@ void analysis_eg(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.log"); 
+  logfile.open("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.log"); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
@@ -625,7 +625,7 @@ void analysis_eg(){//main
 								jetHTClean = 0;
 								for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 									if(!itJet->passSignalSelection())continue;
-									//if(DeltaR(itJet->getEta(), itJet->getPhi(), jetPho->getEta(),jetPho->getPhi()) <= 0.4)continue;	
+									if(DeltaR(itJet->getEta(), itJet->getPhi(), jetPho->getEta(),jetPho->getPhi()) <= 0.4)continue;	
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), jetEle->getEta(),jetEle->getPhi()) <= 0.4)continue;
 									jetnJet += 1;
 									jetHT += itJet->getPt();	
@@ -688,7 +688,7 @@ void analysis_eg(){//main
 								for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 									if(!itJet->passSignalSelection())continue;
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), fakeLepPho->getEta(), fakeLepPho->getPhi()) <= 0.4)continue;	
-									//if(DeltaR(itJet->getEta(), itJet->getPhi(), fakeLep->getEta(),  fakeLep->getPhi()) <= 0.4)continue;
+									if(DeltaR(itJet->getEta(), itJet->getPhi(), fakeLep->getEta(),  fakeLep->getPhi()) <= 0.4)continue;
 									fakeLepnJet += 1;
 									fakeLepHT += itJet->getPt();
 								}	

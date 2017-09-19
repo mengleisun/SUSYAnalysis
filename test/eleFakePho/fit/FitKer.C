@@ -50,7 +50,7 @@
 #include "../../../include/analysis_mcData.h"
 //#include "../include/RooCBExGaussShape.h"
 
-#define NTOY 1
+#define NTOY 1000
 
 bool doEB = false;
 

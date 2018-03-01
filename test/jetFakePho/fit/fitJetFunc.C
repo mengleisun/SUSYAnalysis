@@ -52,7 +52,7 @@
 #include "../../../include/analysis_fakes.h"
 
 #define NTOY 10000
-#define NBIN 18
+#define NBIN 17
 #define REBINSIZE 1
 
 Double_t tmpjetfake_func(Double_t *x, Double_t *par)
@@ -72,7 +72,7 @@ Double_t tmpjetfake_func(Double_t *x, Double_t *par)
 }
 
 void fitJetFunc(int detType){
-	int channel = 2; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose;
+	int channel = 2; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose; 
 
 	setTDRStyle();
 	gStyle->SetOptStat(0);
@@ -81,12 +81,16 @@ void fitJetFunc(int detType){
 	gStyle->SetTitleX(0.5);
 
 	TChain *sigtree = new TChain("signalTree");
-	if(channel == 1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
+	//if(channel == 1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
+	if(channel == 1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+	//else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
+	else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto_onelep.root");
 
 	TChain *controltree = new TChain("jetTree");
-	if(channel == 1)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
+	//if(channel == 1)controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
+	if(channel == 1)controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+	//else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
+	else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto_onelep.root");
 
 	std::stringstream fakerate_filename;
 	fakerate_filename.str("");
@@ -113,7 +117,7 @@ void fitJetFunc(int detType){
 
 	std::ostringstream elefake_config;
 	elefake_config.str("");
-	if(detType == 1)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-ByPtVtx-EB.txt";
+	if(detType == 1)elefake_config << "../../script/EleFakeRate-ByPtVtx-EB.txt";
 	else if(detType == 2)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-ByPtVtx-EE.txt";
 	std::ifstream elefake_file(elefake_config.str().c_str());
 	double scalefactor(0);
@@ -154,12 +158,15 @@ void fitJetFunc(int detType){
 	TH1D *p_controlPhoEt = new TH1D("p_controlPhoEt",";p_{T} (GeV);Events",265,35,300);
 	TH1D *p_sigPhoEt  = new TH1D("p_sigPhoEt",";p_{T} (GeV);Events",265,35,300);
 	TH1D *p_fakesPhoEt = new TH1D("p_fakesPhoEt",";p_{T} (GeV);Events",265,35,300);
+	TH1D *p_fakesPhoEt_stat = new TH1D("p_fakesPhoEt_stat",";p_{T} (GeV);Events",265,35,300);
 	TH1D *p_elebkgPhoEt = new TH1D("p_elebkgPhoEt",";p_{T} (GeV);Events",265,35,300);
 
+	TH1D *p_checkEt = new TH1D("p_checkEt","p_checkEt",465,35,500);
 	if(detType == 1){
 		sigtree->Draw("phoEt >> p_sigPhoEt", " phoEt >35 && sigMET < 70 && fabs(phoEta) < 1.4442");
 		std::cout << "signal " << p_sigPhoEt->GetEntries() << std::endl;
-		controltree->Draw("phoEt >> p_controlPhoEt", "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442");
+		controltree->Draw("phoEt >> p_controlPhoEt", "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442 && phoChIso < 15");
+		controltree->Draw("phoEt >> p_checkEt",  "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442 && phoChIso < 15");
 	}
 	if(detType == 2){
 		sigtree->Draw("phoEt >> p_sigPhoEt", " phoEt >35 && sigMET < 70 && fabs(phoEta) > 1.56 && fabs(phoEta) < 2.1");
@@ -173,15 +180,16 @@ void fitJetFunc(int detType){
 
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
-	if(channel == 1)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
+	if(channel == 1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+	//else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
+	else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto_onelep.root");
 
 	float proxyphoEt(0);
 	float proxyphoEta(0);
 	float proxylepPt(0);
 	float proxysigMET(0);
 	int   proxynVertex(0);
-  
+ 
 	proxytree->SetBranchAddress("phoEt",     &proxyphoEt);
 	proxytree->SetBranchAddress("phoEta",    &proxyphoEta);
 	proxytree->SetBranchAddress("lepPt",     &proxylepPt);
@@ -213,12 +221,11 @@ void fitJetFunc(int detType){
 		if(xvalue >= PtBin[NBIN-1]){ frac = fracHad[NBIN-1]; fracerror = fracHadError[NBIN-1];}
     
 		double binvalue = p_sigPhoEt->GetBinContent(ibin)*frac;
-		double binerror = p_sigPhoEt->GetBinError(ibin);  
 		if(binvalue == 0)continue;
-		double totalerror = sqrt(binvalue*binvalue*fracerror*fracerror + binerror*binerror*frac*frac);
-		std::cout << "fake " << p_fakesPhoEt->GetBinCenter(ibin) << " fakerate=" << frac << std::endl;
+		double totalerror = p_sigPhoEt->GetBinContent(ibin)*fracerror;
+		p_fakesPhoEt_stat->SetBinContent(ibin, p_sigPhoEt->GetBinContent(ibin)); 
 		p_fakesPhoEt->SetBinContent(ibin, binvalue);
-		p_fakesPhoEt->SetBinError(ibin, binerror);
+		p_fakesPhoEt->SetBinError(ibin, totalerror);
 	}
 
 
@@ -229,37 +236,60 @@ void fitJetFunc(int detType){
 	can_pad1->Draw();          
 	can_pad1->cd();          
 
-	TGraphAsymmErrors *new_controlPhoEt = new TGraphAsymmErrors(85);
-	TGraphAsymmErrors *new_fakesPhoEt   = new TGraphAsymmErrors(85);
-	for(unsigned ibin(1); ibin <= 65; ibin++){
+	TGraphAsymmErrors *new_controlPhoEt = new TGraphAsymmErrors(95);
+	TGraphAsymmErrors *new_fakesPhoEt   = new TGraphAsymmErrors(95);
+	for(unsigned ibin(1); ibin <= 75; ibin++){
 		double new_control_value = p_controlPhoEt->GetBinContent(ibin); 
 		double new_fakes_value = p_fakesPhoEt->GetBinContent(ibin);
 		double new_control_error = p_controlPhoEt->GetBinError(ibin); 
 		double new_fakes_error = p_fakesPhoEt->GetBinError(ibin);
+		double staterror = sqrt(p_fakesPhoEt_stat->GetBinContent(ibin))/p_fakesPhoEt_stat->GetBinContent(ibin)*new_fakes_value;
+		std::cout << ibin << " " << sqrt(p_fakesPhoEt_stat->GetBinContent(ibin))/p_fakesPhoEt_stat->GetBinContent(ibin) << std::endl;
+		new_fakes_error = sqrt(new_fakes_error*new_fakes_error + staterror);
 		new_controlPhoEt->SetPoint(ibin,p_controlPhoEt->GetBinCenter(ibin),  new_control_value);
-		new_controlPhoEt->SetPointError(ibin,0, 0, min(new_control_error, new_control_value-0.001), new_control_error);
+		//new_controlPhoEt->SetPointError(ibin, 0.5, 0.5, min(new_control_error, new_control_value-0.001), new_control_error);
+		new_controlPhoEt->SetPointError(ibin, 0.5, 0.5, new_control_error, new_control_error);
 		new_fakesPhoEt->SetPoint(ibin, p_fakesPhoEt->GetBinCenter(ibin),  new_fakes_value);
-		new_fakesPhoEt->SetPointError(ibin,0, 0, min(new_fakes_error, new_fakes_value - 0.001), new_fakes_error);
+		//new_fakesPhoEt->SetPointError(ibin,0.5, 0.5, min(new_fakes_error, new_fakes_value - 0.001), new_fakes_error);
+		new_fakesPhoEt->SetPointError(ibin,0.5, 0.5, new_fakes_error, new_fakes_error);
 	}
-	for(unsigned ibin(66); ibin <= 85; ibin++){
+	for(unsigned ibin(76); ibin <= 94; ibin++){
 		double new_control_value = 0;
 		double new_fakes_value = 0;
 		double new_control_error = 0;
 		double new_fakes_error = 0;
+		double staterror = 0;
 		for(unsigned j(1); j <=10; j++){
-			new_control_value += p_controlPhoEt->GetBinContent(65+(ibin-66)*10+j); 
-			new_fakes_value += p_fakesPhoEt->GetBinContent(65+(ibin-66)*10+j);
-			new_control_error += p_controlPhoEt->GetBinError(65+(ibin-66)*10+j); 
-			new_fakes_error += p_fakesPhoEt->GetBinError(65+(ibin-66)*10+j);
+			new_control_value += p_controlPhoEt->GetBinContent(75+(ibin-76)*10+j); 
+			new_fakes_value += p_fakesPhoEt->GetBinContent(75+(ibin-76)*10+j);
+			new_control_error += p_controlPhoEt->GetBinContent(75+(ibin-76)*10+j);
+			new_fakes_error += p_fakesPhoEt->GetBinError(75+(ibin-76)*10+j);
+			staterror += p_fakesPhoEt_stat->GetBinContent(75+(ibin-76)*10+j);
 		}
 		new_control_value /=10.0;
+		new_control_error  = new_control_value*sqrt(new_control_error)/new_control_error; 
 		new_fakes_value  /=10.0;
-		new_control_error  /=10.0;
-		new_fakes_error  /=10.0;
-		new_controlPhoEt->SetPoint(ibin,p_controlPhoEt->GetBinCenter(70+(ibin-66)*10),  new_control_value);
-		new_controlPhoEt->SetPointError(ibin,0, 0, min(new_control_error, new_control_value-0.001), new_control_error);
-		new_fakesPhoEt->SetPoint(ibin, p_fakesPhoEt->GetBinCenter(70+(ibin-66)*10),  new_fakes_value);
-		new_fakesPhoEt->SetPointError(ibin,0, 0, min(new_fakes_error, new_fakes_value - 0.001), new_fakes_error);
+		new_fakes_error   /= 10.0;
+		std::cout << ibin << " " << sqrt(staterror)/staterror << std::endl;
+		//staterror = sqrt(staterror)/staterror*new_fakes_value;
+		staterror = 0;
+		new_fakes_error = sqrt(new_fakes_error*new_fakes_error + staterror*staterror);
+		new_controlPhoEt->SetPoint(ibin,p_controlPhoEt->GetBinCenter(80+(ibin-76)*10),  new_control_value);
+		//new_controlPhoEt->SetPointError(ibin,0, 0, min(new_control_error, new_control_value-0.001), new_control_error);
+		new_controlPhoEt->SetPointError(ibin,5, 5, new_control_error, new_control_error);
+		new_fakesPhoEt->SetPoint(ibin, p_fakesPhoEt->GetBinCenter(80+(ibin-76)*10),  new_fakes_value);
+		//new_fakesPhoEt->SetPointError(ibin,0, 0, min(new_fakes_error, new_fakes_value - 0.001), new_fakes_error);
+		new_fakesPhoEt->SetPointError(ibin,5, 5, new_fakes_error, new_fakes_error);
+	}
+	{ // overflow bin
+		double new_control_value = p_controlPhoEt->GetBinContent(266); 
+		double new_fakes_value = p_fakesPhoEt->GetBinContent(266);
+		double new_control_error = p_controlPhoEt->GetBinError(266); 
+		double new_fakes_error = p_fakesPhoEt->GetBinError(266);
+		new_controlPhoEt->SetPoint(95,300,  new_control_value);
+		new_controlPhoEt->SetPointError(95,5, 5, min(new_control_error, new_control_value-0.001), new_control_error);
+		new_fakesPhoEt->SetPoint(95, 300,  new_fakes_value);
+		new_fakesPhoEt->SetPointError(95,5, 5, min(new_fakes_error, new_fakes_value - 0.001), new_fakes_error);
 	}
 	
 	new_fakesPhoEt->GetXaxis()->SetTitle("p_{T} (GeV)");
@@ -269,9 +299,11 @@ void fitJetFunc(int detType){
 	new_controlPhoEt->GetXaxis()->SetRangeUser(35,300);
 	new_fakesPhoEt->GetXaxis()->SetRangeUser(35,300);
 	gPad->SetLogy();
-	TH1D *new_dummy=new TH1D("dummy","",265,35,300);
+	TH1D *new_dummy=new TH1D("dummy",";p_{T} (GeV); Event/GeV",265,35,300);
 	new_dummy->SetMinimum(0.001);
 	new_dummy->SetMaximum(100000);
+	new_dummy->GetXaxis()->SetTitle("p_{T} (GeV)");
+	new_dummy->GetXaxis()->SetTitleOffset(1.0);
 	new_dummy->Draw();
 	new_controlPhoEt->Draw("P same");
 	new_controlPhoEt->SetLineColor(kBlack);
@@ -284,6 +316,8 @@ void fitJetFunc(int detType){
 	leg->SetFillStyle(0);
 	leg->SetBorderSize(0);
 	gStyle->SetLegendFillColor(0);
+	new_controlPhoEt->SetFillColor(0);
+	new_fakesPhoEt->SetFillColor(0);
 	leg->AddEntry(new_controlPhoEt,"hadron proxies");
 	leg->AddEntry(new_fakesPhoEt,"fake photons");
 	leg->Draw("same");
@@ -304,8 +338,9 @@ void fitJetFunc(int detType){
 	new_controlPhoEt->Fit("fitfunc_den","S");
 	TF1 *fitden = new_controlPhoEt->GetFunction("fitfunc_den");
 	ofstream myfile;
-	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB.txt");
-	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EE.txt");
+	//if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-new.txt");
+	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-15.txt");
+	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EE.txt");
 
 	TH1D *ratio = new TH1D("transfer fraction","",int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE),35,300);
 	for(unsigned ibin(1); ibin < int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE); ibin++){
@@ -366,12 +401,13 @@ TF1 *inifit = new_fakesPhoEt->GetFunction("expo");
 double iniLambda_num1 = inifit->GetParameter(1);
 double iniCoeff_num  	= exp(inifit->GetParameter(0))/2;
 //double iniLambda_num2 = (log(new_fakesPhoEt->GetBinContent(38)- 2*iniCoeff_num*exp(iniLambda_num1*new_fakesPhoEt->GetBinCenter(38))) - log(new_fakesPhoEt->GetBinContent(56)- 2*iniCoeff_num*exp(iniLambda_num1*new_fakesPhoEt->GetBinCenter(56))) )/(new_fakesPhoEt->GetBinCenter(38)-new_fakesPhoEt->GetBinCenter(56));
-double iniLambda_num2 = (log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) - log(new_fakesPhoEt->Eval(250)- 2*iniCoeff_num*exp(iniLambda_num1*250.0)) )/(111.0-250.0);
-std::cout << "log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) = " << log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) << "  log(new_fakesPhoEt->Eval(250)- 2*iniCoeff_num*exp(iniLambda_num1*250.0)) = " << log(new_fakesPhoEt->Eval(250)- 2*iniCoeff_num*exp(iniLambda_num1*250.0))  << "  lambda2 = " << iniLambda_num2 << std::endl;
+double iniLambda_num2 = (log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) - log(new_fakesPhoEt->Eval(200)- 2*iniCoeff_num*exp(iniLambda_num1*200.0)) )/(111.0-200.0);
+std::cout << "log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) = " << log(new_fakesPhoEt->Eval(111)- 2*iniCoeff_num*exp(iniLambda_num1*111.0)) << "  log(new_fakesPhoEt->Eval(200)- 2*iniCoeff_num*exp(iniLambda_num1*200.0)) = " << log(new_fakesPhoEt->Eval(200)- 2*iniCoeff_num*exp(iniLambda_num1*200.0))  << "  lambda2 = " << iniLambda_num2 << std::endl;
 TF1 *fitfunc_num= new TF1("fitfunc_num", tmpjetfake_func, 35, 300, 4);
 //fitfunc_num->SetParameters(iniCoeff_num, iniCoeff_num/10, iniLambda_num1, iniLambda_num2);
-if(channel == 1)fitfunc_num->SetParameters(iniCoeff_num, 750, iniLambda_num1, -0.03);
-else if(channel == 2)fitfunc_num->SetParameters(iniCoeff_num, iniCoeff_num/10, iniLambda_num1, iniLambda_num2);
+if(channel == 1)fitfunc_num->SetParameters(14300, 300, -0.070, -0.04);
+//else if(channel == 2)fitfunc_num->SetParameters(iniCoeff_num, iniCoeff_num/10, iniLambda_num1, iniLambda_num2);
+else if(channel == 2)fitfunc_num->SetParameters(23900, 300, -0.082, -0.01);
 TVirtualFitter::SetMaxIterations(1000000);
 TFitResultPtr r = new_fakesPhoEt->Fit("fitfunc_num","R S");
 TF1 *fit = new_fakesPhoEt->GetFunction("fitfunc_num");
@@ -386,17 +422,16 @@ myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
 //	for(unsigned j(0); j < 200; j++){
 //		testname.str("");
 //		testname << "test_" << i << "_" << j;
-//		test_num[i][j] = new TF1(testname.str().c_str(), tmpjetfake_func, 35, 150, 4);
+//		test_num[i][j] = new TF1(testname.str().c_str(), tmpjetfake_func, 35, 300, 4);
 //		test_num[i][j]->SetParameters(iniCoeff_num, 20+i*5, iniLambda_num1, -0.001-0.001*j);
 //		//TVirtualFitter::SetMaxIterations(1000000);
 //	  int status = new_fakesPhoEt->Fit(testname.str().c_str(),"R");
 //		TF1 *tmpf1 = new_fakesPhoEt->GetFunction(testname.str().c_str());
-//		float diff = fabs(tmpf1->Eval(new_fakesPhoEt->GetBinCenter(55)) - new_fakesPhoEt->GetBinContent(55))/new_fakesPhoEt->GetBinContent(55);
-//		if(tmpf1->GetParError(0)/tmpf1->GetParameter(0) < 1 && tmpf1->GetParError(1)/tmpf1->GetParameter(1) < 1 && tmpf1->GetParError(2)/tmpf1->GetParameter(2) < 1 && tmpf1->GetParError(3)/tmpf1->GetParameter(3) < 1 && diff < 0.2	)std::cout << "good point " << i*5 << " " << -1+0.005*j << " status = " << status << std::endl;
+//		float diff = fabs(tmpf1->Eval(200) - new_fakesPhoEt->Eval(200))/new_fakesPhoEt->Eval(200);
+//		if(tmpf1->GetParError(0)/tmpf1->GetParameter(0) < 1 && tmpf1->GetParError(1)/tmpf1->GetParameter(1) < 1 && tmpf1->GetParError(2)/tmpf1->GetParameter(2) < 1 && tmpf1->GetParError(3)/tmpf1->GetParameter(3) < 1	)std::cout << "good point " << i*5 << " " << -1+0.005*j << " status = " << status << " diff " << diff <<  std::endl;
 //		delete tmpf1;
 //	}
 //}
-//
  
 	can_pad1->cd();          
 	TMatrixDSym cov = r->GetCovarianceMatrix(); 
@@ -485,8 +520,8 @@ myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
 	}
 	myfile.close();
 	       
-	if(detType == 1)c_pt->SaveAs("JetFakeRate_transfer_mg_EB.pdf");
-	else if(detType == 2)c_pt->SaveAs("JetFakeRate_transfer_mg_EE.pdf");
+	if(detType == 1)c_pt->SaveAs("JetFakeRate_transfer_MuonEG_EB.pdf");
+	else if(detType == 2)c_pt->SaveAs("JetFakeRate_transfer_MuonEG_EE.pdf");
 }
 
 

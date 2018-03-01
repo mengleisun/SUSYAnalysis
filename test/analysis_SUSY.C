@@ -28,22 +28,48 @@
 #include "../include/analysis_tools.h"
 #include "../include/analysis_jet.h"
 
+bool isSquark(int mcID){
+	if( abs(mcID) == 1000001 ||  abs(mcID) == 1000002 ||  abs(mcID) == 1000003 ||  abs(mcID) == 1000004 || abs(mcID) == 2000001 ||  abs(mcID) == 2000002 ||  abs(mcID) == 2000003 ||  abs(mcID) == 2000004)return true;
+	else return false;
+}
+
 void analysis_SUSY(){//main  
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
-  //es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
+  //es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
+  es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
+  //es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/T5WG_fullmc.root");
 
   RunType datatype(MC); 
   std::ostringstream outputname;
-  outputname << "/uscms_data/d3/mengleis/test/resTree_TChiWG.root";
-  //outputname << "/uscms_data/d3/mengleis/test/resTree_T5WG.root";
+  //outputname << "/uscms_data/d3/mengleis/test/resTree_TChiWG.root";
+  outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG.root";
+
+	int SUSYtype(-1);
+	if(outputname.str().find("T5WG") != std::string::npos){
+		std::cout << "T5WG Model !" << std::endl;
+    SUSYtype = 5;
+  }
+	else if(outputname.str().find("T6WG") != std::string::npos){
+		std::cout << "T6WG Model !" << std::endl;
+    SUSYtype = 6;
+	}
+	else if(outputname.str().find("TChi") != std::string::npos){
+		std::cout << "TChiWG Model !" << std::endl;
+    SUSYtype = 1;
+	}
+	else{
+		std::cout << "model undefined" << std::endl;
+		abort();
+	}
+
+
   TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
   outputfile->cd();
   TTree *tree = new TTree("SUSYtree","SUSYtree");
-	float Mgluino(0);
+	float MsGsQ(0);
   float Mchargino(0);
   float Mneutralino(0);
   float mcPhotonEt(0);
@@ -84,10 +110,12 @@ void analysis_SUSY(){//main
   float HT(0);
 	float sigMET(0);
   double MT_(0), ThreeBodyMass_(0);
+	int   nVertex(0);
 
-  tree->Branch("Mgluino",        &Mgluino);
+  tree->Branch("MsGsQ",        &MsGsQ);
   tree->Branch("Mchargino",      &Mchargino);
   tree->Branch("Mneutralino",    &Mneutralino);
+	tree->Branch("nVertex",        &nVertex);
   tree->Branch("MT",&MT_);
   tree->Branch("ThreeBodyMass",&ThreeBodyMass_);
   tree->Branch("mcPhotonEt"     ,&mcPhotonEt); 
@@ -160,7 +188,7 @@ void analysis_SUSY(){//main
 	float eg_dPhiLepMETJERup(0);
 	float eg_dPhiLepMETJERdo(0);
 
-  egtree->Branch("Mgluino",    &Mgluino);
+  egtree->Branch("MsGsQ",    &MsGsQ);
   egtree->Branch("Mchargino",  &Mchargino);
   egtree->Branch("Mneutralino",&Mneutralino);
   egtree->Branch("phoEt",     &eg_phoEt);
@@ -224,7 +252,7 @@ void analysis_SUSY(){//main
 	float mg_dPhiLepMETJERup(0);
 	float mg_dPhiLepMETJERdo(0);
 
-  mgtree->Branch("Mgluino",    &Mgluino);
+  mgtree->Branch("MsGsQ",    &MsGsQ);
   mgtree->Branch("Mchargino",  &Mchargino);
   mgtree->Branch("Mneutralino",&Mneutralino);
   mgtree->Branch("phoEt",     &mg_phoEt);
@@ -283,7 +311,7 @@ void analysis_SUSY(){//main
   
       if (ievt%10000==0) std::cout << " -- Processing event " << ievt << std::endl;
 
-			Mgluino=-1;
+			MsGsQ=-1;
   		Mchargino=-1;
   		Mneutralino=-1;
 			mcPhotonEt=0;
@@ -298,7 +326,7 @@ void analysis_SUSY(){//main
 			PhoChIso=0;
 			PhoNeuIso=0;
 			PhoPhoIso=0;
-			PhoPassID;
+			PhoPassID = false;
 			mcElePt=0;
 			mcEleEta=0;
 			mcElePhi=0;
@@ -317,7 +345,7 @@ void analysis_SUSY(){//main
 			EleD0=0;
 			EleDz=0;
 			EleooEmooP=0;
-			ElePassID;
+			ElePassID = 0;
 			dRPhoEle=0;
 			Invmass=0;
 			MT_=0;
@@ -348,9 +376,10 @@ void analysis_SUSY(){//main
 			METPhi_T1UESDo = raw.pfMETPhi_T1UESDo;
       nVtx = raw.nVtx;
 
+			nVertex = nVtx;
       bool hasGenPho(false), hasGenEle(false),hasGenNeu(false);
       bool matchRecoPho(false), matchRecoEle(false);
-      float charginoMass(-1), neutralinoMass(-1), gluinoMass(-1);
+      float charginoMass(-1), neutralinoMass(-1), sGsQMass(-1);
       std::vector<mcData>::iterator genPho;
       std::vector<mcData>::iterator genEle;
       std::vector<mcData>::iterator genNeu;
@@ -360,7 +389,16 @@ void analysis_SUSY(){//main
       for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){ 
 
           //Look for gluino
-          if(itMC->getMomPID()== 1000021)gluinoMass = itMC->getmomMass();
+          if(SUSYtype == 5){
+          	if(itMC->getMomPID()== 1000021)sGsQMass = itMC->getmomMass();
+					}
+					else if(SUSYtype == 6){
+						if(isSquark(itMC->getMomPID()) )sGsQMass = itMC->getmomMass();
+					}
+					else if(SUSYtype == 1){
+						sGsQMass = 0;
+					}
+	
           //Look for neutralino
           if(itMC->getPID() == 1000022 && itMC->getMomPID()== 1000023)neutralinoMass = itMC->getmomMass();
           //Look for chargino
@@ -383,7 +421,7 @@ void analysis_SUSY(){//main
                }
              }
              if(mindR < 0.15)matchRecoPho=true;
-             else matchRecoPho=false;              
+             else matchRecoPho=false;             
            }//endif: found signal photon 
            //))))))))))))))))))))))
            
@@ -427,7 +465,7 @@ void analysis_SUSY(){//main
 				nJet += 1;
 				HT += itJet->getPt();
 			}
-			Mgluino=gluinoMass;	
+			MsGsQ=sGsQMass;	
 	  	Mchargino=charginoMass;
 	  	Mneutralino=neutralinoMass;
       if(hasGenPho){
@@ -477,8 +515,6 @@ void analysis_SUSY(){//main
         ThreeBodyMass_=sqrt(2*MET*(genPho->getP4()+genEle->getP4()).Pt()*(1-std::cos(DeltaR(0, (genPho->getP4()+genEle->getP4()).Phi(), 0, METPhi))));
       }
       tree->Fill();
-
-
 
 			bool hasegPho(false);
 			bool hasmgPho(false);
@@ -536,7 +572,7 @@ void analysis_SUSY(){//main
 			if(hasegPho && hasEle){
 				double dReg = DeltaR(egsignalPho->getEta(), egsignalPho->getPhi(), egsignalEle->getEta(), egsignalEle->getPhi()); 
 				if(dReg>0.8){
-						if(fabs((egsignalPho->getP4()+egsignalEle->getP4()).M() - 91.188) > 10.0){
+						if(((egsignalPho->getP4()+egsignalEle->getP4()).M() - 91.188) > 10.0){
 
 							float deltaPhi = DeltaPhi(egsignalEle->getPhi(), METPhi);
 							float MT = sqrt(2*MET*egsignalEle->getPt()*(1-std::cos(deltaPhi)));

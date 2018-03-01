@@ -5,6 +5,7 @@
   public:
   recoJet(rawData& raw, int ij){
     p4_.SetPtEtaPhiE((*raw.jetPt)[ij],(*raw.jetEta)[ij],(*raw.jetPhi)[ij],(*raw.jetEn)[ij]);
+		//jetID_ = (*raw.jetID)[ij];
     jetArea_ = (*raw.jetArea)[ij];
 		jetJECUnc_ = (*raw.jetJECUnc)[ij];
 		jetCSV2BJetTags_ = (*raw.jetCSV2BJetTags)[ij];
@@ -28,6 +29,10 @@ inline bool  isBJet()  {
 	if(jetCSV2BJetTags_ > 0.8484)return true;
 	else return false;
 }
+inline bool isLoose() { 
+	if(jetID_ > 0)return true;
+	else return false;
+}
 
 inline bool passSignalSelection(){
 	bool pass(true);
@@ -38,6 +43,7 @@ inline bool passSignalSelection(){
 
 private:
     TLorentzVector p4_;
+		int   jetID_;
     float jetArea_;
 		float jetJECUnc_;
 		float jetCSV2BJetTags_;

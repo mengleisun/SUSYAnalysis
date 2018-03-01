@@ -32,16 +32,16 @@ void analysis_elefakepho(){//main
 
   gSystem->Load("../../../lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/plot_elefakepho_DYTnP.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP_dR05.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/plot_elefakepho_DYTnP.log"); 
+  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP_dR05.log"); 
 
   logfile << "analysis_elefakepho()" << std::endl;
 
   RunType datatype(MC); 
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_nlo.root");
+  es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/skim-DYJetsToLL_M-50_nlo.root");
   
   TFile *outputfile = TFile::Open(outputname,"NEW");
   outputfile->cd();
@@ -202,7 +202,8 @@ void analysis_elefakepho(){//main
               bool GSFveto(true);
 		      bool FSRVeto(true);
 			  for(std::vector<recoEle>::iterator ie = Ele.begin(); ie != Ele.end(); ie++){
-				 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.02)GSFveto = false;
+				 //if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.02)GSFveto = false;
+				 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.05)GSFveto = false;
 				 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3 && ie->getCalibEt()>2.0)FSRVeto=false;
 			  }
 			  for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)

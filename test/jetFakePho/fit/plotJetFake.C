@@ -26,7 +26,7 @@
 #include "../../../include/tdrstyle.C"
 #include "../../../include/analysis_tools.h"
 
-#define NBIN 17
+#define NBIN 16
 
 void plotJetFake(){//main 
 
@@ -39,9 +39,7 @@ void plotJetFake(){//main
 	bool useMC(false);
 	bool doCompare(false);
 	//std::ifstream jetfake_file("../result/JetFakeRate-ChIso-DoubleEG-ReMiniAOD.txt");
-	std::ifstream jetfake_file("JetFakeRate-ChIso-DoubleEG-ReMiniAOD.txt");
-	//std::ifstream jetfake_file("../result/JetFakeRate-ChIso-MuonEG-ReMiniAOD.txt");
-	//std::ifstream jetfake_file("../result/JetFakeRate-ChIso-GJet-corr.txt");
+	std::ifstream jetfake_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-DoubleEG-EB.txt");
 	 
 	gSystem->Load("/uscms/home/mengleis/work/SUSYAnalysis/lib/libAnaClasses.so");
 	gStyle->SetOptStat(0);
@@ -112,7 +110,6 @@ void plotJetFake(){//main
 	TH1F *dummy = new TH1F("Hadron Fraction","e#gamma channel;p_{T}(GeV);hadron fraction",17,30,200);
 	dummy->GetXaxis()->SetTitle("p_{T} (GeV)");
 	dummy->GetXaxis()->SetTitleOffset(1);
-	dummy->GetXaxis()->SetTitleSize(20);
 	dummy->SetMaximum(0.6);
 	dummy->Draw();
 	jetfrac->Draw("P same");
@@ -123,7 +120,6 @@ void plotJetFake(){//main
 	if(useMC)jetfracTrue->Draw("same");
 	gStyle->SetLegendBorderSize(0);
 	gStyle->SetLegendFillColor(0);
-	gStyle->SetTextSize(4);
 //	TLegend *leg =  new TLegend(0.4,0.75,0.85,0.9);
 //	jetfrac->SetFillStyle(0);
 //	leg->SetFillStyle(0);
@@ -149,6 +145,6 @@ void plotJetFake(){//main
 //	if(doCompare)ratio_nocorr->SetMarkerColor(kBlue);
 //	if(doCompare)ratio_nocorr->Draw("P same");
 //	flatratio->Draw("same");
-	canvas->SaveAs("../plot/JetFakePho_DoubleEG_ReMiniAOD.pdf");
+	canvas->SaveAs("JetFakePho_DoubleEG_ReMiniAOD.pdf");
 }
 

@@ -91,10 +91,10 @@ void FitKer(int inputfittype, float lowerptcut, float upperptcut, float lowereta
 	else sprintf(upperptname, "Inf");	
 
 	char loweretaname[7];
-	sprintf(loweretaname, "%d.%03d", loweretacut > 0? (int)loweretacut: -1*(int)loweretacut, abs((int)((loweretacut-(int)loweretacut))*1000));	
+	sprintf(loweretaname, "%d.%03d", loweretacut > 0? (int)loweretacut: -1*(int)loweretacut, abs((int)(((loweretacut-(int)loweretacut))*1000)));	
   char upperetaname[7];
 	if(upperetacut < 1000){
-		sprintf(upperetaname, "%d.%03d",upperetacut >0? (int)upperetacut: -1*(int)upperetacut, abs((int)((upperetacut-(int)upperetacut))*1000));	
+		sprintf(upperetaname, "%d.%03d",upperetacut >0? (int)upperetacut: -1*(int)upperetacut, abs((int)(((upperetacut-(int)upperetacut))*1000)));	
 	}
 	else sprintf(upperetaname, "Inf");	
 
@@ -102,7 +102,7 @@ void FitKer(int inputfittype, float lowerptcut, float upperptcut, float lowereta
 
 //************** Process Z->ee Tree ********************************************************//   
   TChain *etree = new TChain("eeTree");																									
-  etree->Add("/uscms_data/d3/mengleis/ReMiniAOD/plot_egTrigger_ReMiniAOD.root");
+  etree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_egTrigger_ReMiniAOD.root");
 
   float invmass=0; 
   float probePt=0; 
@@ -122,8 +122,8 @@ void FitKer(int inputfittype, float lowerptcut, float upperptcut, float lowereta
 
   for(unsigned iEvt(0); iEvt < etree->GetEntries(); iEvt++){
     etree->GetEntry(iEvt);
-		//bool vetovalue = (probeMatchLeading && probeMatchTrailing);
-		bool vetovalue = probeMatchTrailing;
+		bool vetovalue = (probeMatchLeading && probeMatchTrailing);
+		//bool vetovalue = probeMatchTrailing;
 	
 		if(probePt >= lowerptcut && probePt < upperptcut && probeEta >= loweretacut	&& probeEta < upperetacut){
 			if(inputfittype == 0){p_invmass->Fill(invmass); invmass_newetree = invmass; newetree->Fill(); } 
@@ -137,7 +137,7 @@ void FitKer(int inputfittype, float lowerptcut, float upperptcut, float lowereta
   newbgtree->Branch("invmass", &invmass_fordataset);
 
   TChain *bgtree = new TChain("BGTree");
-  bgtree->Add("/uscms_data/d3/mengleis/ReMiniAOD/plot_bgtemplate-SingleMu_ReMiniAOD.root");
+  bgtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_bgtemplate_FullEcal.root");
   float invmass_bg=0; 
   float probePt_bg=0; 
   float probeEta_bg=0; 
@@ -168,7 +168,7 @@ void FitKer(int inputfittype, float lowerptcut, float upperptcut, float lowereta
 	TH1F  *h_DYinvmass = new TH1F("h_DYinvmass","h_DYinvmass",(int)(fitrangehigh-fitrangelow),fitrangelow,fitrangehigh);
 
   TChain *DYtree = new TChain("FakeRateTree");
-  DYtree->Add("/uscms_data/d3/mengleis/plot_elefakepho_DYJetsToLL_madgraph.root");
+  DYtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP.root");
 
   float DY_invmass=0; 
   float DY_tagPt=0; 
@@ -327,7 +327,7 @@ void FitKer(int inputfittype, float lowerptcut, float upperptcut, float lowereta
   else if(usePoly)histname << "expo_";
   if(inputfittype == 0) histname << "den_";
   else if(inputfittype == 1) histname << "num_";
-  histname << lowerptname << "_" << upperptname << loweretaname << "_" << upperetaname  <<".pdf"; 
+  histname << lowerptname << "_" << upperptname << "_" <<  loweretaname << "_" << upperetaname  <<"lead.pdf"; 
   c_fitMass->SaveAs(histname.str().c_str());
 
   mass_axis.setRange("signal",80,101);
@@ -344,7 +344,7 @@ void FitKer(int inputfittype, float lowerptcut, float upperptcut, float lowereta
 	
 	std::ostringstream textfilename;
 	textfilename.str("");
-	textfilename << "egTrigger-fitting-trail";
+	textfilename << "egTrigger-fitting-lead";
 	textfilename << fitrangelow << "-" << fitrangehigh <<  ".txt";
  
   if(SaveOutput){

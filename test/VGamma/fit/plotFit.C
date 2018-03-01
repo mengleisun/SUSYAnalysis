@@ -50,10 +50,9 @@ plotFit(){
 
 	gStyle->SetOptStat(0);
 	TGraphErrors *p_frac = new TGraphErrors(4);
-	TH1F *p_frac_0 = new TH1F("p_frac_0","",200,0,3);
-	TH1F *p_frac_1 = new TH1F("p_frac_1","",200,0,3);
-	TH1F *p_frac_2 = new TH1F("p_frac_2","",200,0,3);
-	TH1F *p_frac_3 = new TH1F("p_frac_3","",200,0,3);
+	TGraphErrors *p_frac_total = new TGraphErrors(1);
+	TGraphErrors *p_error_total = new TGraphErrors(1);
+	TH1F *p_frac_0 = new TH1F("p_frac_0","a_{V#gamma}",50,1,1.5);
 
 	std::ifstream vgammascalefile("VGamma_scalefactor_mg.txt");
 	float fakescale, vgammascale, fakescaleerror, vgammascaleerror;
@@ -62,75 +61,86 @@ plotFit(){
 	float highest(0), lowest(1);
 	float fittingerror(0), systematicerror(0), totalerror(0);
 
-	for(unsigned i(0);  i < 4000; i++){
+	TCanvas *cantemp = new TCanvas("cantemp","",1200,1200);
+	TH1D *temphist[4];
+	temphist[0] = new TH1D("temphist0","",100,0.5,2);
+	temphist[1] = new TH1D("temphist1","",100,0.5,2);
+	temphist[2] = new TH1D("temphist2","",100,0.5,2);
+	temphist[3] = new TH1D("temphist3","",100,0.5,2);
+	cantemp->Divide(2,2);
+	for(unsigned i(0);  i < 4; i++){
+		double xvalue, xerror, yvalue, yerror;
+		for(unsigned j(0);  j < 1000; j++){
+			vgammascalefile >> leplow >> lephigh >> fakescale >> fakescaleerror >> vgammascale >> vgammascaleerror;
+			if(j==0){
+				xvalue = (leplow + lephigh) < 200? (leplow + lephigh)/2 : (leplow + 200)/2;
+				xerror = (lephigh - leplow) < 100? (lephigh - leplow)/2 : (200 - leplow)/2;
+				yvalue = vgammascale;
+			}
+			temphist[i]->Fill(vgammascale);
+		}
+		cantemp->cd(i+1);
+		temphist[i]->Draw();
+		temphist[i]->Fit("gaus","","",0.5,2);
+		yerror = temphist[i]->GetFunction("gaus")->GetParameter(2);
+		if(yerror > 0.5)yerror= temphist[i]->GetRMS()/2;
+		p_frac->SetPoint(i, xvalue, yvalue);
+		p_frac->SetPointError(i, xerror, yerror);
+	}
+	double lowbound(2), highbound(0), norm(0);
+	for(unsigned i(0);  i < 1000; i++){
 		vgammascalefile >> leplow >> lephigh >> fakescale >> fakescaleerror >> vgammascale >> vgammascaleerror;
-		if(i == 0)p_frac->SetPoint(0, 25, fakescale);
-		if(i == 0)fittingerror = fakescaleerror;
-		p_frac_0->Fill(fakescale);
+		if(i == 0)p_frac_total->SetPoint(0, 100, vgammascale);
+		if(i == 0)p_error_total->SetPoint(0, 100, vgammascale);
+		if(i == 0)norm = vgammascale;
+		if(i == 0)fittingerror = vgammascaleerror;
+		p_frac_0->Fill(vgammascale);
+		if(vgammascale < lowbound)lowbound = vgammascale;
+		if(vgammascale > highbound)highbound = vgammascale;
 	}
 	p_frac_0->Fit("gaus");
-	systematicerror = p_frac_0->GetFunction("gaus")->GetParameter(2);
+	systematicerror = 3*p_frac_0->GetFunction("gaus")->GetParameter(2);
+	//systematicerror = (highbound-norm) > (norm - lowbound)? (highbound-norm):(norm - lowbound); 
 	if(p_frac_0->GetFunction("gaus")->GetParameter(1) + systematicerror > highest)highest=p_frac_0->GetFunction("gaus")->GetParameter(1) + systematicerror;
 	if(p_frac_0->GetFunction("gaus")->GetParameter(1) - systematicerror < lowest)lowest=p_frac_0->GetFunction("gaus")->GetParameter(1) - systematicerror;
 	totalerror = sqrt(systematicerror*systematicerror + fittingerror*fittingerror);
-	p_frac->SetPointError(0,2.5,totalerror);
+	p_frac_total->SetPointError(0,100,totalerror);
+	p_error_total->SetPointError(0,100,totalerror);
 
-	for(unsigned i(0);  i < 1000; i++){
-		vgammascalefile >> leplow >> lephigh >> fakescale >> fakescaleerror >> vgammascale >> vgammascaleerror;
-		if(i == 0)p_frac->SetPoint(1, 40, vgammascale);
-		if(i == 0)fittingerror = vgammascaleerror; 
-		p_frac_1->Fill(vgammascale);
-	}
-	p_frac_1->Fit("gaus");
-	systematicerror = p_frac_1->GetFunction("gaus")->GetParameter(2);
-	if(p_frac_1->GetFunction("gaus")->GetParameter(1) + systematicerror > highest)highest=p_frac_1->GetFunction("gaus")->GetParameter(1) + systematicerror;
-	if(p_frac_1->GetFunction("gaus")->GetParameter(1) - systematicerror < lowest)lowest=p_frac_1->GetFunction("gaus")->GetParameter(1) - systematicerror;
-	totalerror = sqrt(systematicerror*systematicerror + fittingerror*fittingerror);
-	p_frac->SetPointError(1,10,totalerror);
+	std::cout << "highbound = " << highbound << std::endl;
+	std::cout << "lowbound = " << lowbound << std::endl;
+	std::cout << "error = " << totalerror << std::endl;
 
+	TCanvas *can = new TCanvas("can","",600,600);
+	can->cd();
+	TH1D *dummy = new TH1D("dummy","VGamma scale; p_{T} (GeV); scalefactor",1,0,200);
+	dummy->SetMaximum(2);
+	dummy->Draw();
+	p_frac->SetLineColor(kBlue);
+	p_frac->SetMarkerColor(kBlue);
+	p_frac->SetMarkerStyle(20);
+	p_frac->SetFillStyle(0);
+	p_frac->SetFillColor(0);
+	p_frac->Draw("EP same");
+	p_frac_total->SetMarkerStyle(20);
+	p_frac_total->SetFillStyle(0);
+	p_frac_total->SetFillColor(0);
+	p_frac_total->Draw("P same");
+	p_error_total->SetLineColor(0);
+	p_error_total->SetFillColor(15);
+	p_error_total->SetFillStyle(3344);
+	p_error_total->Draw("E2 same");
+	TLegend *leg = new TLegend(0.5,0.75,0.85,0.9);
+	leg->AddEntry(p_frac, "pt-binned VG scales");
+	leg->AddEntry(p_frac_total, "VG scale in full range");
+	leg->AddEntry(p_error_total, "Syst. Unc.");
+	gStyle->SetLegendBorderSize(0);
+	gStyle->SetLegendFillColor(0);
+	leg->Draw("same");
+	can->SaveAs("scale_ptDependence_mg.pdf");	
 
-//	for(unsigned i(0);  i < 1000; i++){
-//		vgammascalefile >> leplow >> lephigh >> fakescale >> fakescaleerror >> vgammascale >> vgammascaleerror;
-//		if(i == 0)p_frac->SetPoint(2,60, fakescale);
-//		if(i == 0)fittingerror = fakescaleerror; 
-//		p_frac_2->Fill(fakescale);
-//	}
-//	p_frac_2->Fit("gaus");
-//	systematicerror = p_frac_2->GetFunction("gaus")->GetParameter(2);
-//	if(p_frac_2->GetFunction("gaus")->GetParameter(1) + systematicerror > highest)highest=p_frac_2->GetFunction("gaus")->GetParameter(1) + systematicerror;
-//	if(p_frac_2->GetFunction("gaus")->GetParameter(1) - systematicerror < lowest)lowest=p_frac_2->GetFunction("gaus")->GetParameter(1) - systematicerror;
-//	totalerror = sqrt(systematicerror*systematicerror + fittingerror*fittingerror);
-//	p_frac->SetPointError(2,10,totalerror);
-//
-//	for(unsigned i(0);  i < 100; i++){
-//		vgammascalefile >> leplow >> lephigh >> fakescale >> fakescaleerror >> vgammascale >> vgammascaleerror;
-//		if(i == 0)p_frac->SetPoint(3,135, fakescale);
-//		if(i == 0)fittingerror = fakescaleerror; 
-//		p_frac_3->Fill(fakescale);
-//	}
-//	p_frac_3->Fit("gaus");
-//	systematicerror = p_frac_3->GetFunction("gaus")->GetParameter(2);
-//	if(p_frac_3->GetFunction("gaus")->GetParameter(1) + systematicerror > highest)highest=p_frac_3->GetFunction("gaus")->GetParameter(1) + systematicerror;
-//	if(p_frac_3->GetFunction("gaus")->GetParameter(1) - systematicerror < lowest)lowest=p_frac_3->GetFunction("gaus")->GetParameter(1) - systematicerror;
-//	totalerror = sqrt(systematicerror*systematicerror + fittingerror*fittingerror);
-//	p_frac->SetPointError(3,65,totalerror);
-
-
-//	TGraphErrors *p_syserror = new TGraphErrors(1);
-//  p_syserror->SetPoint(0,100,(highest+lowest)/2);
-//	p_syserror->SetPointError(0, 100, (highest-lowest)/2);
-//
-//	TCanvas *can = new TCanvas("scalefactor","",600,600);
-//	TH2F *dummy = new TH2F("dummy","scalefactor for fake-lepton;muon Pt (GeV);f_{fakelepton}",4,0,200, 1,0,1);
-//	//dummy->GetXaxis()->SetTitleSize(20);
-//	dummy->Draw();
-//	p_frac->SetMarkerStyle(20);
-//	p_frac->Draw("EP same");
-//	p_syserror->SetFillColor(2);
-//  p_syserror->SetFillStyle(3244);
-//  p_syserror->Draw("E2 same");	
-//	p_frac->Draw("EP same");
-//	can->SaveAs("fakescale_mg_ptdependence.pdf");
-
-		
+	TCanvas *canscale = new TCanvas("canscale","",600,600);
+	canscale->cd();
+	p_frac_0->Draw();	
+	canscale->SaveAs("VGammaScale_mg.pdf");	
 }

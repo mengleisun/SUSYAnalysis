@@ -19,17 +19,18 @@
 
 void plotMuonTrigger(){//main  
   gStyle->SetOptStat(0);
+	gStyle->SetPaintTextFormat("4.4f");
 	setTDRStyle();   
   Double_t xaxis2d[] = {35,40,45,60,200};
   Double_t yaxis2d[] = {25,38,45,60,200};
 	TProfile2D *p_HLTeff_Z  = new TProfile2D("p_HLTeff_Z", "#mu#gamma trigger efficiency;#gamma p_{T} (GeV); #mu p_{T} (GeV)",4,xaxis2d,4,yaxis2d);
 	TProfile2D *p_HLTeff_mg = new TProfile2D("p_HLTeff_mg","MET dataset",4,xaxis2d,4,yaxis2d);
 	TProfile2D *p_HLTeff_DY = new TProfile2D("p_HLTeff_DY","DY efficiency",4,xaxis2d,4,yaxis2d);
-	TH2F 			 *p_crosseff = new TH2F("p_crosseff","MuonEG trigger efficiency; #gamma p_{T} (GeV); muon p_{T} (GeV)",4,xaxis2d,4,yaxis2d); 
+	TH2F 			 *p_crosseff = new TH2F("p_mgEff","MuonEG trigger efficiency; #gamma p_{T} (GeV); muon p_{T} (GeV)",4,xaxis2d,4,yaxis2d); 
 	TH2F 			 *p_mgESF = new TH2F("p_mgESF","MuonEG trigger ESF; #gamma p_{T} (GeV); muon p_{T} (GeV)",4,xaxis2d,4,yaxis2d); 
 
 	TChain *mgtree = new TChain("mgTree","mgTree");
-	mgtree->Add("/uscms_data/d3/mengleis/plot_MuonTrigger_MET.root");
+	mgtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_MET.root");
 	float mg_phoEt(0);
 	float mg_phoEta(0);
 	float mg_muPt(0);
@@ -56,16 +57,21 @@ void plotMuonTrigger(){//main
 
 
 	TChain *Ztree = new TChain("ZTree","ZTree");
-	Ztree->Add("/uscms_data/d3/mengleis/ReMiniAOD/plot_MuonTrigger_ReMiniAOD.root");
+	//Ztree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_ReMiniAOD.root");
+	Ztree->Add("/uscms_data/d3/mengleis/usefuldata/plot_MuonTrigger_ReMiniAOD.root");
 	float Z_phoEt(0);
 	float Z_muPt(0);
+	float Z_phoEta(0);
+	float Z_dR(0);
 	int   Z_phofireHLT;
 	int   Z_mufireHLT;
 	int   Z_phofireHLT2;
 	int   Z_mufireHLT2;
 
 	Ztree->SetBranchAddress("phoEt",     &Z_phoEt);
+	Ztree->SetBranchAddress("phoEta",    &Z_phoEta);
 	Ztree->SetBranchAddress("muPt",      &Z_muPt);
+	Ztree->SetBranchAddress("dR",        &Z_dR);
 	Ztree->SetBranchAddress("phofireHLT",&Z_phofireHLT);
 	Ztree->SetBranchAddress("mufireHLT", &Z_mufireHLT);
 	Ztree->SetBranchAddress("phofireHLT2",&Z_phofireHLT2);
@@ -73,6 +79,7 @@ void plotMuonTrigger(){//main
 
 	for(unsigned ievt(0); ievt < Ztree->GetEntries(); ievt++){
 		Ztree->GetEntry(ievt);
+		if(fabs(Z_phoEta) > 1.4442)continue;
 		if(Z_phoEt > 200)Z_phoEt = 199;
 		if(Z_muPt > 200)Z_muPt = 199;
 
@@ -83,6 +90,8 @@ void plotMuonTrigger(){//main
 
 	for(unsigned ievt(0); ievt < mgtree->GetEntries(); ievt++){
 		mgtree->GetEntry(ievt);
+		//if(mg_phoEt > 200)mg_phoEt = 199;
+    //if(mg_muPt > 200)mg_muPt = 199;
 		if(mg_passHLT > 0 || mg_passHLT2 > 0)p_HLTeff_mg->Fill(mg_phoEt, mg_muPt, 1);
 		else p_HLTeff_mg->Fill(mg_phoEt, mg_muPt, 0);
 	}
@@ -108,7 +117,8 @@ void plotMuonTrigger(){//main
 	canZ->SaveAs("mgTrigger_efficiency.pdf");
 
 	TChain *DYtree = new TChain("mgTree","mgTree");
-	DYtree->Add("/uscms_data/d3/mengleis/plot_MuonTrigger_DY.root");
+	DYtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_DY.root");
+  //DYtree->Add("/uscms_data/d3/mengleis/usefuldata/plot_MuonTrigger_WG.root");
 	float DY_phoEt(0);
 	float DY_phoEta(0);
 	float DY_muPt(0);
@@ -144,6 +154,9 @@ void plotMuonTrigger(){//main
 	
 	TCanvas *canDY = new TCanvas("canDY","",600,600);
 	canDY->cd();
+	gPad->SetLogy();
+	gPad->SetLogx();
+	gStyle->SetPaintTextFormat("4.4f");
 	p_HLTeff_DY->Draw("E colz text");
 
 	TCanvas *canESF = new TCanvas("canESF","",600,600);
@@ -151,10 +164,11 @@ void plotMuonTrigger(){//main
 	gPad->SetLogy();
 	gStyle->SetPaintTextFormat("4.4f");
 	p_mgESF->Draw("E colz text");
-	canESF->SaveAs("mgTrigger_ESF.pdf");
+	canESF->SaveAs("mgTrigger_ESF_WG.pdf");
 	
 	TFile *outputfile = TFile::Open("muonphoton_trigger.root","RECREATE");
 	outputfile->cd();
+	p_crosseff->Write();
 	p_mgESF->Write();
 	outputfile->Write();
 	outputfile->Close();

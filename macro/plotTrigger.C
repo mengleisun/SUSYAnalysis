@@ -52,7 +52,7 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 void plotTrigger(){//main  
 
 	std::ostringstream treename;
-	bool plotLeading(true);
+	bool plotLeading(false);
 
 	treename.str("");
 	if(plotLeading)treename << "egTree";
@@ -61,7 +61,7 @@ void plotTrigger(){//main
 	gStyle->SetOptStat(0);
 	setTDRStyle();    
 	gStyle->SetErrorX(0.5);
-	TFile *file = TFile::Open("/uscms_data/d3/mengleis/ReMiniAOD/plot_egTrigger_ReMiniAOD.root");
+	TFile *file = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/plot_egTrigger_ReMiniAOD.root");
 
   TCanvas *can[8];
   std::ostringstream canvas; 
@@ -69,6 +69,9 @@ void plotTrigger(){//main
 	 canvas.str("");
 	 canvas << "canvas" << iC;
 	 can[iC] = new TCanvas(canvas.str().c_str(),canvas.str().c_str(),600,600);
+	 setCanvas(can[iC]);
+	 can[iC]->SetLeftMargin(0.15);
+	 can[iC]->SetBottomMargin(0.15);
   }
 	TLatex cms;
 	cms.SetTextSize(0.04);
@@ -102,14 +105,13 @@ void plotTrigger(){//main
   Double_t plotPt2DBins[]={10,20,35,50,90,150,500};
   Double_t plotLeadEtaBins[]={-1.444, -0.8, 0, 0.8, 1.444};
   Double_t plotTrailEtaBins[]={-2.5,-2.0,-1.566,-1.444, -0.8, 0, 0.8, 1.444, 1.566, 2.0, 2.5};
-  TProfile *p_leadeffEB  = new TProfile("p_leadeffEB", "Leading leg efficiency (EB);p_{T}(GeV);efficiency",  33, plotPtBins); 
-  TProfile *p_leadeffEE  = new TProfile("p_leadeffEE", "Leading leg efficiency (EE);p_{T}(GeV);efficiency",  33, plotPtBins); 
-  TProfile *p_traileffEB = new TProfile("p_traileffEB","Sub-leading leg efficiency (EB);p_{T}(GeV);efficiency",  33, plotPtBins); 
-  TProfile *p_traileffEE = new TProfile("p_traileffEE","Sub-leading leg efficiency (EE);p_{T}(GeV);efficiency",  33, plotPtBins); 
+  TProfile *p_leadeffEB  = new TProfile("p_leadeffEB", ";p_{T}(GeV);Efficiency",  33, plotPtBins); 
+  TProfile *p_leadeffEE  = new TProfile("p_leadeffEE", ";p_{T}(GeV);Efficiency",  33, plotPtBins); 
+  TProfile *p_traileffEB = new TProfile("p_traileffEB",";p_{T}(GeV);Efficiency",  33, plotPtBins); 
+  TProfile *p_traileffEE = new TProfile("p_traileffEE",";p_{T}(GeV);Efficiency",  33, plotPtBins); 
 
 	TProfile2D *p_effEB2D;
-	if(plotLeading)p_effEB2D  = new TProfile2D("Leadeff_data", "",  6, plotPt2DBins, 4, plotLeadEtaBins);
-  else p_effEB2D  = new TProfile2D("Traileff_data", "",  6, plotPt2DBins, 10, plotTrailEtaBins); 
+  p_effEB2D  = new TProfile2D("Traileff_data", "",  6, plotPt2DBins, 10, plotTrailEtaBins); 
 
   for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
     egtree->GetEntry(ievt);
@@ -143,10 +145,8 @@ void plotTrigger(){//main
 
 
 /*********************  Fitting result ************************/
-	std::ifstream FittingResult("TriggerResult_eg/egTrigger-Leading-Fit.txt");
-	int nEtaBins(4);
-	if(plotLeading)nEtaBins = 4;
-	else nEtaBins = 10;
+	std::ifstream FittingResult("TriggerResult_eg/egTrigger-Trailing-Fit.txt");
+	int nEtaBins(10);
 	double pt_den[6][nEtaBins];
 	double pt_num[6][nEtaBins];
 	double fit_eff[6][nEtaBins];
@@ -169,7 +169,7 @@ void plotTrigger(){//main
 		}
 	}
 /***************************************************************************  Start MC ***************************************************************************/
-	TFile *mcfile = TFile::Open("/uscms_data/d3/mengleis/ReMiniAOD/plot_egTrigger_DY.root");
+	TFile *mcfile = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/plot_egTrigger_DY.root");
 
 	TTree *DYtree = (TTree*)mcfile->Get(treename.str().c_str());
 	float DY_tagPt(0);
@@ -209,8 +209,7 @@ void plotTrigger(){//main
 	DYtree->SetBranchAddress("mcGMomPID",		   				&mcGMomPID);
 
 	TProfile2D *p_effEBMC;
-	if(plotLeading)p_effEBMC  = new TProfile2D("Leadeff_MC", "",  6, plotPt2DBins, 4, plotLeadEtaBins);
-  else p_effEBMC  = new TProfile2D("Traileff_MC", "",  6, plotPt2DBins, 10, plotTrailEtaBins); 
+  p_effEBMC  = new TProfile2D("Traileff_MC", "",  6, plotPt2DBins, 10, plotTrailEtaBins); 
 
   for(unsigned ievt(0); ievt < DYtree->GetEntries(); ievt++){
     DYtree->GetEntry(ievt);
@@ -251,22 +250,14 @@ void plotTrigger(){//main
   }
 
 	TH2F *p_TriggerScale;
-	if(plotLeading)p_TriggerScale = new TH2F("ESF_Lead","photon trigger ESF;p_{T} (GeV); #eta",6, plotPt2DBins, 4, plotLeadEtaBins);
+	if(plotLeading)p_TriggerScale = new TH2F("ESF_Lead","photon trigger ESF;p_{T} (GeV); #eta",6, plotPt2DBins, 10, plotTrailEtaBins); 
 	else p_TriggerScale = new TH2F("p_TriggerScale","photon trigger ESF;p_{T} (GeV); #eta",6, plotPt2DBins, 10, plotTrailEtaBins);
-	if(plotLeading){
-		for(int i(1); i<=6; i++){
-			for(int j(1); j <= 4; j++){
-				p_TriggerScale->SetBinContent(i, j, p_effEB2D->GetBinContent(i,j)/p_effEBMC->GetBinContent(i,j));
-				p_TriggerScale->SetBinError(i, j, fabs(fit_eff[i-1][j-1] - p_effEB2D->GetBinContent(i,j)));
-			}
-		}
-	}
-	else{
-		for(int i(1); i<=6; i++){
-			for(int j(1); j <= 10; j++){
-				p_TriggerScale->SetBinContent(i, j,p_effEB2D->GetBinContent(i,j)/p_effEBMC->GetBinContent(i,j));
-				p_TriggerScale->SetBinError(i, j, fabs(fit_eff[i-1][j-1] - p_effEB2D->GetBinContent(i,j)));
-			}
+	for(int i(1); i<=6; i++){
+		for(int j(1); j <= 10; j++){
+			p_TriggerScale->SetBinContent(i, j,p_effEB2D->GetBinContent(i,j)/p_effEBMC->GetBinContent(i,j));
+			double staterror = p_effEB2D->GetBinError(i,j);
+			double syserror = i<6? fabs(fit_eff[i-1][j-1]-p_effEB2D->GetBinContent(i,j)):0 ;
+			p_TriggerScale->SetBinError(i, j, sqrt(staterror*staterror + syserror*syserror));
 		}
 	}
 
@@ -287,15 +278,15 @@ void plotTrigger(){//main
 	gStyle->SetPalette(9, PaletteColors);
 	can[0]->cd();
 	p_leadeffEB->Draw();
-	if(plotLeading)can[0]->SaveAs("egTrigger_LeadingEB.pdf");
+	if(plotLeading)can[0]->SaveAs("egTrigger_LeadingEB_re.pdf");
 
 	can[1]->cd();
 	p_traileffEB->Draw();
-	if(!plotLeading)can[1]->SaveAs("egTrigger_TrailingEB.pdf");
+	if(!plotLeading)can[1]->SaveAs("egTrigger_TrailingEB_re.pdf");
 	
 	can[2]->cd();
 	p_traileffEE->Draw();
-	if(!plotLeading)can[2]->SaveAs("egTrigger_TrailingEE.pdf");
+	if(!plotLeading)can[2]->SaveAs("egTrigger_TrailingEE_re.pdf");
 
 	can[3]->cd();
 	p_traileffEB->SetLineColor(kBlack);
@@ -307,7 +298,7 @@ void plotTrigger(){//main
 	leg->AddEntry(p_traileffEB, "EB");
 	leg->AddEntry(p_traileffEE, "EE");
 	leg->Draw("same");
-	if(!plotLeading)can[3]->SaveAs("egTrigger_TrailingAll.pdf");
+	if(!plotLeading)can[3]->SaveAs("egTrigger_TrailingAll_re.pdf");
 
   can[4]->cd();
 	p_effEB2D->Draw("colz text");
@@ -320,8 +311,12 @@ void plotTrigger(){//main
 	if(!plotLeading)p_TriggerScale->SetTitle("electron trigger ESF");
 	p_TriggerScale->GetXaxis()->SetRangeUser(20,500);
 	p_TriggerScale->Draw("colz E text");
-	if(plotLeading)can[7]->SaveAs("egTrigger_LeadingESF.pdf");
-	else can[7]->SaveAs("egTrigger_TrailingESF.pdf");
+	if(plotLeading)can[7]->SaveAs("egTrigger_LeadingESF_re.pdf");
+	else can[7]->SaveAs("egTrigger_TrailingESF_re.pdf");
+
+	for(unsigned ibin(1); ibin < p_leadeffEB->GetSize(); ibin++){
+		std::cout << p_leadeffEB->GetBinCenter(ibin) << " EB " << p_leadeffEB->GetBinContent(ibin) << " EE " << p_traileffEE->GetBinContent(ibin) << std::endl;
+	}
 }
 
 

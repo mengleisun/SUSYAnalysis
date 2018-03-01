@@ -31,23 +31,23 @@ void analysis_Z(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Rereco/plotZ_DoubleMu_2016Rereco_eg.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/plotZ_DoubleMu_eg.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Rereco/plotZ_DoubleMu_2016Rereco.log"); 
+  logfile.open("/uscms_data/d3/mengleis/plotZ_DoubleMu_2016Rereco.log"); 
 
   logfile << "analysis_Z()" << std::endl;
 
   RunType datatype(DoubleMuon2016); 
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016B_SepRereco.root");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016C_SepRereco.root");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016D_SepRereco.root");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016E_SepRereco.root");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016F_SepRereco.root");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016G_SepRereco.root");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016H_SepRereco_0.root");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016H_SepRereco_1.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016B_SepRereco.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016C_SepRereco.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016D_SepRereco.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016E_SepRereco.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016F_SepRereco.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016G_SepRereco.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016H_SepRereco_0.root");
+  es->Add("root://cmsxrootd.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/skim-DoubleMu_Run2016H_SepRereco_1.root");
   logfile << "root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016B_SepRereco.root" << std::endl;
   logfile << "root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016C_SepRereco.root" << std::endl;
   logfile << "root://cmsxrootd.fnal.gov//store/user/msun/2016ggNtuple/skim-DoubleMu_Run2016D_SepRereco.root" << std::endl;
@@ -153,6 +153,7 @@ void analysis_Z(){//main
               if(!FSRVeto)continue;
 			  //if(dimuonmass+InvMass > 180 || !farthestMu)continue;
 			  if(!farthestMu)continue;
+				if(itpho->getR9() < 0.5)continue;
 				   
 			  if(dR1 < 0.8 || dR2 < 0.8){
                 if(InvMass > 60 && InvMass < 120){

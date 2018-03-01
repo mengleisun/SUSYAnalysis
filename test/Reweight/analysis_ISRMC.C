@@ -29,48 +29,41 @@
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_jet.h"
 
-bool passMETFilter(int filter){
-  bool passfilter(true);
-  for(int im(1); im <= 8; im++)
-    if(((filter >> im)&1)!=0){passfilter = false; return passfilter;}
-
-//  if(((filter >> 9)&1)!=1){passfilter = false; return passfilter;}
-//  if(((filter >> 10)&1)!=1){passfilter = false; return passfilter;}
-
-  return passfilter;
-}
-
 
 void analysis_ISRMC(){//main  
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/test/resTree_ISR_TT.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_ISR_WWG.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/test/resTree_ISR_TT.log"); 
+  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_ISR_WWG.log"); 
 
   logfile << "analysis_mg()" << std::endl;
 
-  RunType datatype(MC); 
+  RunType datatype(MCMuonEG);
+	bool  isMC(false);
+	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_nlo.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WWG_RunIISummer16MiniAODv2-TrancheIV_v6_ext1.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTGJets_RunIISummer16MiniAODv2-TrancheIV_v6_ext1.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WWG_RunIISummer16MiniAODv2-TrancheIV_v6_ext1.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZG_RunIISummer16MiniAODv2-TrancheIV_v6.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZLLGJets_MonoPhoton_PtG-130.root")es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/skim-DYJetsToLL_M-50_nlo.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
+	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTGJets_RunIISummer16MiniAODv2-TrancheIV_v6_v1ANDext1.root");
+	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
+	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
+	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WWG_RunIISummer16MiniAODv2-TrancheIV_v6_ext1.root");
+	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZG_RunIISummer16MiniAODv2-TrancheIV_v6.root");
+  //int mcType = MCType::TTG;
+  //int mcType = MCType::TT;
+	//int mcType = MCType::ZGInclusive; 
+	int mcType = MCType::WWG;
+	//int mcType = MCType::WZG;
+
+
   const unsigned nEvts = es->GetEntries(); 
-	//float MCweight = 4895*35.8*1000.0/nEvts;	
-	//float MCweight = 3.697*35.8*1000.0/nEvts;	
-	//float MCweight = 0.21*35.8*1000.0/nEvts;	
-	//float MCweight = 0.04*35.8*1000.0/nEvts;//WZG
-	//float MCweight = 177.8*35.8*1000.0/nEvts;	
-	//float MCweight = 0.143*35.8*1000.0/nEvts;	
-	//float MCweight = 0.140*35.8*1000.0/nEvts;	
-	float MCweight = 831.76*35.8*1000.0/nEvts;
+	float PUweight(1);
+
+  logfile << "mcType" << mcType << std::endl;
+  float crosssection = MC_XS[mcType];
+	float MCweight = crosssection*35.87*1000.0/nEvts;
+
+	logfile << "crosssection = " << crosssection << std::endl;
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
   logfile << "Output file: " << outputname << std::endl;
@@ -112,6 +105,8 @@ void analysis_ISRMC(){//main
 	std::vector<int> Z_mcStatus;
  
 	Ztree->Branch("MCweight",  &MCweight); 
+	Ztree->Branch("PUweight",  &PUweight);
+  Ztree->Branch("mcType",    &mcType);
   Ztree->Branch("phoEt",     &ZphoEt);
   Ztree->Branch("phoEta",    &ZphoEta);
   Ztree->Branch("phoPhi",    &ZphoPhi);
@@ -140,45 +135,6 @@ void analysis_ISRMC(){//main
   Ztree->Branch("mcMomPID", &Z_mcMomPID);
   Ztree->Branch("mcGMomPID",&Z_mcGMomPID);
 	Ztree->Branch("mcStatus", &Z_mcStatus);
-//************ ZJet Tree **********************//
-  TTree *ZJettree = new TTree("ZJetTree","ZJetTree");
-  float ZJetphoEt(0);
-  float ZJetphoEta(0);
-  float ZJetphoPhi(0);
-  float ZJetlepPt(0);
-  float ZJetlepEta(0);
-  float ZJetlepPhi(0);
-  float ZJetsigMT(0);
-  float ZJetsigMET(0);
-  float ZJetsigMETPhi(0);
-  float ZJetdPhiLepMET(0);
-	float ZJetthreeMass(0);
-	float ZJetdilepMass(0);
-  int   ZJetnVertex(0);
-  float ZJetdRPhoLep(0);
-  float ZJetHT(0);
-  float ZJetnJet(0);
-	float ZJetbosonPt(0);
-	float ZJetJetPt(0);
-  
-  ZJettree->Branch("phoEt",     &ZJetphoEt);
-  ZJettree->Branch("phoEta",    &ZJetphoEta);
-  ZJettree->Branch("phoPhi",    &ZJetphoPhi);
-  ZJettree->Branch("lepPt",     &ZJetlepPt);
-  ZJettree->Branch("lepEta",    &ZJetlepEta);
-  ZJettree->Branch("lepPhi",    &ZJetlepPhi);
-  ZJettree->Branch("sigMT",     &ZJetsigMT);
-  ZJettree->Branch("sigMET",    &ZJetsigMET);
-  ZJettree->Branch("sigMETPhi", &ZJetsigMETPhi);
-  ZJettree->Branch("dPhiLepMET",&ZJetdPhiLepMET);
-	ZJettree->Branch("threeMass", &ZJetthreeMass);
-	ZJettree->Branch("dilepMass", &ZJetdilepMass);
-  ZJettree->Branch("nVertex",   &ZJetnVertex);
-  ZJettree->Branch("dRPhoLep",  &ZJetdRPhoLep);
-  ZJettree->Branch("HT",        &ZJetHT);
-  ZJettree->Branch("nJet",      &ZJetnJet);
-	ZJettree->Branch("bosonPt",   &ZJetbosonPt);
-	ZJettree->Branch("JetPt",     &ZJetJetPt);
 
 //*********** histo list **********************//
   TH1F *p_eventcount = new TH1F("p_eventcount","p_eventcount",7,0,7);
@@ -234,10 +190,10 @@ void analysis_ISRMC(){//main
 			METPhi_T1UESUp = raw.pfMETPhi_T1UESUp;
 			METPhi_T1UESDo = raw.pfMETPhi_T1UESDo;
 			nVtx = raw.nVtx;
+			PUweight = getPUESF(nVtx);
 
 			nTotal+=1;
-      if(((raw.HLTEleMuX >> 8) &1) ==0 && ((raw.HLTEleMuX >> 41) &1) ==0)continue;   // Mu+gamma HLT
-      //if(((raw.HLTEleMuX >> 19) &1)==0 && ((raw.HLTEleMuX >> 20) &1)==0)continue;  // SingleMuon HLT
+			if(!raw.passHLT())continue;
 			if(raw.nGoodVtx < 1)continue;
 			npassHLT+=1;
 
@@ -249,22 +205,20 @@ void analysis_ISRMC(){//main
 			if(nGoodMu != 2 || raw.nPho <1)continue;
 
 			ZbosonPt = 0;	
-			ZJetbosonPt = 0;
       for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){
        switch(itMC->getPID()){
-         case 23: ZbosonPt = itMC->getPt(); ZJetbosonPt = itMC->getPt(); break;
-         case 24: ZbosonPt = itMC->getPt(); ZJetbosonPt = itMC->getPt(); break;
-         case -24: ZbosonPt = itMC->getPt();ZJetbosonPt = itMC->getPt(); break;
+         case 23: ZbosonPt = itMC->getPt();  break;
+         case 24: ZbosonPt = itMC->getPt();  break;
+         case -24: ZbosonPt = itMC->getPt(); break;
          default: break;
        }
       }
 
 			bool hasPho(false);
 			std::vector<recoPhoton>::iterator signalPho = Photon.begin();
-			std::vector< std::vector<recoPhoton>::iterator >  jetPhoCollection;
-			jetPhoCollection.clear();
 			for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
 				if(itpho->getR9() < 0.5)continue;
+				if(!itpho->passHLTSelection())continue;
 				if(itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30)){
 					if(!itpho->passBasicSelection())continue;
 					bool passSigma = itpho->passSigma(1);
@@ -273,15 +227,12 @@ void analysis_ISRMC(){//main
 					bool GSFveto(true);
 					bool FSRVeto(true);
 					for(std::vector<recoEle>::iterator ie = Ele.begin(); ie != Ele.end(); ie++){
-						if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) <= 0.03)GSFveto = false;
+						if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) <= 0.02)GSFveto = false;
 						if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3)FSRVeto=false;
 					}
 					for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
 						if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getEt()>2.0)FSRVeto=false;
 
-					if(itpho->getChIso()<20 && itpho->getSigma()< 0.02){
-							if(GSFveto && PixelVeto && FSRVeto)jetPhoCollection.push_back(itpho);
-					}
 					if(!itpho->passSignalSelection())continue;
 					if(GSFveto && PixelVeto && FSRVeto){
 						if(!hasPho){
@@ -300,15 +251,13 @@ void analysis_ISRMC(){//main
 			proxyLepCollection.clear();
 			for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
 				if(itMu->getPt() < 25)continue;
-				if(itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22)){  //Mu+gamma HLT
-        //if(itMu->fireSingleTrg(1) || itMu->fireSingleTrg(19)){
-					if(itMu->passSignalSelection()){
-						proxyLepCollection.push_back(itMu);
-						if(!hasLep){
-							hasLep=true; 
-							npassLep +=1;
-							signalLep = itMu;
-						}
+				if(!itMu->passHLTSelection())continue;
+				if(itMu->passSignalSelection()){
+					proxyLepCollection.push_back(itMu);
+					if(!hasLep){
+						hasLep=true; 
+						npassLep +=1;
+						signalLep = itMu;
 					}
 				}
 			}
@@ -317,7 +266,7 @@ void analysis_ISRMC(){//main
 			if(hasPho && hasLep){
 				double dRlepphoton = DeltaR(signalPho->getEta(), signalPho->getPhi(), signalLep->getEta(), signalLep->getPhi());
 				if(dRlepphoton > 0.8){
-					if(passMETFilter(METFilter)){ 
+					if(raw.passMETFilter(METFilter)){ 
 						
 						bool foundZG(false); 
 						std::vector<recoMuon>::iterator trailLep=Muon.begin();	
@@ -326,7 +275,7 @@ void analysis_ISRMC(){//main
 							if(!im->isMedium() || im->getMiniIso() > 0.2)continue;
 							double llmass = (im->getP4()+signalLep->getP4()).M();
 							double llgmass = (im->getP4()+signalLep->getP4()+signalPho->getP4()).M();
-							if( (80 < llmass && llmass < 100) || ( 80 < llgmass && llgmass < 100)){
+							if( 80 < llmass && llmass < 100){ 
 								foundZG = true;
 								trailLep = im;
 							}
@@ -399,67 +348,6 @@ void analysis_ISRMC(){//main
 			}//Candidate Filter
 
 
-		if(hasLep){ 
-			std::vector<recoMuon>::iterator jetMuon = signalLep; 
-			for(unsigned ip(0); ip < jetPhoCollection.size(); ip++){
-				std::vector<recoPhoton>::iterator jetPho = jetPhoCollection[ip];
-				double dRlepphoton = DeltaR(jetPho->getEta(), jetPho->getPhi(), jetMuon->getEta(), jetMuon->getPhi());
-				if(dRlepphoton>0.8){
-				if(passMETFilter(METFilter)){
-
-					bool foundZG(false); 
-					std::vector<recoMuon>::iterator trailLep=Muon.begin();	
-					for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++){
-						if(im == jetMuon)continue;
-						if(!im->isMedium() || im->getMiniIso() > 0.2)continue;
-						double llmass = (im->getP4()+jetMuon->getP4()).M();
-						double llgmass = (im->getP4()+jetMuon->getP4()+jetPho->getP4()).M();
-						if( (80 < llmass && llmass < 100) || ( 80 < llgmass && llgmass < 100)){
-							foundZG = true;
-							trailLep = im;
-						}
-					}	
-
-					if(foundZG){
-						float ZJet_deltaPhi = DeltaPhi(jetMuon->getPhi(), METPhi);
-						float ZJet_MT = sqrt(2*MET*jetMuon->getPt()*(1-std::cos(ZJet_deltaPhi)));
-						float ZJet_ThreeBodyMass = (trailLep->getP4()+jetMuon->getP4()+jetPho->getP4()).M(); 
-						ZJetphoEt = jetPho->getCalibEt();
-						ZJetphoEta= jetPho->getEta();
-						ZJetphoPhi= jetPho->getPhi();
-						ZJetlepPt = jetMuon->getPt();
-						ZJetlepEta= jetMuon->getEta();
-						ZJetlepPhi= jetMuon->getPhi();
-						ZJetsigMT = ZJet_MT;
-						ZJetsigMET= MET;
-						ZJetsigMETPhi = METPhi;
-						ZJetdPhiLepMET = ZJet_deltaPhi; 
-						ZJetthreeMass = ZJet_ThreeBodyMass;
-						ZJetdilepMass = (trailLep->getP4()+jetMuon->getP4()).M();
-						ZJetnVertex = nVtx; 
-						ZJetdRPhoLep= dRlepphoton;
-
-						ZJetnJet = 0;
-						ZJetHT = 0;
-						TLorentzVector JetVec(0,0,0,0);	
-						ZJetJetPt = 0;
-						for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
-							if(!itJet->passSignalSelection())continue;
-							if(DeltaR(itJet->getEta(), itJet->getPhi(), trailLep->getEta(),trailLep->getPhi()) <= 0.4)continue;	
-							if(DeltaR(itJet->getEta(), itJet->getPhi(), jetMuon->getEta(),jetMuon->getPhi()) <= 0.4)continue;
-							ZJetnJet += 1;
-							ZJetHT += itJet->getPt();
-							JetVec = JetVec + itJet->getP4();
-						}
-						ZJetJetPt = JetVec.Pt();
-
-						ZJettree->Fill();
-					}
-
-			}//MET Filter
-			}//dR filter
-		} // loop on pho collection
-		}
 	}//loop on  events
 
 outputfile->Write();

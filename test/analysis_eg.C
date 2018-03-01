@@ -29,32 +29,23 @@
 #include "../include/analysis_tools.h"
 #include "../include/analysis_jet.h"
 
-bool passMETFilter(int filter){
-  bool passfilter(true);
-  for(int im(1); im <= 8; im++)
-    if(((filter >> im)&1)!=0){passfilter = false; return passfilter;}
-
-  if(((filter >> 9)&1)!=1){passfilter = false; return passfilter;}
-  if(((filter >> 10)&1)!=1){passfilter = false; return passfilter;}
-
-  return passfilter;
-}
-
 
 void analysis_eg(){//main 
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.root";
+  //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_JetIDImp.root";
+  //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_SingleEvent2.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.log"); 
+  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_JetID.log"); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
-  //logfile << "Loose the proxy definition: no upper bounds for photon; LooseFakeProxy for electron" << std::endl;
 
   RunType datatype(DoubleEG2016); 
-////  RunType datatype(MC); 
+	bool  isMC(false);
+	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/skim-DoubleEG_FebReminiAOD.root");	
 
@@ -67,7 +58,10 @@ void analysis_eg(){//main
 
   TFile *outputfile = TFile::Open(outputname,"RECREATE");
   outputfile->cd();
+	TH1D *p_METFilter = new TH1D("p_METFilter","",12,-2,10);	
+	TH1D *p_invmass = new TH1D("p_invmass","",200,0,200);	
 
+	int nBJet(0);
 //************ Signal Tree **********************//
   TTree *sigtree = new TTree("signalTree","signalTree");
   int   run(0);
@@ -90,8 +84,12 @@ void analysis_eg(){//main
 	float trailPt(0);
 	float trailEta(0);
 	float trailPhi(0);
-	int   nJetClean(0);
-	float HTClean(0);
+  std::vector<int>   mcPID;
+  std::vector<float> mcEta;
+  std::vector<float> mcPhi;
+  std::vector<float> mcPt;
+  std::vector<int>   mcMomPID;
+  std::vector<int>   mcGMomPID;
 
   sigtree->Branch("run",       &run);
   sigtree->Branch("event",     &event);
@@ -110,11 +108,18 @@ void analysis_eg(){//main
   sigtree->Branch("dRPhoLep",  &dRPhoLep);
   sigtree->Branch("HT",        &HT);
   sigtree->Branch("nJet",      &nJet);
+  sigtree->Branch("nBJet",     &nBJet);
 	sigtree->Branch("trailPt",   &trailPt);
 	sigtree->Branch("trailEta",  &trailEta);
 	sigtree->Branch("trailPhi",  &trailPhi);
-	sigtree->Branch("nJetClean", &nJetClean);
-	sigtree->Branch("HTClean",   &HTClean);
+	if(isMC){
+  	sigtree->Branch("mcPID",     &mcPID);
+  	sigtree->Branch("mcEta",     &mcEta);
+  	sigtree->Branch("mcPhi",     &mcPhi);
+  	sigtree->Branch("mcPt",      &mcPt);
+  	sigtree->Branch("mcMomPID",  &mcMomPID);
+  	sigtree->Branch("mcGMomPID", &mcGMomPID);
+	}
 
 //************ Signal Tree **********************//
   TTree *proxytree = new TTree("proxyTree","proxyTree");
@@ -137,8 +142,6 @@ void analysis_eg(){//main
 	float proxytrailPt(0);
 	float proxytrailEta(0);
 	float proxytrailPhi(0);
-	int   proxynJetClean(0);
-	float proxyHTClean(0);
   
   proxytree->Branch("phoEt",     &proxyphoEt);
   proxytree->Branch("phoEta",    &proxyphoEta);
@@ -155,18 +158,19 @@ void analysis_eg(){//main
   proxytree->Branch("dRPhoLep",  &proxydRPhoLep);
   proxytree->Branch("HT",        &proxyHT);
   proxytree->Branch("nJet",      &proxynJet);
+  proxytree->Branch("nBJet",     &nBJet);
 	proxytree->Branch("FSRVeto",   &proxyFSRVeto);
 	proxytree->Branch("trailPt",   &proxytrailPt);
 	proxytree->Branch("trailEta",  &proxytrailEta);
 	proxytree->Branch("trailPhi",  &proxytrailPhi);
-	proxytree->Branch("nJetClean", &proxynJetClean);
-	proxytree->Branch("HTClean",   &proxyHTClean);
 
 //************ Signal Tree **********************//
   TTree *jettree = new TTree("jetTree","jetTree");
   float jetphoEt(0);
   float jetphoEta(0);
-  float jetphoPhi(0);
+  float jetphoPhi(0);	
+	float jetphoChIso(0);
+	float jetphoSigma(0);
   float jetlepPt(0);
   float jetlepEta(0);
   float jetlepPhi(0);
@@ -181,12 +185,12 @@ void analysis_eg(){//main
 	float jettrailPt(0);
 	float jettrailEta(0);
 	float jettrailPhi(0);
-	int   jetnJetClean(0);
-	float jetHTClean(0);
   
   jettree->Branch("phoEt",     &jetphoEt);
   jettree->Branch("phoEta",    &jetphoEta);
   jettree->Branch("phoPhi",    &jetphoPhi);
+	jettree->Branch("phoChIso",  &jetphoChIso);
+	jettree->Branch("phoSigma",  &jetphoSigma);
   jettree->Branch("lepPt",     &jetlepPt);
   jettree->Branch("lepEta",    &jetlepEta);
   jettree->Branch("lepPhi",    &jetlepPhi);
@@ -198,11 +202,10 @@ void analysis_eg(){//main
   jettree->Branch("dRPhoLep",  &jetdRPhoLep);
   jettree->Branch("HT",        &jetHT);
   jettree->Branch("nJet",      &jetnJet);
+  jettree->Branch("nBJet",     &nBJet);
 	jettree->Branch("trailPt",   &jettrailPt);
 	jettree->Branch("trailEta",  &jettrailEta);
 	jettree->Branch("trailPhi",  &jettrailPhi);
-	jettree->Branch("nJetClean", &jetnJetClean);
-	jettree->Branch("HTClean",   &jetHTClean);
   
 //*********** fake lepton *********************//
   TTree *fakeLeptree = new TTree("fakeLepTree","fakeLepTree");
@@ -213,6 +216,7 @@ void analysis_eg(){//main
   float fakeLepEta(0);
   float fakeLepPhi(0);
 	float fakeLepMiniIso(0);
+	int   fakeLepIsStandardProxy(0);
 	float fakeLepSigma(0);
 	float fakeLepdEta(0);
 	float fakeLepdPhi(0);
@@ -225,8 +229,9 @@ void analysis_eg(){//main
   float fakeLepdRPhoLep(0);
   float fakeLepHT(0);
   float fakeLepnJet(0);
-	int   fakeLepnJetClean(0);
-	float fakeLepHTClean(0);
+	float fakeLeptrailPt(0);
+	float fakeLeptrailEta(0);
+	float fakeLeptrailPhi(0);
   
   
   fakeLeptree->Branch("phoEt",     &fakeLepphoEt);
@@ -236,6 +241,7 @@ void analysis_eg(){//main
   fakeLeptree->Branch("lepEta",    &fakeLepEta);
   fakeLeptree->Branch("lepPhi",    &fakeLepPhi);
   fakeLeptree->Branch("fakeLepMiniIso",&fakeLepMiniIso);
+  fakeLeptree->Branch("fakeLepIsStandardProxy", &fakeLepIsStandardProxy);
 	fakeLeptree->Branch("fakeLepSigma",&fakeLepSigma);
 	fakeLeptree->Branch("fakeLepdEta", &fakeLepdEta);
 	fakeLeptree->Branch("fakeLepdPhi", &fakeLepdPhi);
@@ -248,8 +254,10 @@ void analysis_eg(){//main
   fakeLeptree->Branch("dRPhoLep",  &fakeLepdRPhoLep);
   fakeLeptree->Branch("HT",        &fakeLepHT);
   fakeLeptree->Branch("nJet",      &fakeLepnJet);
-	fakeLeptree->Branch("nJetClean", &fakeLepnJetClean);
-	fakeLeptree->Branch("HTClean",   &fakeLepHTClean);
+  fakeLeptree->Branch("nBJet",     &nBJet);
+	fakeLeptree->Branch("trailPt",   &fakeLeptrailPt);
+	fakeLeptree->Branch("trailEta",  &fakeLeptrailEta);
+	fakeLeptree->Branch("trailPhi",  &fakeLeptrailPhi);
 
 //*************** for jet-photon fake rate ***********************//
 	TTree *hadrontree = new TTree("hadronTree","hadronTree");
@@ -295,11 +303,13 @@ void analysis_eg(){//main
 	hadrontree->Branch("nVertex",   &hadron_nVertex);
 	hadrontree->Branch("HT",        &hadron_HT);
 	hadrontree->Branch("nJet",      &hadron_nJet);
-	hadrontree->Branch("mcPID",     &hadron_mcPID);
-	hadrontree->Branch("mcEta",     &hadron_mcEta);
-	hadrontree->Branch("mcPhi",     &hadron_mcPhi);
-	hadrontree->Branch("mcPt",      &hadron_mcPt);
-	hadrontree->Branch("mcMomPID",  &hadron_mcMomPID);
+	if(isMC){
+		hadrontree->Branch("mcPID",     &hadron_mcPID);
+		hadrontree->Branch("mcEta",     &hadron_mcEta);
+		hadrontree->Branch("mcPhi",     &hadron_mcPhi);
+		hadrontree->Branch("mcPt",      &hadron_mcPt);
+		hadrontree->Branch("mcMomPID",  &hadron_mcMomPID);
+	}
 //*********** histo list **********************//
   TH1F *p_eventcount = new TH1F("p_eventcount","p_eventcount",7,0,7);
 
@@ -316,6 +326,13 @@ void analysis_eg(){//main
   int METFilter(0);
   logfile << "RunType: " << datatype << std::endl;
 
+
+  TFile *skimfile = TFile::Open("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/select_DoubleEG_signal.root","RECREATE");
+  TDirectory *dir_out = skimfile->mkdir("ggNtuplizer");
+  dir_out->cd();
+  TTree *tree_out = es->CloneTree(0);
+
+
   std::cout << "Total evetns : " << nEvts << std::endl;
   logfile << "Total evetns : " << nEvts << std::endl;
 	for (unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
@@ -329,7 +346,7 @@ void analysis_eg(){//main
 			Muon.clear();
 			Ele.clear();
 			JetCollection.clear();
-			if(datatype == MC)for(int iMC(0); iMC < raw.nMC; iMC++){MCData.push_back(mcData(raw, iMC));}
+			if(isMC)for(int iMC(0); iMC < raw.nMC; iMC++){MCData.push_back(mcData(raw, iMC));}
 			for(int iPho(0); iPho < raw.nPho; iPho++){Photon.push_back(recoPhoton(raw, iPho));}
 			for(int iMu(0); iMu < raw.nMu; iMu++){Muon.push_back(recoMuon(raw, iMu));}
 			for(int iEle(0); iEle < raw.nEle; iEle++){Ele.push_back(recoEle(raw, iEle));}
@@ -349,6 +366,23 @@ void analysis_eg(){//main
 
 			if(raw.nEle < 1 || raw.nPho <1)continue;
 
+      int Nmedpho(0);
+      for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
+        if(!itpho->isMedium())continue;
+        if(itpho->getR9() < 0.5 || itpho->getR9() > 1.0)continue;
+        if(fabs(itpho->getEta()) > 1.4442 || itpho->getCalibEt() < 40)continue;
+        if(itpho->getSigma() < 0.005)continue;
+        if(itpho->PixelSeed() != 0)continue;
+
+        Nmedpho+=1;
+      }
+      if(Nmedpho >= 2)continue;
+
+			nBJet = 0;
+			for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
+				if(itJet->getPt() < 20)continue;
+				if(itJet->isBJet())nBJet+=1;
+			}
 
 			/******************************************************************************************************************************************************************************/
 			/***********************************                                  Select Photon                                              **********************************************/
@@ -417,15 +451,16 @@ void analysis_eg(){//main
 			}
 
 
+	//		if(hasPho || proxyPhoCollection.size() > 0 || jetPhoCollection.size() > 0 || hasHadronPho || hadeleproxyPhoCollection.size() > 0){
+	//			tree_out->Fill();
+	//		}
 
-
+			
 
 			/******************************************************************************************************************************************************************************/
 			/***********************************                                  Select Lepton                                              **********************************************/
 			bool hasLep(false);
 			std::vector<recoEle>::iterator signalLep = Ele.begin();
-			bool hasTrail(false);
-			std::vector<recoEle>::iterator trailLep = Ele.begin();
 			std::vector< std::vector<recoEle>::iterator > proxyLepCollection;
 			proxyLepCollection.clear();
 			std::vector< std::vector<recoEle>::iterator > fakeLepCollection;
@@ -435,17 +470,16 @@ void analysis_eg(){//main
 			for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
 				if(itEle->isMedium() && itEle->getPt() > 15 && itEle->getMiniIso() < 0.2)miniisoLep.push_back(itEle);
 				if(itEle->getCalibPt() < 25)continue;
+
+				if(itEle->isFakeProxy())fakeLepCollection.push_back(itEle);	
 				if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))continue;
+				//if((itEle->isEB() && (itEle->getD0() > 0.05 || itEle->getDz() > 0.10)) || (itEle->isEE() && ( itEle->getD0() > 0.10 || itEle->getDz() > 0.20)) )continue;
 
 				if(!itEle->passHLTSelection())continue;
-				if(itEle->isFakeProxy())fakeLepCollection.push_back(itEle);	
+				//if(itEle->isFakeProxy())fakeLepCollection.push_back(itEle);	
 				//if(itEle->isLooseFakeProxy())fakeLepCollection.push_back(itEle);//Loose the proxy definition	
 				if(itEle->passSignalSelection()){
-					proxyLepCollection.push_back(itEle);
-					if(hasLep && !hasTrail){
-						hasTrail = true;
-						trailLep = itEle;
-					}
+					if(!hasLep)proxyLepCollection.push_back(itEle);
 					if(!hasLep){
 						hasLep=true; 
 						npassLep +=1;
@@ -454,19 +488,37 @@ void analysis_eg(){//main
 				}
 			}
 
+			bool hasTrail(false);
+			std::vector<recoMuon>::iterator trailLep = Muon.begin();
+			for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
+				if(itMu->getPt() < 25)continue;
+				if(itMu->passSignalSelection()){
+					if(!hasTrail){
+						hasTrail = true;
+						trailLep = itMu;
+					}
+				}
+			}
+
+
 			if(hasPho && hasLep){
 				double dRlepphoton = DeltaR(signalPho->getEta(), signalPho->getPhi(), signalLep->getEta(), signalLep->getPhi()); 
 				if(dRlepphoton > 0.8){
 					npassdR+=1;
-					if(fabs((signalPho->getCalibP4()+signalLep->getCalibP4()).M() - 91.188) > 10.0){
+
+					float tempdeltaPhi = DeltaPhi(signalLep->getPhi(), METPhi);
+					float tempMT = sqrt(2*MET*signalLep->getCalibPt()*(1-std::cos(tempdeltaPhi)));
+					if(fabs(signalPho->getEta()) < 1.4442 && tempMT > 100 && MET > 100)p_invmass->Fill((signalPho->getCalibP4()+signalLep->getCalibP4()).M());
+					if(((signalPho->getCalibP4()+signalLep->getCalibP4()).M() - 91.188) > 10.0){
 
 						npassZ+=1;
-						if(passMETFilter(METFilter)){
+						p_METFilter->Fill(-2);
+						p_METFilter->Fill(raw.failFilterStep(METFilter));	
+						if(raw.passMETFilter(METFilter)){
 							npassMETFilter +=1;
 
 							float deltaPhi = DeltaPhi(signalLep->getPhi(), METPhi);
 							float MT = sqrt(2*MET*signalLep->getCalibPt()*(1-std::cos(deltaPhi)));
-
 							phoEt = signalPho->getCalibEt();
 							phoEta= signalPho->getEta();
 							phoPhi= signalPho->getPhi();
@@ -492,27 +544,36 @@ void analysis_eg(){//main
 
 							nJet = 0;
 							HT = 0;
-							nJetClean = 0;
-							HTClean = 0;
 							for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 								if(!itJet->passSignalSelection())continue;
 								if(DeltaR(itJet->getEta(), itJet->getPhi(), signalPho->getEta(),signalPho->getPhi()) <= 0.4)continue;	
 								if(DeltaR(itJet->getEta(), itJet->getPhi(), signalLep->getEta(),signalLep->getPhi()) <= 0.4)continue;
 								nJet += 1;
 								HT += itJet->getPt();
-								bool isclean(true);
-								for(unsigned iE(0); iE < miniisoLep.size(); iE++){
-									std::vector<recoEle>::iterator itEle = miniisoLep[iE];
-									if(DeltaR(itJet->getEta(), itJet->getPhi(), itEle->getEta(), itEle->getPhi()) <= 0.4)isclean=false;
-								}
-								if(isclean){
-									nJetClean += 1;
-									HTClean += itJet->getPt();
-								}
 							}	
 
+          	  mcPID.clear();
+          	  mcEta.clear();
+          	  mcPhi.clear();
+          	  mcPt.clear();
+          	  mcMomPID.clear();
+          	  mcGMomPID.clear();
+							if(isMC){
+          	 	 for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){
+          	 	   if(itMC->getEt() < 1.0)continue;
+          	 	   float mcdR = DeltaR(signalPho->getEta(), signalPho->getPhi(), itMC->getEta(), itMC->getPhi());
+          	 	   if(mcdR < 0.3){
+          	 	     mcPID.push_back(itMC->getPID());
+          	 	     mcMomPID.push_back(itMC->getMomPID());
+          	 	     mcGMomPID.push_back(itMC->getGMomPID());
+          	 	     mcEta.push_back(itMC->getEta());
+          	 	     mcPhi.push_back(itMC->getPhi());
+          	 	     mcPt.push_back(itMC->getEt());
+          	 	   }
+          	 	 }
+							}
 							sigtree->Fill();
-
+							tree_out->Fill();
 						}//MET Filter
 					}// Z mass Filter
 				}//dR filter
@@ -525,8 +586,8 @@ void analysis_eg(){//main
 					std::vector<recoEle>::iterator proxyEle = proxyLepCollection[ie];
 					double dRlepphoton = DeltaR(proxyPho->getEta(), proxyPho->getPhi(), proxyEle->getEta(), proxyEle->getPhi());
 					if(dRlepphoton>0.8){
-						if(fabs((proxyPho->getCalibP4()+proxyEle->getCalibP4()).M() - 91.188) > 10.0){
-							if(passMETFilter(METFilter)){
+						if(((proxyPho->getCalibP4()+proxyEle->getCalibP4()).M() - 91.188) > 10.0){
+							if(raw.passMETFilter(METFilter)){
 
 								float proxy_deltaPhi = DeltaPhi(proxyEle->getPhi(), METPhi);
 								float proxy_MT = sqrt(2*MET*proxyEle->getCalibPt()*(1-std::cos(proxy_deltaPhi)));
@@ -556,23 +617,12 @@ void analysis_eg(){//main
 
 								proxynJet = 0;
 								proxyHT = 0;
-								proxynJetClean = 0;
-								proxyHTClean = 0;
 								for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 									if(!itJet->passSignalSelection())continue;
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), proxyPho->getEta(),proxyPho->getPhi()) <= 0.4)continue;	
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), proxyEle->getEta(),proxyEle->getPhi()) <= 0.4)continue;
 									proxynJet += 1;
 									proxyHT += itJet->getPt();
-									bool isclean(true);
-									for(unsigned iEle(0); iEle < miniisoLep.size(); iEle++){
-										std::vector<recoEle>::iterator itMu = miniisoLep[iEle];
-										if(DeltaR(itJet->getEta(), itJet->getPhi(), itMu->getEta(), itMu->getPhi()) <= 0.4)isclean=false;
-									}
-									if(isclean){
-										proxynJetClean += 1;
-										proxyHTClean += itJet->getPt();
-									}
 								}
 								proxytree->Fill();
 
@@ -584,14 +634,15 @@ void analysis_eg(){//main
 			} // loop on pho collection
 			}
 			
-			if(hasLep){
-				std::vector<recoEle>::iterator jetEle = signalLep; 
+			if(!hasPho){
 				for(unsigned ip(0); ip < jetPhoCollection.size(); ip++){
+					for(unsigned ie(0); ie < proxyLepCollection.size(); ie++){
+					std::vector<recoEle>::iterator jetEle = proxyLepCollection[ie];
 					std::vector<recoPhoton>::iterator jetPho = jetPhoCollection[ip];
 					double dRlepphoton = DeltaR(jetPho->getEta(), jetPho->getPhi(), jetEle->getEta(), jetEle->getPhi());
 					if(dRlepphoton>0.8){
-						if(fabs((jetPho->getCalibP4()+jetEle->getCalibP4()).M() - 91.188) > 10.0){
-							if(passMETFilter(METFilter)){
+						if(((jetPho->getCalibP4()+jetEle->getCalibP4()).M() - 91.188) > 10.0){
+							if(raw.passMETFilter(METFilter)){
 
 
 								float jet_deltaPhi = DeltaPhi(jetEle->getPhi(), METPhi);
@@ -599,6 +650,8 @@ void analysis_eg(){//main
 								jetphoEt = jetPho->getCalibEt();
 								jetphoEta= jetPho->getEta();
 								jetphoPhi= jetPho->getPhi();
+								jetphoChIso = jetPho->getChIso();
+								jetphoSigma = jetPho->getSigma();
 								jetlepPt = jetEle->getCalibPt();
 								jetlepEta= jetEle->getEta();
 								jetlepPhi= jetEle->getPhi();
@@ -621,30 +674,19 @@ void analysis_eg(){//main
 
 								jetnJet = 0;
 								jetHT = 0;
-								jetnJetClean = 0;
-								jetHTClean = 0;
 								for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 									if(!itJet->passSignalSelection())continue;
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), jetPho->getEta(),jetPho->getPhi()) <= 0.4)continue;	
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), jetEle->getEta(),jetEle->getPhi()) <= 0.4)continue;
 									jetnJet += 1;
 									jetHT += itJet->getPt();	
-									bool isclean(true);
-									for(unsigned iEle(0); iEle < miniisoLep.size(); iEle++){
-										std::vector<recoEle>::iterator itMu = miniisoLep[iEle];
-										if(DeltaR(itJet->getEta(), itJet->getPhi(), itMu->getEta(), itMu->getPhi()) <= 0.4)isclean=false;
-									}
-									if(isclean){
-										jetnJetClean += 1;
-										jetHTClean += itJet->getPt();
-									}
 								}
 								jettree->Fill();
 
 							}//MET Filter
 						}// Z mass Filter
 					}//dR filter
-				} // loop on pho collection
+				}} // loop on pho collection
 			}
 
 			if(hasPho && !hasLep){
@@ -653,8 +695,8 @@ void analysis_eg(){//main
 					std::vector<recoEle>::iterator fakeLep = fakeLepCollection[ip];
 					double dRlepphoton = DeltaR(fakeLepPho->getEta(), fakeLepPho->getPhi(), fakeLep->getEta(), fakeLep->getPhi());
 					if(dRlepphoton>0.8){
-						if(fabs((fakeLepPho->getCalibP4()+fakeLep->getCalibP4()).M() - 91.188) > 10.0){
-							if(passMETFilter(METFilter)){
+						if(((fakeLepPho->getCalibP4()+fakeLep->getCalibP4()).M() - 91.188) > 10.0){
+							if(raw.passMETFilter(METFilter)){
 
 								fakeLepdRPhoLep = 3;
 								for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
@@ -672,16 +714,27 @@ void analysis_eg(){//main
 								fakeLepEta= fakeLep->getEta();
 								fakeLepPhi= fakeLep->getPhi();
 								fakeLepMiniIso = fakeLep->getMiniIso();
+								if(fakeLep->isFakeProxy())fakeLepIsStandardProxy = 1;
+								else fakeLepIsStandardProxy = 0;
 								fakeLepsigMT = fakeLep_MT;
 								fakeLepsigMET= MET;
 								fakeLepsigMETPhi = METPhi;
 								fakeLepdPhiLepMET = fakeLep_deltaPhi; 
 								fakeLepnVertex = nVtx; 
-								//fakeLepdRPhoLep= dRlepphoton;
 								fakeLepSigma = fakeLep->getSigma();
 								fakeLepdEta  = fabs(fakeLep->getdEtaIn());
 								fakeLepdPhi  = fabs(fakeLep->getdPhiIn());
 								fakeLepIndex = ip;
+								if(hasTrail){
+									fakeLeptrailPt = trailLep->getPt();
+									fakeLeptrailEta = trailLep->getEta();
+									fakeLeptrailPhi = trailLep->getPhi();
+								}
+								else{
+									fakeLeptrailPt  = 0; 
+									fakeLeptrailEta = 0;
+									fakeLeptrailPhi = 0;
+								}
 
 								fakeLepnJet = 0;
 								fakeLepHT = 0;
@@ -721,11 +774,11 @@ void analysis_eg(){//main
 			hadron_eleproxyChIso.clear();
 			hadron_eleproxynVertex.clear();
 
-			if(hasLep){
+			if(hasHadronPho && hasLep){
 				double DeltaPhoLep = DeltaR(hadronPho->getEta(), hadronPho->getPhi(), signalLep->getEta(), signalLep->getPhi());
 				double DoubleMass  = (hadronPho->getP4()+signalLep->getP4()).M();
-				if(DeltaPhoLep > 0.8 && DoubleMass > 90 && fabs(DoubleMass - 91.188) > 10.0){
-				if(passMETFilter(METFilter)){
+				if(DeltaPhoLep > 0.8 && DoubleMass > 90 && (DoubleMass - 91.188) > 10.0){
+				if(raw.passMETFilter(METFilter)){
 					float deltaPhi = DeltaPhi(signalLep->getPhi(), METPhi);
 					float MT = sqrt(2*MET*signalLep->getPt()*(1-std::cos(deltaPhi)));
 					hadron_phoEt = hadronPho->getCalibEt();
@@ -747,7 +800,7 @@ void analysis_eg(){//main
 					std::vector<recoPhoton>::iterator proxyPho = hadeleproxyPhoCollection[ip];
 					std::vector<recoEle>::iterator proxyEle = proxyLepCollection[ie];
 					double dRlepphoton = DeltaR(proxyPho->getEta(), proxyPho->getPhi(), proxyEle->getEta(), proxyEle->getPhi());
-					if(dRlepphoton>0.8 && fabs((proxyPho->getCalibP4()+proxyEle->getCalibP4()).M() - 91.188) > 10.0 && passMETFilter(METFilter)){
+					if(dRlepphoton>0.8 && ((proxyPho->getCalibP4()+proxyEle->getCalibP4()).M() - 91.188) > 10.0 && raw.passMETFilter(METFilter)){
 						hadron_eleproxyEt.push_back(proxyPho->getCalibEt());
 						hadron_eleproxyEta.push_back(proxyPho->getEta());
 						hadron_eleproxyPhi.push_back(proxyPho->getPhi());
@@ -757,6 +810,24 @@ void analysis_eg(){//main
 					}//dR filter
 				}// loop on ele collection
 			} // loop on pho collection
+
+      hadron_mcPID.clear();
+      hadron_mcEta.clear();
+      hadron_mcPhi.clear();
+      hadron_mcPt.clear();
+      hadron_mcMomPID.clear();
+			if(isMC){
+       for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){
+         if(itMC->getPt() < 10.0)continue;
+         mcPID.push_back(itMC->getPID());
+         mcMomPID.push_back(itMC->getMomPID());
+         mcGMomPID.push_back(itMC->getGMomPID());
+         mcEta.push_back(itMC->getEta());
+         mcPhi.push_back(itMC->getPhi());
+         mcPt.push_back(itMC->getEt());
+       }
+			}
+
 			hadrontree->Fill();
 		}
 	
@@ -779,6 +850,8 @@ void analysis_eg(){//main
 
 	outputfile->Write();
 	outputfile->Close();
+	skimfile->Write();
+	skimfile->Close();
 	logfile.close();
 }
 

@@ -1,80 +1,13 @@
-#include<string>
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include<algorithm>
-
-#include "TFile.h"
-#include "TTree.h"
-#include "TF1.h"
-#include "TF3.h"
-#include "TH1D.h"
-#include "TH2F.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TString.h"
-#include "TChain.h"
-#include "TSystem.h"
-#include "TMath.h"
-#include "TLegend.h"
-#include "TLine.h"
-#include "TLatex.h"
-#include "TProfile.h"
-#include "TLorentzVector.h"
-#include "TRandom3.h"
-
-#include "../../include/analysis_rawData.h"
-#include "../../include/analysis_photon.h"
-#include "../../include/analysis_muon.h"
-#include "../../include/analysis_ele.h"
-#include "../../include/analysis_mcData.h"
-#include "../../include/analysis_tools.h"
-#include "../../include/analysis_fakes.h"
+#include "../analysis_commoncode.h"
 
 void analysis_sig(){
-
-	std::ifstream configfile("BkgPredConfig.txt");
-	int ichannel(1);
-	int anatype(0);
-	int lowMt(0);
-	int highMt(-1);
-	int lowMET(0);
-	int highMET(-1);
-	int lowPt(25);
-	int highPt(-1);
-	int lepIso(4);
-	std::string conftype;
-	double confvalue;
-	if(configfile.is_open()){
-  	for(int i(0); i<8; i++){ 
-			configfile >> conftype >> confvalue; 
-			if(conftype.find("ichannel")!=std::string::npos)ichannel = confvalue;
-			if(conftype.find("anatype")!=std::string::npos)anatype = confvalue;
-			if(conftype.find("lowMt")!=std::string::npos)lowMt = confvalue;
-			if(conftype.find("highMt")!=std::string::npos)highMt = confvalue;
-			if(conftype.find("lowMET")!=std::string::npos)lowMET = confvalue;
-			if(conftype.find("highMET")!=std::string::npos)highMET = confvalue;
-			if(conftype.find("lowPt")!=std::string::npos)lowPt = confvalue;
-			if(conftype.find("highPt")!=std::string::npos)highPt = confvalue;
-			if(conftype.find("lepIso")!=std::string::npos)lepIso = confvalue;
-	  }
-	}
-	configfile.close();
-
-	std::ifstream binfile("binConfig.txt");
-	float METbin1(200), METbin2(300);
-	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
-			binfile >> conftype >> confvalue;
-			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
-			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
-		}
-	}
+	
+	SetRunConfig();
+	setTDRStyle();
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 	//*********** histo list **********************//
-	std::ostringstream histname;
 	TH1D *p_PhoEt = new TH1D("p_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
 	TH1D *p_LepPt = new TH1D("p_LepPt","p_LepPt",nBkgPtBins,bkgPtBins);
 	TH1D *p_MET = new TH1D("p_MET","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
@@ -84,16 +17,16 @@ void analysis_sig(){
 	TH1D *p_PhoEta = new TH1D("p_PhoEta","#gamma #eta; #eta;",60,-3,3);
 	TH1D *p_LepEta = new TH1D("p_LepEta","p_LepEta",60,-3,3);
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
-	TH1D *p_eventcount = new TH1D("p_eventcount","eventcount",9,0,9);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 	TH1D *p_nBJet = new TH1D("p_nBJet","p_nBJet",5,0,5);
+	TH1D *p_PhoEt_TT = new TH1D("p_PhoEt_TT","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
+	TH1D *p_MET_TT = new TH1D("p_MET_TT","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
+	TH1D *p_Mt_TT = new TH1D("p_Mt_TT","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins);
+	TH1D *p_HT_TT = new TH1D("p_HT_TT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
-	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/resTree_egsignal_DoubleEG_ReMiniAOD_July22.root");
-	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_test.root");
-	//if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_MiniIso.root");
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_HT.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal_HT.root");
+	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
+	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
 
 	float phoEt(0);
 	float phoEta(0);
@@ -108,7 +41,6 @@ void analysis_sig(){
 	float HT(0);
 	int   nVertex(0);
 	float dRPhoLep(0);
-	float threeMass(0);
 	float nJet(0);
 	int   nBJet(0);	
 	sigtree->SetBranchAddress("phoEt",     &phoEt);
@@ -124,7 +56,6 @@ void analysis_sig(){
 	sigtree->SetBranchAddress("sigMETPhi", &sigMETPhi);
 	sigtree->SetBranchAddress("nVertex",   &nVertex);
 	sigtree->SetBranchAddress("dRPhoLep",  &dRPhoLep);
-	sigtree->SetBranchAddress("threeMass", &threeMass);
 	sigtree->SetBranchAddress("nJet",      &nJet);
 	sigtree->SetBranchAddress("nBJet",     &nBJet);
 
@@ -132,8 +63,7 @@ void analysis_sig(){
 		sigtree->GetEntry(ievt);
 		p_PU->Fill(nVertex);
 		/** cut flow *****/
-		if(phoEt < 35 || lepPt < 25)continue;
-		if(fabs(phoEta) > 1.4442 || fabs(lepEta) > 2.5)continue;
+		if(phoEt < 35 || fabs(phoEta) > 1.4442)continue;
 		if(sigMET < lowMET)continue;
 		if(highMET > 0 && sigMET > highMET)continue;
 		if(sigMT < lowMt)continue;
@@ -150,9 +80,14 @@ void analysis_sig(){
 		p_HT->Fill(HT);
 		p_dPhiEleMET->Fill(fabs(dPhiLepMET));
 		p_nJet->Fill(nJet);
-		
-		//if(phoEt > 200 && sigMET > 200 && HT > 400)p_nBJet->Fill(nBJet);
 		p_nBJet->Fill(nBJet);
+
+		if(nBJet >= 1){
+			p_PhoEt_TT->Fill(phoEt);
+			p_MET_TT->Fill(sigMET);
+			p_Mt_TT->Fill(sigMT);
+			p_HT_TT->Fill(HT);
+		}
 	}        
 
 	std::ostringstream outputname;
@@ -168,25 +103,6 @@ void analysis_sig(){
 	if(anatype ==0)outputname << "_met" << lowMET <<"_" << highMET << "_pt" << lowPt << "_" << highPt;
 	outputname << ".root";
 
-  TCanvas *can=new TCanvas("can","",1200,800);
-	can->Divide(2,3);
-	can->cd(1);
-	gPad->SetLogy();
-	p_PhoEt->Draw();
-	can->cd(2);
-	gPad->SetLogy();
-	p_LepPt->Draw();
-	can->cd(3);
-	gPad->SetLogy();
-	p_MET->Draw();
-	can->cd(4);
-	gPad->SetLogy();
-	p_Mt->Draw();
-	can->cd(5);
-	gPad->SetLogy();
-	p_HT->Draw();
-
-
 	TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
 	outputfile->cd();
 	p_PhoEt->Write();
@@ -198,9 +114,12 @@ void analysis_sig(){
 	p_HT->Write();
 	p_dPhiEleMET->Write();
 	p_PU->Write();
-	p_eventcount->Write();
 	p_nJet->Write();
 	p_nBJet->Write();
+	p_PhoEt_TT->Write();
+	p_MET_TT->Write();
+	p_Mt_TT->Write();
+	p_HT_TT->Write();
 	outputfile->Write();
 	outputfile->Close();
 }

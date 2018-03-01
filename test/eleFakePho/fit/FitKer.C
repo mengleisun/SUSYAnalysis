@@ -48,11 +48,14 @@
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_mcData.h"
+#include "../../../include/tdrstyle.C"
 //#include "../include/RooCBExGaussShape.h"
 
 #define NTOY 1000
 
-bool doEB = false;
+bool doEB = true;
+//std::string processName("DrellYan");
+std::string processName("Data");
 
 enum BinType{
   byPt = 0,
@@ -84,11 +87,7 @@ bool isElectron(int PID, int momID){
 void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, int fitrangelow, int fitrangehigh){//main  
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libRooFitClasses.so");
-//	TFile phoscale("../egammaEffi.txt_EGM2D.root");
-//	TFile elescale("../scaleFactors.root");
-//	TH2D  *h_elescale = (TH2D*)elescale.Get("GsfElectronToCutBasedSpring15M");
-//	TH2D  *h_eleiso   = (TH2D*)elescale.Get("MVAVLooseElectronToMini");
-//	TH2F  *h_phoscale = (TH2F*)phoscale.Get("EGamma_SF2D");
+	setTDRStyle();
   
 	bool useCMSShape;
 	bool useExpo;
@@ -129,7 +128,8 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
 
 //************** Process Z->ee Tree ********************************************************//   
   TChain *etree = new TChain("FakeRateTree");																									
-  etree->Add("/uscms_data/d3/mengleis/Sep1/plot_elefakepho-FullEcalTnP.root");
+  etree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho-FullEcalTnP.root");
+  //etree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP.root");
 
   float invmass=0; 
   float probePt=0; 
@@ -171,7 +171,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
   newbgtree->Branch("invmass", &invmass_fordataset);
 
   TChain *bgtree = new TChain("BGTree");
-  bgtree->Add("/uscms_data/d3/mengleis/Sep1/plot_bgtemplate_FullEcal.root");
+  bgtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_bgtemplate_FullEcal.root");
   float invmass_bg=0; 
   float probePt_bg=0; 
   float probeEta_bg=0; 
@@ -211,7 +211,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
 
 	if(useDY){
 		TChain *DYtree = new TChain("FakeRateTree");
-		DYtree->Add("/uscms_data/d3/mengleis/FullStatusData/plot_elefakepho_DYJetsToLL.root");
+		DYtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP.root");
 
 		float DY_invmass=0; 
 		float DY_tagPt=0; 
@@ -283,28 +283,10 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
 			}
 		}
 		h_DYinvmass->Sumw2();
-		//************* PU reweighting ******************************************************************//
-		TCanvas *canPU = new TCanvas("canPU","",600,600);
-		canPU->cd();
-		DY_PU->Sumw2();
-		Zee_PU->SetMarkerStyle(20);
-		Zee_PU->Draw("EP");
-		DY_PU->SetLineColor(kRed);
-		DY_PU->Scale(Zee_PU->Integral(1,100)/DY_PU->Integral(1,100));
-		DY_PU->Draw("same");
-		histname.str("");
-		histname << "PU_";
-		if(inputbintype == 0)histname << "pt_";
-		else if(inputbintype == 1)histname << "eta_";
-		else if(inputbintype == 2)histname << "vtx_";
-		if(inputfittype == 0) histname << "den_";
-		else if(inputfittype == 1) histname << "num_";
-		histname << lowername << "_" << uppername  << ".pdf"; 
-		canPU->SaveAs(histname.str().c_str());
 	} // Run only useDY
 
 //************* Construct RooFit Models *********************************************************//
-  RooRealVar mass_axis("invmass","invmass",fitrangelow, fitrangehigh);
+  RooRealVar mass_axis("invmass","M_{tag-probe}",fitrangelow, fitrangehigh);
 	RooDataSet *TnPDataSet;
 	if(newetree->GetEntries() < 50000)TnPDataSet = new RooDataSet("TnPDataSet","TnPDataSet",RooArgSet(mass_axis),RooFit::Import(*newetree));
   RooDataSet BkgDataSet("BkgDataSet","BkgDataSet",RooArgSet(mass_axis),RooFit::Import(*newbgtree));
@@ -340,6 +322,8 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
 
 
   TCanvas *c_fitMass = new TCanvas("c_fitMass", "", 600, 600);
+	c_fitMass->SetLeftMargin(0.15);
+	c_fitMass->SetBottomMargin(0.15);
   RooDataHist datahist_data("both", "", mass_axis, p_invmass);
 
   c_fitMass->cd();
@@ -380,7 +364,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
   double iniBkg = p_invmass->Integral(1,bin80GeV) + p_invmass->Integral(bin100GeV,p_invmass->GetSize()); 
 	if(iniBkg > p_invmass->GetEntries()/2)iniBkg = p_invmass->GetEntries()/2;
   //RooRealVar nSig("nSig", "", 0.5*iniSig, 0, p_invmass->GetEntries()*1.2);
-  RooRealVar nSig("nSig", "", iniSig, 0, p_invmass->GetEntries()*1.2);
+  RooRealVar nSig("nSig", "", 0.5*iniSig, 0, p_invmass->GetEntries()*1.2);
   RooRealVar nBkg("nBkg", "", iniBkg, p_invmass->Integral(1,bin60GeV)+p_invmass->Integral(bin120GeV,p_invmass->GetSize()), p_invmass->GetEntries());
   RooAddPdf *model;
   //if(useCMSShape)model = new RooAddPdf("model", "", RooArgList(CMSShape, signalRes),RooArgList(nBkg, nSig));
@@ -425,6 +409,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
   sprintf (chi2str, "chi2/ndf = %.02f", chi2);
   latex->DrawLatex(95,0.7*p_invmass->GetBinContent(31),chi2str);
   histname.str("");
+	histname << processName << "_";
 	if(useDY)histname << "DY_";
 	else histname << "Bw_";
   if(useKer)histname << "ker_";
@@ -506,6 +491,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
   double fitmean  =(prob->GetFunction("gaus")->GetParameter(1));
   double fitrms   =(prob->GetFunction("gaus")->GetParameter(2));
   histname.str("");
+	histname << processName << "_";
   if(useKer)histname << "ToyMC_ker_";
   else if(useExpo)histname << "ToyMC_expo_";
   if(inputbintype == 0)histname << "pt_";
@@ -527,7 +513,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
 	
 	std::ostringstream textfilename;
 	textfilename.str("");
-	textfilename << "EleFakeRate-2016ReReco-";
+	textfilename << "EleFakeRate-" << processName << "-";
 	if(useDY)textfilename << "DY-";
 	else textfilename << "Bw-";
 	if(useKer)textfilename << "ker-";

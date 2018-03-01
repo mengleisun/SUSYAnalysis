@@ -27,11 +27,13 @@
 
 void createXS(){
 	std::ifstream T5WG_file("newCrossSectionT5WG.txt");
+	std::ifstream T6WG_file("newCrossSectionT6WG.txt");
 	std::ifstream TChiWG_file("newCrossSectionTChiWG.txt");
 
   TFile *outputfile = TFile::Open("susyCrossSection.root","RECREATE");
   outputfile->cd();
 	TH1D *p_XS_T5WG   = new TH1D("p_gluinoxSec","p_gluinoxSec",500,197.5,2697.5);
+	TH1D *p_XS_T6WG   = new TH1D("p_squarkxSec","p_squarkxSec",500,197.5,2697.5);
 	TH1D *p_XS_TChiWG = new TH1D("p_charginoSec","p_charginoSec",77,87.5,2012.5);
 
 	double susymass(0);
@@ -46,6 +48,16 @@ void createXS(){
 	  }
 	}
 	T5WG_file.close();
+
+	if(T6WG_file.is_open()){
+  	for(int i(0); i<500; i++){ 
+			T6WG_file >> susymass >> xsvalue >> xserror;
+			int bin = p_XS_T6WG->FindBin(susymass);
+			p_XS_T6WG->SetBinContent(bin, xsvalue);
+			p_XS_T6WG->SetBinError(  bin, xserror);	
+	  }
+	}
+	T6WG_file.close();
 
 	if(TChiWG_file.is_open()){
 		for(int i(0); i<77; i++){

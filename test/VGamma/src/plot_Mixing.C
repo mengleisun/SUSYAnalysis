@@ -32,9 +32,10 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 }
 void plot_Mixing(){//main 
 
-  double scalefactor1 = 35.87*1000*311.16/6103732;
-	double scalefactor2 = 35.87*1000*12.7/5077584.0;
-	double scalefactor3 = 35.87*1000*0.83/502176.0;
+  double scalefactor1 = 35.87*1000*489.0/6103732;
+	double scalefactor2 = 35.87*1000*17.01/5077584.0;
+	double scalefactor3 = 35.87*1000*0.87/2354481;
+	//double scalefactor3 = 35.87*1000*0.87/1644983;
 
 //  double scalefactor2 = 35.87*1000*117.8/14372399;
 //	double scalefactor3 = 35.87*1000*0.143/489423;
@@ -114,6 +115,7 @@ void plot_Mixing(){//main
 
   TChain *mg130tree = new TChain("mgTree");
 	mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
+	//mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WGToLNu130_TH1D.root");
   float mg130_phoEt=0;
   float mg130_phoEta=0;
   float mg130_phoPhi=0;

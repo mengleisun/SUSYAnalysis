@@ -1,7 +1,7 @@
-ichannel 2
-anatype 2
+ichannel 1
+anatype 1
 lowMt 0
-highMt 100
+highMt -1
 lowMET 0
 highMET -1
 lowPt 0

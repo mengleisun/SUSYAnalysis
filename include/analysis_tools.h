@@ -13,11 +13,16 @@ enum MCType{
 	TT = 11,
 	WW = 12,
 	WZ = 13,
-	generalMC = 14,
-  nMCType = 15
+  W  = 14,
+	QCDEM30 = 15,
+	QCDEM40 = 16,
+	QCDMU = 17,
+	GJet = 18,
+	generalMC = 19,
+  nMCType = 20
 };
 
-double MC_XS[14] = {1, 311.16/*WGJetInclusive*/, 12.7/*WGJet40*/, 0.83/*WGJet130*/, 117.8/*ZGInclusive*/, 5670/*DY*/, 3.697/*TTG*/, 0.21/*WWG*/,0.04/*WZG*/, 18610, 0.143, 831.76/*TTBar*/,63.21/*WW*/,22.82/*WZ*/};
+double MC_XS[20] = {1, 489.0/*WGJetInclusive*/, 17.018/*WGJet40*/, 0.87971/*WGJet130*/, 117.8/*ZGInclusive*/, 5670/*DY*/, 3.697/*TTG*/, 0.21/*WWG*/,0.04/*WZG*/, 18610, 0.143, 750/*TTBar*/,63.21/*WW*/,22.82/*WZ*/, 61526/*W*/, 108000000/*QCDEM30*/, 54120000/*QCDEM40*/, 1/*MU*/, 16792/*GJet*/,1};
 
 //0.143 // LO ZG130
 //0.1404 // NLO ZG130
@@ -54,6 +59,7 @@ bool isHad(int PID, int momID){
          case 11: isFakePho = false; break;
          case 13: isFakePho = false; break;
          case 15: isFakePho = false; break;
+         case 22: isFakePho = false; break;
          case 24: isFakePho = false; break;
          case 21: isFakePho = false; break;
          default: isFakePho = true; break;
@@ -247,23 +253,35 @@ float getPUESF(int nvertex){
 //Double_t bkgEtBins[]={35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
 Double_t bkgEtBins[]={35,40,50,60,70,80,90,100,110,120,130,140,150,160,170,185,200,215,230,250,275,290, 305,325,345,370,400,500,800};
 int nBkgEtBins= sizeof(bkgEtBins)/sizeof(bkgEtBins[0]) -1;
-Double_t bkgPtBins[]={25,30,35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
+//Double_t bkgPtBins[]={25,30,35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
+Double_t bkgPtBins[]={25,50,75,100,125,150,200,400,800};
 int nBkgPtBins= sizeof(bkgPtBins)/sizeof(bkgPtBins[0])-1;
 Double_t bkgMETBins[]={0,40,60,80,100,120,140,160,180,210,240,280,320,400,600,1000};
 int nBkgMETBins= sizeof(bkgMETBins)/sizeof(bkgMETBins[0]) -1;
-Double_t bkgMtBins[]={0,20,40,60,80,100,120,140,160,180,200,300,400,500,600,800,1000};
+Double_t bkgMtBins[]={0,20,40,60,80,100,120,140,160,180,200,300,400,500,1000};
 int nBkgMtBins= sizeof(bkgMtBins)/sizeof(bkgMtBins[0]) -1;
 Double_t bkgHTBins[]={0,40,60,80,100,120,140,160,180,200,225,250,275,300,340,380,420,500,600,1000};
 int nBkgHTBins= sizeof(bkgHTBins)/sizeof(bkgHTBins[0]) -1;
 
 
+//Double_t sigEtBins[]={35,50,100,150,200,300,500,800};
+//int nSigEtBins= sizeof(sigEtBins)/sizeof(sigEtBins[0]) -1;
+//Double_t sigPtBins[]={25,50,100,150,200,300,500,800};
+//int nSigPtBins= sizeof(sigPtBins)/sizeof(sigPtBins[0])-1;
+//Double_t sigMETBins[]={120,200,300,400,550,1000};
+//int nSigMETBins= sizeof(sigMETBins)/sizeof(sigMETBins[0]) -1;
+//Double_t sigMtBins[]={100,200,300,400,600,1000};
+//int nSigMtBins= sizeof(sigMtBins)/sizeof(sigMtBins[0]) -1;
+//Double_t sigHTBins[]={0,400,800,1500,2000};
+//int nSigHTBins= sizeof(sigHTBins)/sizeof(sigHTBins[0]) -1;
+//
 Double_t sigEtBins[]={35,50,100,150,200,300,500,800};
 int nSigEtBins= sizeof(sigEtBins)/sizeof(sigEtBins[0]) -1;
 Double_t sigPtBins[]={25,50,100,150,200,300,500,800};
 int nSigPtBins= sizeof(sigPtBins)/sizeof(sigPtBins[0])-1;
-Double_t sigMETBins[]={120,200,300,400,600,1000};
+Double_t sigMETBins[]={0,20,40,60,80,100,120,150,200,250,300,350,400,600};
 int nSigMETBins= sizeof(sigMETBins)/sizeof(sigMETBins[0]) -1;
 Double_t sigMtBins[]={100,200,300,400,600,1000};
 int nSigMtBins= sizeof(sigMtBins)/sizeof(sigMtBins[0]) -1;
-Double_t sigHTBins[]={0,100,200,300,400,600,1000};
+Double_t sigHTBins[]={0,100,200,300,400,800,1500,2000};
 int nSigHTBins= sizeof(sigHTBins)/sizeof(sigHTBins[0]) -1;

@@ -41,9 +41,8 @@ void analysis_mgTriggerMC(){//main
 	RunType datatype(MC); 
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-  TFileCollection fc("dum","","DY.txt");
-  es->AddFileInfoList((TCollection*)fc.GetList());
-
+	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_NLO.root");
+	
 	TFile *outputfile = TFile::Open(outputname,"RECREATE");
 	outputfile->cd();
 
@@ -53,7 +52,8 @@ void analysis_mgTriggerMC(){//main
 	float mg_phoPhi(0);
 	float mg_muPt(0);
 	float mg_muMiniIso(0);
-	float mg_dR(0); 
+	float mg_dR(0);
+	float mg_R9(0); 
 	int   mg_phofireL1;
 	int   mg_mufireL1;
 	int   mg_phofireL1_2;
@@ -69,6 +69,7 @@ void analysis_mgTriggerMC(){//main
 	mgtree->Branch("muPt",      &mg_muPt);
 	mgtree->Branch("muMiniIso", &mg_muMiniIso);
 	mgtree->Branch("dR",        &mg_dR);
+	mgtree->Branch("R9",        &mg_R9);
 	mgtree->Branch("phofireL1", &mg_phofireL1);
 	mgtree->Branch("mufireL1",  &mg_mufireL1); 
 	mgtree->Branch("phofireL1_2",&mg_phofireL1_2);
@@ -155,6 +156,7 @@ void analysis_mgTriggerMC(){//main
 					std::vector<recoMuon>::iterator probeMu = probeMuVec[iMu]; 
 					std::vector<recoPhoton>::iterator probePho = probePhoVec[ipho];
       
+					mg_R9 = probePho->getR9();
 					mg_phoEt = probePho->getEt();
 					mg_phoEta= probePho->getEta();
 					mg_phoPhi= probePho->getPhi();

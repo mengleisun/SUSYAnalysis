@@ -36,6 +36,9 @@ enum RunType{
     rawData(TTree *tree, RunType type): runtype_(type)
   {    
 	  if(type == MC || type == MCDoubleEG || type == MCMuonEG||  type == MCSingleElectron || type == MCSingleMuon||  type == MCDoubleMuon || type == MCMET ){
+		tree->SetBranchAddress("br_flag",      &br_flag);
+		tree->SetBranchAddress("weight",       &weight);
+		
 		tree->SetBranchAddress("nMC",          &nMC);
 		tree->SetBranchAddress("mcPID",        &mcPID);
 		tree->SetBranchAddress("mcPt",         &mcPt);
@@ -54,6 +57,9 @@ enum RunType{
 		tree->SetBranchAddress("mcMomPhi",     &mcMomPhi);
 		tree->SetBranchAddress("genMET",    			&genMET);
 		tree->SetBranchAddress("genMETPhi",    		&genMETPhi);
+	//	tree->SetBranchAddress("pdfWeight",       &pdfWeight);
+	//	tree->SetBranchAddress("pdfSystWeight",   &pdfSystWeight);
+	//	tree->SetBranchAddress("genScaleSystWeights", &genScaleSystWeights);
     }
 	  tree->SetBranchAddress("run",			        &run);
 	  tree->SetBranchAddress("event",			    &event);
@@ -153,6 +159,7 @@ enum RunType{
       tree->SetBranchAddress("jetEn",     &jetEn);
       tree->SetBranchAddress("jetEta",    &jetEta);
       tree->SetBranchAddress("jetPhi",    &jetPhi);
+      //tree->SetBranchAddress("jetID",     &jetID);
 			tree->SetBranchAddress("jetArea",   &jetArea);
 			tree->SetBranchAddress("jetJECUnc", &jetJECUnc);
 			tree->SetBranchAddress("jetCSV2BJetTags", &jetCSV2BJetTags);
@@ -169,8 +176,11 @@ enum RunType{
 
     bool passHLT();
 		bool passMETFilter(int filter);
+		int  failFilterStep(int filter);
     RunType runtype_;
-
+	
+		int       br_flag=0; 
+		float     weight=0;	
     Int_t     run=0;
     Long64_t  event=0;
     Int_t     lumis=0;
@@ -213,6 +223,9 @@ enum RunType{
     std::vector<float>    *mcMomMass =0;
     std::vector<float>    *mcMomEta =0;
     std::vector<float>    *mcMomPhi =0;
+		float                 pdfWeight = 0;
+		std::vector<float>    *pdfSystWeight = 0;
+		std::vector<float>    *genScaleSystWeights = 0;
 
     Int_t          nPho =0;
     vector<float>  *phoE = 0;
@@ -290,6 +303,7 @@ enum RunType{
     std::vector<float>  *jetEn = 0;
     std::vector<float>  *jetEta = 0;
     std::vector<float>  *jetPhi = 0;
+		std::vector<int>    *jetID  = 0;
 		std::vector<float>  *jetArea = 0;
 		std::vector<float>  *jetJECUnc = 0;
 		std::vector<float>  *jetCSV2BJetTags = 0;

@@ -1,119 +1,31 @@
-#include<string>
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include<algorithm>
-
-#include "TFile.h"
-#include "TTree.h"
-#include "TF1.h"
-#include "TF3.h"
-#include "TH1D.h"
-#include "TH2F.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TString.h"
-#include "TChain.h"
-#include "TSystem.h"
-#include "TMath.h"
-#include "TLegend.h"
-#include "TLine.h"
-#include "TLatex.h"
-#include "TProfile.h"
-#include "TLorentzVector.h"
-#include "TRandom3.h"
-
-#include "../../include/analysis_rawData.h"
-#include "../../include/analysis_photon.h"
-#include "../../include/analysis_muon.h"
-#include "../../include/analysis_ele.h"
-#include "../../include/analysis_mcData.h"
-#include "../../include/analysis_tools.h"
-#include "../../include/analysis_fakes.h"
-#include "../../include/analysis_scalefactor.h"
+#include "../analysis_commoncode.h"
 
 void analysis_VGBkg(){
 	
-	bool toDeriveScale(false);
+	SetRunConfig();
+	setTDRStyle();
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 	
 	esfScaleFactor  objectESF;
-	double WG40Factor(0.86);
-	//double WG130Factor(0.66);
-	double WG130Factor(0.64);
-	double factor_egVGamma(1.29);
-	double factorerror_egVGamma(0.25);
-	//double factor_mgVGamma(1.38);
-	double factor_mgVGamma(1.30);
-	double factorerror_mgVGamma(0.25);
-
-	std::ifstream configfile("BkgPredConfig.txt");
-	int ichannel(1);
-	int anatype(0);
-	int lowMt(0);
-	int highMt(-1);
-	int lowMET(0);
-	int highMET(-1);
-	int lowPt(25);
-	int highPt(-1);
-	int lepIso(4);
-	std::string conftype;
-	double confvalue;
-	if(configfile.is_open()){
-  	for(int i(0); i<8; i++){ 
-			configfile >> conftype >> confvalue; 
-			if(conftype.find("ichannel")!=std::string::npos)ichannel = confvalue;
-			if(conftype.find("anatype")!=std::string::npos)anatype = confvalue;
-			if(conftype.find("lowMt")!=std::string::npos)lowMt = confvalue;
-			if(conftype.find("highMt")!=std::string::npos)highMt = confvalue;
-			if(conftype.find("lowMET")!=std::string::npos)lowMET = confvalue;
-			if(conftype.find("highMET")!=std::string::npos)highMET = confvalue;
-			if(conftype.find("lowPt")!=std::string::npos)lowPt = confvalue;
-			if(conftype.find("highPt")!=std::string::npos)highPt = confvalue;
-			if(conftype.find("lepIso")!=std::string::npos)lepIso = confvalue;
-	  }
-	}
-	configfile.close();
-
-	std::ifstream binfile("binConfig.txt");
-	float METbin1(200), METbin2(300);
-	if(binfile.is_open()){
-		for(int i(0); i<2; i++){
-			binfile >> conftype >> confvalue;
-			if(conftype.find("METbin1")!=std::string::npos)METbin1= confvalue;
-			if(conftype.find("METbin2")!=std::string::npos)METbin2= confvalue;
-		}
-	}
-
-	if(anatype == 0){
-		toDeriveScale = true;
-		factor_egVGamma = 1;
-	  factorerror_egVGamma = 0;
-	  factor_mgVGamma = 1;
-	  factorerror_mgVGamma = 0;
-	}
-
+	bool toDeriveScale(false);
+	if(anatype == 0)toDeriveScale = true;
 
   int channelType = ichannel; // eg = 1; mg =2;
 	double factorMC(1);
 	double factorMCUP = factorMC*(1+0);
-	double factorMCDO = factorMC*(1-0);
 	if(toDeriveScale){
 		factorMC = 1;
 		factorMCUP = 1;
-		factorMCDO = 1;
 	}
 	else{
 		if(channelType == 1){
 			factorMC = factor_egVGamma;
 			factorMCUP = factor_egVGamma+factorerror_egVGamma;
-			factorMCDO = factor_egVGamma-factorerror_egVGamma;
 		}
 		else if(channelType == 2){
 			factorMC = factor_mgVGamma;
 			factorMCUP = factor_mgVGamma + factorerror_mgVGamma;
-			factorMCDO = factor_mgVGamma - factorerror_mgVGamma;
 		}
 	}
 
@@ -140,31 +52,16 @@ void analysis_VGBkg(){
 	TH1D *p_HT = new TH1D("p_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
 	TH1D *p_PhoEta = new TH1D("p_PhoEta","#gamma #eta; #eta;",60,-3,3);
 	TH1D *p_LepEta = new TH1D("p_LepEta","p_LepEta",60,-3,3);
-	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET","dPhiEleMET",32,0,3.2); 
+	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET","dPhiEleMET",32,0,3.2);
+	TH1D *p_dPhiEleMET_WG = new TH1D("p_dPhiEleMET_WG","dPhiEleMET",32,0,3.2); 
+	TH1D *p_dPhiEleMET_ZG = new TH1D("p_dPhiEleMET_ZG","dPhiEleMET",32,0,3.2); 
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 	TH1D *p_nBJet = new TH1D("p_nBJet","p_nBJet",5,0,5);
-
-	TH1D *p_dPhiEleMET_WG = new TH1D("p_dPhiEleMET_WG","dPhiEleMET",32,0,3.2); 
-	TH1D *p_dPhiEleMET_ZG = new TH1D("p_dPhiEleMET_ZG","dPhiEleMET",32,0,3.2); 
-
-//	TH1D *p_reweight_PhoEt = new TH1D("p_reweight_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
-//	TH1D *p_reweight_PhoEta = new TH1D("p_reweight_PhoEta","#gamma #eta; #eta;",60,-3,3);
-//	TH1D *p_reweight_LepPt = new TH1D("p_reweight_LepPt","p_reweight_LepPt",nBkgPtBins,bkgPtBins);
-//	TH1D *p_reweight_LepEta = new TH1D("p_reweight_LepEta","p_reweight_LepEta",60,-3,3);
-//	TH1D *p_reweight_HT = new TH1D("p_reweight_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
-//	TH1D *p_reweight_Mt = new TH1D("p_reweight_Mt","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins); 
-//	TH1D *p_reweight_dPhiEleMET = new TH1D("p_reweight_dPhiEleMET","dPhiEleMET",32,0,3.2); 
-//	TH1D *p_reweight_MET = new TH1D("p_reweight_MET","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
-
-	TH1D *p_PhoEt_WG = new TH1D("p_PhoEt_WG ","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
-	TH1D *p_LepPt_WG = new TH1D("p_LepPt_WG ","p_LepPt",nBkgPtBins,bkgPtBins);
-	TH1D *p_MET_WG = new TH1D("p_MET_WG ","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
-	TH1D *p_Mt_WG = new TH1D("p_Mt_WG ","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins); 
-	TH1D *p_PhoEt_ZG = new TH1D("p_PhoEt_ZG ","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
-	TH1D *p_LepPt_ZG = new TH1D("p_LepPt_ZG ","p_LepPt",nBkgPtBins,bkgPtBins);
-	TH1D *p_MET_ZG = new TH1D("p_MET_ZG ","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
-	TH1D *p_Mt_ZG = new TH1D("p_Mt_ZG ","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins); 
+	TH1D *p_PhoEt_TT = new TH1D("p_PhoEt_TT","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
+	TH1D *p_MET_TT = new TH1D("p_MET_TT","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
+	TH1D *p_Mt_TT = new TH1D("p_Mt_TT","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins);
+	TH1D *p_HT_TT = new TH1D("p_HT_TT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
 
 	TH1D *jesup_MET = new TH1D("jesup_MET","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
 	TH1D *jesup_Mt = new TH1D("jesup_Mt","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins);
@@ -193,15 +90,6 @@ void analysis_VGBkg(){
 	TH1D *scaleup_HT = new TH1D("scaleup_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
 	TH1D *scaleup_dPhiEleMET = new TH1D("scaleup_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 
-	TH1D *scaledo_PhoEt = new TH1D("scaledo_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
-	TH1D *scaledo_PhoEta = new TH1D("scaledo_PhoEta","#gamma #eta; #eta;",60,-3,3);
-	TH1D *scaledo_LepPt = new TH1D("scaledo_LepPt","scaledo_LepPt",nBkgPtBins,bkgPtBins);
-	TH1D *scaledo_LepEta = new TH1D("scaledo_LepEta","scaledo_LepEta",60,-3,3);
-	TH1D *scaledo_MET = new TH1D("scaledo_MET","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
-	TH1D *scaledo_Mt = new TH1D("scaledo_Mt","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins); 
-	TH1D *scaledo_HT = new TH1D("scaledo_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
-	TH1D *scaledo_dPhiEleMET = new TH1D("scaledo_dPhiEleMET","dPhiEleMET",32,0,3.2); 
-
 	TH1D *normup_PhoEt = new TH1D("normup_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
 	TH1D *normup_PhoEta = new TH1D("normup_PhoEta","#gamma #eta; #eta;",60,-3,3);
 	TH1D *normup_LepPt = new TH1D("normup_LepPt","normup_LepPt",nBkgPtBins,bkgPtBins);
@@ -210,15 +98,6 @@ void analysis_VGBkg(){
 	TH1D *normup_Mt = new TH1D("normup_Mt","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins); 
 	TH1D *normup_HT = new TH1D("normup_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
 	TH1D *normup_dPhiEleMET = new TH1D("normup_dPhiEleMET","dPhiEleMET",32,0,3.2); 
-
-	TH1D *normdo_PhoEt = new TH1D("normdo_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
-	TH1D *normdo_PhoEta = new TH1D("normdo_PhoEta","#gamma #eta; #eta;",60,-3,3);
-	TH1D *normdo_LepPt = new TH1D("normdo_LepPt","normdo_LepPt",nBkgPtBins,bkgPtBins);
-	TH1D *normdo_LepEta = new TH1D("normdo_LepEta","normdo_LepEta",60,-3,3);
-	TH1D *normdo_MET = new TH1D("normdo_MET","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
-	TH1D *normdo_Mt = new TH1D("normdo_Mt","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins); 
-	TH1D *normdo_HT = new TH1D("normdo_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
-	TH1D *normdo_dPhiEleMET = new TH1D("normdo_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 
 	TH1D *isrup_PhoEt = new TH1D("isrup_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
 	TH1D *isrup_PhoEta = new TH1D("isrup_PhoEta","#gamma #eta; #eta;",60,-3,3);
@@ -229,25 +108,29 @@ void analysis_VGBkg(){
 	TH1D *isrup_HT = new TH1D("isrup_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
 	TH1D *isrup_dPhiEleMET = new TH1D("isrup_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 
-	TH1D *isrdo_PhoEt = new TH1D("isrdo_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
-	TH1D *isrdo_PhoEta = new TH1D("isrdo_PhoEta","#gamma #eta; #eta;",60,-3,3);
-	TH1D *isrdo_LepPt = new TH1D("isrdo_LepPt","isrdo_LepPt",nBkgPtBins,bkgPtBins);
-	TH1D *isrdo_LepEta = new TH1D("isrdo_LepEta","isrdo_LepEta",60,-3,3);
-	TH1D *isrdo_MET = new TH1D("isrdo_MET","MET; MET (GeV);",nBkgMETBins, bkgMETBins);
-	TH1D *isrdo_Mt = new TH1D("isrdo_Mt","M_{T}; M_{T} (GeV);",nBkgMtBins,bkgMtBins); 
-	TH1D *isrdo_HT = new TH1D("isrdo_HT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
-	TH1D *isrdo_dPhiEleMET = new TH1D("isrdo_dPhiEleMET","dPhiEleMET",32,0,3.2); 
+	TH1D *toy_dPhiEleMET[500];
+	for(unsigned ih(0); ih < 500; ih++){
+		histname.str("");
+		histname << "toy_VGdPhiEleMET_" << ih;
+		toy_dPhiEleMET[ih] = new TH1D(histname.str().c_str(), histname.str().c_str(),32,0,3.2);
+	}
 // ********  MC *************************//
-  TChain *mctree;
- 	if(channelType == 1)mctree = new TChain("egTree","egTree");
-  else if(channelType == 2)mctree = new TChain("mgTree","mgTree");
-	mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WG_Pt50.root");
-  mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WG_Pt35.root");
-	mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WG_Pt130.root");
-	mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_ZG.root");
-	mctree->Add("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_DY.root");
+	std::ostringstream chainname;
+	chainname.str("");
+	if(channelType == 1)chainname << "egTree";
+	else if(channelType == 2)chainname << "mgTree";
+  TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
+  mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG35_VetoEle.root");
+	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG50_VetoEle.root");
+	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG130_VetoEle.root");
+	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_ZG_VetoEle.root");
+	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_DY.root");
 	float crosssection(0);
 	float ntotalevent(0);
+	float ISRWeight(0);
+	float pdfWeight(0);
+	std::vector<float> *pdfSystWeight = 0;
+	std::vector<float> *ScaleSystWeight = 0; 
 	int   mcType(0);
 	float PUweight(1);
   float phoEt(0);
@@ -262,13 +145,11 @@ void analysis_VGBkg(){
   float dPhiLepMET(0);
   int   nVertex(0);
   float dRPhoLep(0);
-	float threeMass(0);
   float HT(0);
   float nJet(0);
 	int   nBJet(0);
-  float invmass(0);
 	float llmass(0);
-	float bosonPt(0); 
+	float ISRPt(0); 
 	float sigMETJESup(0);
 	float sigMETJESdo(0);
 	float sigMETJERup(0);
@@ -292,6 +173,10 @@ void analysis_VGBkg(){
 //
 	mctree->SetBranchAddress("crosssection",&crosssection);
 	mctree->SetBranchAddress("ntotalevent", &ntotalevent);
+	mctree->SetBranchAddress("ISRWeight", &ISRWeight);
+	mctree->SetBranchAddress("pdfWeight", &pdfWeight);
+	mctree->SetBranchAddress("pdfSystWeight", &pdfSystWeight);
+	mctree->SetBranchAddress("ScaleSystWeight", &ScaleSystWeight);
 	mctree->SetBranchAddress("mcType",    &mcType);
 	mctree->SetBranchAddress("PUweight",  &PUweight);
   mctree->SetBranchAddress("phoEt",     &phoEt);
@@ -306,14 +191,11 @@ void analysis_VGBkg(){
   mctree->SetBranchAddress("dPhiLepMET",&dPhiLepMET);
   mctree->SetBranchAddress("nVertex",   &nVertex);
   mctree->SetBranchAddress("dRPhoLep",  &dRPhoLep);
-	mctree->SetBranchAddress("threeMass", &threeMass);
 	mctree->SetBranchAddress("llmass",    &llmass);
   mctree->SetBranchAddress("HT",        &HT);
   mctree->SetBranchAddress("nJet",      &nJet);
   mctree->SetBranchAddress("nBJet",     &nBJet);
-  //mctree->SetBranchAddress("invmass",   &invmass);
-  //mctree->SetBranchAddress("bosonPt",     &bosonPt);
-  mctree->SetBranchAddress("ISRJetPt",     &bosonPt);
+  mctree->SetBranchAddress("ISRJetPt",        &ISRPt);
 	mctree->SetBranchAddress("sigMETJESup",     &sigMETJESup);
 	mctree->SetBranchAddress("sigMETJESdo",     &sigMETJESdo);
 	mctree->SetBranchAddress("sigMETJERup",     &sigMETJERup);
@@ -333,79 +215,14 @@ void analysis_VGBkg(){
   mctree->SetBranchAddress("mcPhi",     &mcPhi);
   mctree->SetBranchAddress("mcPt",      &mcPt);
   mctree->SetBranchAddress("mcMomPID",  &mcMomPID);
-//  mctree->SetBranchAddress("mcGMomPID", &mcGMomPID);
-//
-	double totalevent[14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	double totalreweight[14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	double totalreweight_up[14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	double totalreweight_do[14] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
-	double totalPU(0);
-  double totalUnPU(0);
-	for(unsigned ievt(0); ievt < mctree->GetEntries(); ievt++){
-		mctree->GetEntry(ievt);
-		p_PU->Fill(nVertex,PUweight);
-		/** cut flow *****/
-		if(phoEt < 35 || lepPt < 25)continue;
-		if(fabs(phoEta) > 1.4442 || fabs(lepEta) > 2.5)continue;
-		if(sigMET < lowMET)continue;
-		if(highMET > 0 && sigMET > highMET)continue;
-		if(sigMT < lowMt)continue;
-		if(highMt > 0 && sigMT > highMt)continue;
-		if(lepPt < lowPt)continue;
-		if(highPt > 0 && lepPt > highPt)continue;
-
-		bool istruepho(false);
-		double  mindRpho(0.3);
-		unsigned phoIndex(0);
-		for(unsigned iMC(0); iMC<mcPID->size(); iMC++){
-			double dR = DeltaR((*mcEta)[iMC], (*mcPhi)[iMC], phoEta,phoPhi);
-			double dE = fabs((*mcPt)[iMC] - phoEt)/phoEt;
-			if(dR < mindRpho && dE < 0.5){mindRpho=dR; phoIndex=iMC;}
-		}
-		if(mindRpho < 0.2){
-			if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 23)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 24)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 1)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 2)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 3)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 4)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 5)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 6)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 11)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 13)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 15)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 21)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 999)istruepho=true;
-		}
-		if(!istruepho)continue;
-
-		totalevent[mcType] += 1;
-		double reweightF = 1;
-		double reweightF_up = 1;
-		double reweightF_do = 1;
-		if(bosonPt < 50){reweightF = 1.08893; reweightF_up = reweightF+0.024; reweightF_do = reweightF-0.024; } 
-		else if(bosonPt >= 50 && bosonPt < 80){reweightF  = 1.1675; reweightF_up = reweightF+0.020; reweightF_do = reweightF-0.020; }
-		else if(bosonPt >= 80 && bosonPt < 100){reweightF  = 0.908314; reweightF_up = reweightF+0.026; reweightF_do = reweightF-0.026; }
-		else if(bosonPt >= 100 && bosonPt < 125){reweightF = 0.848379; reweightF_up = reweightF+0.029;reweightF_do = reweightF-0.029; }
-		else if(bosonPt >= 125 && bosonPt < 150){reweightF = 0.747166; reweightF_up = reweightF+0.034;reweightF_do = reweightF-0.034; }
-		else if(bosonPt >= 150 && bosonPt < 200){reweightF = 0.714054; reweightF_up = reweightF+0.034; reweightF_do = reweightF-0.034;  }
-		else if(bosonPt >= 200 && bosonPt < 250){reweightF =	0.729144;reweightF_up = reweightF+0.055; reweightF_do = reweightF-0.055;  }
-		else if(bosonPt >= 250 && bosonPt < 300){reweightF =	0.709433;reweightF_up = reweightF+0.12; reweightF_do = reweightF+0.12;  }
-		else if(bosonPt >= 300 && bosonPt < 400){reweightF = 0.768222;reweightF_up = reweightF+0.15;  reweightF_do = reweightF+0.15;  }
-		else if(bosonPt >= 400 && bosonPt < 600){reweightF =  0.452023; reweightF_up = reweightF+0.22; reweightF_do = reweightF+0.22; }
-		else if(bosonPt >= 600){reweightF =  0.252564; reweightF_up = reweightF+0.2; reweightF_do = reweightF-0.2;}
-		totalreweight[mcType] += reweightF;
-		totalreweight_up[mcType] += reweightF_up;
-		totalreweight_do[mcType] += reweightF_do;
-	}
 	//   start filling ///
 	for(unsigned ievt(0); ievt < mctree->GetEntries(); ievt++){
 		mctree->GetEntry(ievt);
 		p_PU->Fill(nVertex,PUweight);
+
 		double scalefactor(0);
 		double scalefactorup(0);
-		double scalefactordo(0);
 		if(channelType == 1){
 			scalefactor = objectESF.getElectronESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
 			double s_ele_error = objectESF.getElectronESFError(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
@@ -413,8 +230,8 @@ void analysis_VGBkg(){
 			double s_eletrg_error = objectESF.getElectronTRGESFError(lepPt,lepEta)*objectESF.getElectronESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta);
 			double s_photrg_error = objectESF.getegPhotonTRGESFError(phoEt,phoEta)*objectESF.getElectronESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
 			double s_error = sqrt(pow(s_ele_error,2) + pow(s_pho_error,2) + pow(s_eletrg_error,2) + pow(s_photrg_error, 2)); 
-			scalefactorup = scalefactor + s_error; 
-			scalefactordo = scalefactor - s_error;
+			//scalefactorup = scalefactor + s_error; 
+			scalefactorup = objectESF.getElectronESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta)*objectESF.getR9ESF(lepPt,lepEta); 
 		}
 		if(channelType == 2){
 			scalefactor = objectESF.getMuonESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getMuonEGTRGESF(phoEt, lepPt);
@@ -423,32 +240,25 @@ void analysis_VGBkg(){
       double s_trg_error = objectESF.getMuonEGTRGESFError(phoEt, lepPt)*objectESF.getMuonESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta);
 			double s_error = sqrt(pow(s_mu_error,2) + pow(s_pho_error,2) + pow(s_trg_error,2));
 			scalefactorup = scalefactor + s_error; 
-			scalefactordo = scalefactor - s_error;
 		}
-    if(mcType == 7)crosssection = 18760;
-		if((mcType == 7) && llmass > 30)continue;
-
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
-	
-	
-		if(mcType == 2)XS_weight = XS_weight*WG40Factor;
-		else if(mcType == 3)XS_weight = XS_weight*WG130Factor;
-		
-		if(mcType <= 3)XS_weight = XS_weight/WG130Factor;
-		if(mcType == 4)XS_weight = XS_weight*(0.14/0.26);
-		if(mcType == 5)XS_weight = XS_weight*(4895.0/5670.0);
 
 		if(mcType == 4 && llmass < 30)continue;
-		if((mcType == 5 || mcType == 9) && llmass > 30)continue;
+		if(mcType == 5 && llmass > 30)continue;
 
+		float XS_weight = 35.87*1000*crosssection/ntotalevent;
 
-		float weight = PUweight*XS_weight*scalefactor;
-		float weight_scaleup = PUweight*XS_weight*scalefactorup;
-		float weight_scaledo = PUweight*XS_weight*scalefactordo;
+		float weight = PUweight*XS_weight*scalefactor*ISRWeight*factorMC;
+		float weight_scaleup = PUweight*XS_weight*scalefactorup*ISRWeight*factorMC;
+		float weight_normup = PUweight*XS_weight*scalefactor*ISRWeight*factorMCUP;
+		float weight_noisr = PUweight*XS_weight*scalefactor*factorMC;
 
+		double weight_toy[500];
+		for(unsigned ii(0); ii < 500; ii++){
+			if(pdfSystWeight->size() < ii)weight_toy[ii] = weight;
+			else weight_toy[ii] = weight*(*pdfSystWeight)[ii]/pdfWeight;
+		}
 		/** cut flow *****/
-		if(phoEt < 35 || lepPt < 25)continue;
-		if(fabs(phoEta) > 1.4442 || fabs(lepEta) > 2.5)continue;
+		if(phoEt < 35 || fabs(phoEta) > 1.4442)continue;
 		if(sigMET < lowMET)continue;
 		if(highMET > 0 && sigMET > highMET)continue;
 		if(sigMT < lowMt)continue;
@@ -456,8 +266,6 @@ void analysis_VGBkg(){
 		if(lepPt < lowPt)continue;
 		if(highPt > 0 && lepPt > highPt)continue;
 
-		totalPU += PUweight;
-		totalUnPU += 1;
 		bool istruepho(false);
 		double  mindRpho(0.3);
 		unsigned phoIndex(0);
@@ -467,163 +275,78 @@ void analysis_VGBkg(){
 			if(dR < mindRpho && dE < 0.5){mindRpho=dR; phoIndex=iMC;}
 		}
 		if(mindRpho < 0.2){
-			if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 23)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 24)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 1)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 2)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 3)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 4)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 5)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 6)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 11)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 13)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 15)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 21)istruepho=true;
-			else if((*mcPID)[phoIndex] == 22 && fabs((*mcMomPID)[phoIndex])== 999)istruepho=true;
+			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex]) <= 6 || fabs((*mcMomPID)[phoIndex]) == 21 || fabs((*mcMomPID)[phoIndex]) == 999 || fabs((*mcMomPID)[phoIndex])== 11 || fabs((*mcMomPID)[phoIndex])== 13 || fabs((*mcMomPID)[phoIndex])== 15 || fabs((*mcMomPID)[phoIndex])== 23 || fabs((*mcMomPID)[phoIndex])== 24)  )istruepho=true;
 		}
 		if(!istruepho)continue;
 
-//		totalevent += 1;
-		double reweightF = 1;
-		double reweightF_up = 1;
-		double reweightF_do = 1;
-		if(bosonPt < 50){reweightF = 1.08893; reweightF_up = reweightF+0.024; reweightF_do = reweightF-0.024; } 
-		else if(bosonPt >= 50 && bosonPt < 80){reweightF  = 1.1675; reweightF_up = reweightF+0.020; reweightF_do = reweightF-0.020; }
-		else if(bosonPt >= 80 && bosonPt < 100){reweightF  = 0.908314; reweightF_up = reweightF+0.026; reweightF_do = reweightF-0.026; }
-		else if(bosonPt >= 100 && bosonPt < 125){reweightF = 0.848379; reweightF_up = reweightF+0.029;reweightF_do = reweightF-0.029; }
-		else if(bosonPt >= 125 && bosonPt < 150){reweightF = 0.747166; reweightF_up = reweightF+0.034;reweightF_do = reweightF-0.034; }
-		else if(bosonPt >= 150 && bosonPt < 200){reweightF = 0.714054; reweightF_up = reweightF+0.034; reweightF_do = reweightF-0.034;  }
-		else if(bosonPt >= 200 && bosonPt < 250){reweightF =	0.729144;reweightF_up = reweightF+0.055; reweightF_do = reweightF-0.055;  }
-		else if(bosonPt >= 250 && bosonPt < 300){reweightF =	0.709433;reweightF_up = reweightF+0.12; reweightF_do = reweightF+0.12;  }
-		else if(bosonPt >= 300 && bosonPt < 400){reweightF = 0.768222;reweightF_up = reweightF+0.15;  reweightF_do = reweightF+0.15;  }
-		else if(bosonPt >= 400 && bosonPt < 600){reweightF =  0.452023; reweightF_up = reweightF+0.22; reweightF_do = reweightF+0.22; }
-		else if(bosonPt >= 600){reweightF =  0.252564; reweightF_up = reweightF+0.2; reweightF_do = reweightF-0.2;}
-	//	totalreweight += reweightF;
-		reweightF = reweightF*weight*totalevent[mcType]/totalreweight[mcType];	
-		reweightF_up = reweightF_up*weight*totalevent[mcType]/totalreweight_up[mcType];	
-		reweightF_do = reweightF_do*weight*totalevent[mcType]/totalreweight_do[mcType];	
-		weight = reweightF;
+		p_PhoEt->Fill(phoEt, weight);
+		p_PhoEta->Fill(phoEta,weight);
+		p_LepPt->Fill(lepPt, weight);
+		p_LepEta->Fill(lepEta,weight);
+		p_MET->Fill(sigMET, weight);
+		p_Mt->Fill(sigMT, weight);
+		p_HT->Fill(HT, weight);
+		p_dPhiEleMET->Fill(fabs(dPhiLepMET), weight);
+		if(mcType <= 3)p_dPhiEleMET_WG->Fill(fabs(dPhiLepMET), weight);
+		else if( mcType == 4 || mcType == 5)p_dPhiEleMET_ZG->Fill(fabs(dPhiLepMET), weight);
+		p_nJet->Fill(nJet, weight);
+		p_nBJet->Fill(nBJet, weight);
 
-//		p_reweight_MET->Fill(sigMET, reweightF*factorMC);
-//		p_reweight_PhoEt->Fill(phoEt, reweightF*factorMC);
-//		p_reweight_PhoEta->Fill(phoEta,reweightF*factorMC);
-//		p_reweight_LepPt->Fill(lepPt, reweightF*factorMC);
-//		p_reweight_LepEta->Fill(lepEta,reweightF*factorMC);
-//		p_reweight_Mt->Fill(sigMT, reweightF*factorMC);
-//		p_reweight_HT->Fill(HT, reweightF*factorMC);
-//		p_reweight_dPhiEleMET->Fill(fabs(dPhiLepMET), reweightF*factorMC);
-	
-		p_PhoEt->Fill(phoEt, weight*factorMC);
-		p_PhoEta->Fill(phoEta,weight*factorMC);
-		p_LepPt->Fill(lepPt, weight*factorMC);
-		p_LepEta->Fill(lepEta,weight*factorMC);
-		p_MET->Fill(sigMET, weight*factorMC);
-		p_Mt->Fill(sigMT, weight*factorMC);
-		p_HT->Fill(HT, weight*factorMC);
-		p_dPhiEleMET->Fill(fabs(dPhiLepMET), weight*factorMC);
-		p_nJet->Fill(nJet, weight*factorMC);
+		if(nBJet >= 1){
+			p_PhoEt_TT->Fill(phoEt,  weight);
+			p_MET_TT->Fill(sigMET,  weight);
+			p_Mt_TT->Fill(sigMT,  weight);
+			p_HT_TT->Fill(HT,  weight);
+		}
 
-		//if(phoEt > 200 && sigMET > 200 && HT > 400)p_nBJet->Fill(nBJet, weight*factorMC);
-		p_nBJet->Fill(nBJet, weight*factorMC);
+		for(unsigned ii(0);  ii < 500; ii++)toy_dPhiEleMET[ii]->Fill(fabs(dPhiLepMET), weight_toy[ii]); 
 
+		jesup_MET->Fill(sigMETJESup, weight);
+		jesup_Mt->Fill(sigMTJESup, weight);
+		jesup_HT->Fill(HTJESup, weight);
+		jesup_dPhiEleMET->Fill(fabs(dPhiLepMETJESup), weight);
 
-		if(mcType <= 3){
-			p_PhoEt_WG->Fill(phoEt, weight*factorMC);
-			p_LepPt_WG->Fill(lepPt, weight*factorMC);
-			p_MET_WG->Fill(sigMET, weight*factorMC);
-			p_Mt_WG->Fill(sigMT, weight*factorMC);
-			p_dPhiEleMET_WG->Fill(fabs(dPhiLepMET), weight*factorMC);
-    }
-		else{
-			p_PhoEt_ZG->Fill(phoEt, weight*factorMC);
-			p_LepPt_ZG->Fill(lepPt, weight*factorMC);
-			p_MET_ZG->Fill(sigMET, weight*factorMC);
-			p_Mt_ZG->Fill(sigMT, weight*factorMC);
-			p_dPhiEleMET_ZG->Fill(fabs(dPhiLepMET), weight*factorMC);
-    }
+		jesdo_MET->Fill(sigMETJESdo, weight);
+		jesdo_Mt->Fill(sigMTJESdo, weight);
+		jesdo_HT->Fill(HTJESdo, weight);
+		jesdo_dPhiEleMET->Fill(fabs(dPhiLepMETJESdo), weight);
 
-		jesup_MET->Fill(sigMETJESup, weight*factorMC);
-		jesup_Mt->Fill(sigMTJESup, weight*factorMC);
-		jesup_HT->Fill(HTJESup, weight*factorMC);
-		jesup_dPhiEleMET->Fill(fabs(dPhiLepMETJESup), weight*factorMC);
+		jerup_MET->Fill(sigMETJERup, weight);
+		jerup_Mt->Fill(sigMTJERup, weight);
+		jerup_dPhiEleMET->Fill(fabs(dPhiLepMETJERup), weight);
 
-		jesdo_MET->Fill(sigMETJESdo, weight*factorMC);
-		jesdo_Mt->Fill(sigMTJESdo, weight*factorMC);
-		jesdo_HT->Fill(HTJESdo, weight*factorMC);
-		jesdo_dPhiEleMET->Fill(fabs(dPhiLepMETJESdo), weight*factorMC);
+		jerdo_MET->Fill(sigMETJERdo, weight);
+		jerdo_Mt->Fill(sigMTJERdo, weight);
+		jerdo_dPhiEleMET->Fill(fabs(dPhiLepMETJERdo), weight);
 
-		jerup_MET->Fill(sigMETJERup, weight*factorMC);
-		jerup_Mt->Fill(sigMTJERup, weight*factorMC);
-		jerup_dPhiEleMET->Fill(fabs(dPhiLepMETJERup), weight*factorMC);
+		scaleup_PhoEt->Fill(phoEt, weight_scaleup);
+		scaleup_PhoEta->Fill(phoEta,weight_scaleup);
+		scaleup_LepPt->Fill(lepPt, weight_scaleup);
+		scaleup_LepEta->Fill(lepEta,weight_scaleup);
+		scaleup_MET->Fill(sigMET, weight_scaleup);
+		scaleup_Mt->Fill(sigMT, weight_scaleup);
+		scaleup_HT->Fill(HT, weight_scaleup);
+		scaleup_dPhiEleMET->Fill(fabs(dPhiLepMET), weight_scaleup);
 
-		jerdo_MET->Fill(sigMETJERdo, weight*factorMC);
-		jerdo_Mt->Fill(sigMTJERdo, weight*factorMC);
-		jerdo_dPhiEleMET->Fill(fabs(dPhiLepMETJERdo), weight*factorMC);
+		normup_PhoEt->Fill(phoEt,  weight_normup);
+		normup_PhoEta->Fill(phoEta,weight_normup);
+		normup_LepPt->Fill(lepPt,  weight_normup);
+		normup_LepEta->Fill(lepEta,weight_normup);
+		normup_MET->Fill(sigMET,   weight_normup);
+		normup_Mt->Fill(sigMT,     weight_normup);
+		normup_HT->Fill(HT,        weight_normup);
+		normup_dPhiEleMET->Fill(fabs(dPhiLepMET), weight_normup);
 
-		scaleup_PhoEt->Fill(phoEt, weight_scaleup*factorMC);
-		scaleup_PhoEta->Fill(phoEta,weight_scaleup*factorMC);
-		scaleup_LepPt->Fill(lepPt, weight_scaleup*factorMC);
-		scaleup_LepEta->Fill(lepEta,weight_scaleup*factorMC);
-		scaleup_MET->Fill(sigMET, weight_scaleup*factorMC);
-		scaleup_Mt->Fill(sigMT, weight_scaleup*factorMC);
-		scaleup_HT->Fill(HT, weight_scaleup*factorMC);
-		scaleup_dPhiEleMET->Fill(fabs(dPhiLepMET), weight_scaleup*factorMC);
-
-		scaledo_PhoEt->Fill(phoEt, weight_scaledo*factorMC);
-		scaledo_PhoEta->Fill(phoEta,weight_scaledo*factorMC);
-		scaledo_LepPt->Fill(lepPt, weight_scaledo*factorMC);
-		scaledo_LepEta->Fill(lepEta,weight_scaledo*factorMC);
-		scaledo_MET->Fill(sigMET, weight_scaledo*factorMC);
-		scaledo_Mt->Fill(sigMT, weight_scaledo*factorMC);
-		scaledo_HT->Fill(HT, weight_scaledo*factorMC);
-		scaledo_dPhiEleMET->Fill(fabs(dPhiLepMET), weight_scaledo*factorMC);
-
-		normup_PhoEt->Fill(phoEt, weight*factorMCUP);
-		normup_PhoEta->Fill(phoEta,weight*factorMCUP);
-		normup_LepPt->Fill(lepPt, weight*factorMCUP);
-		normup_LepEta->Fill(lepEta,weight*factorMCUP);
-		normup_MET->Fill(sigMET, weight*factorMCUP);
-		normup_Mt->Fill(sigMT, weight*factorMCUP);
-		normup_HT->Fill(HT, weight*factorMCUP);
-		normup_dPhiEleMET->Fill(fabs(dPhiLepMET), weight*factorMCUP);
-
-		normdo_PhoEt->Fill(phoEt, weight*factorMCDO);
-		normdo_PhoEta->Fill(phoEta,weight*factorMCDO);
-		normdo_LepPt->Fill(lepPt, weight*factorMCDO);
-		normdo_LepEta->Fill(lepEta,weight*factorMCDO);
-		normdo_MET->Fill(sigMET, weight*factorMCDO);
-		normdo_Mt->Fill(sigMT, weight*factorMCDO);
-		normdo_HT->Fill(HT, weight*factorMCDO);
-		normdo_dPhiEleMET->Fill(fabs(dPhiLepMET), weight*factorMCDO);
-
-		isrup_PhoEt->Fill(phoEt, reweightF_up*factorMC);
-		isrup_PhoEta->Fill(phoEta,reweightF_up*factorMC);
-		isrup_LepPt->Fill(lepPt, reweightF_up*factorMC);
-		isrup_LepEta->Fill(lepEta,reweightF_up*factorMC);
-		isrup_MET->Fill(sigMET, 0.5*reweightF_up*factorMC);
-		isrup_Mt->Fill(sigMT, reweightF_up*factorMC);
-		isrup_HT->Fill(HT, reweightF_up*factorMC);
-		isrup_dPhiEleMET->Fill(fabs(dPhiLepMET), reweightF_up*factorMC);
-
-		isrdo_PhoEt->Fill(phoEt, reweightF_do*factorMC);
-		isrdo_PhoEta->Fill(phoEta,reweightF_do*factorMC);
-		isrdo_LepPt->Fill(lepPt, reweightF_do*factorMC);
-		isrdo_LepEta->Fill(lepEta,reweightF_do*factorMC);
-		isrdo_MET->Fill(sigMET, reweightF_do*factorMC);
-		isrdo_Mt->Fill(sigMT, reweightF_do*factorMC);
-		isrdo_HT->Fill(HT, reweightF_do*factorMC);
-		isrdo_dPhiEleMET->Fill(fabs(dPhiLepMET), reweightF_do*factorMC);
+		isrup_PhoEt->Fill(phoEt, weight_noisr);
+		isrup_PhoEta->Fill(phoEta,weight_noisr);
+		isrup_LepPt->Fill(lepPt, weight_noisr);
+		isrup_LepEta->Fill(lepEta,weight_noisr);
+		isrup_MET->Fill(sigMET, weight_noisr);
+		isrup_Mt->Fill(sigMT, weight_noisr);
+		isrup_HT->Fill(HT, weight_noisr);
+		isrup_dPhiEleMET->Fill(fabs(dPhiLepMET), weight_noisr);
 	}
-	std::cout << totalUnPU << " " << totalPU << " PU" << std::endl;
-//	p_reweight_MET->Scale(totalevent/totalreweight);
-//	p_reweight_PhoEt->Scale(totalevent/totalreweight);
-//	p_reweight_PhoEta->Scale(totalevent/totalreweight);
-//	p_reweight_LepPt->Scale(totalevent/totalreweight);
-//	p_reweight_LepEta->Scale(totalevent/totalreweight);
-//	p_reweight_Mt->Scale(totalevent/totalreweight);
-//	p_reweight_HT->Scale(totalevent/totalreweight);
-//	p_reweight_dPhiEleMET->Scale(totalevent/totalreweight);
-//
+
 	for(int ibin(1); ibin < p_PhoEt->GetSize(); ibin++){
 		double syserror(0);
 		syserror += p_PhoEt->GetBinError(ibin)* p_PhoEt->GetBinError(ibin);
@@ -643,13 +366,13 @@ void analysis_VGBkg(){
 	for(int ibin(1); ibin < p_MET->GetSize(); ibin++){
 		double syserror(0);
 		syserror += p_MET->GetBinError(ibin)* p_MET->GetBinError(ibin);
-		//syserror += pow((scaleup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
+		syserror += pow((scaleup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
 		syserror += pow((normup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
 		syserror += pow((isrup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
-		//syserror += pow((jesup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
-		//syserror += pow((jesdo_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
-		//syserror += pow((jerup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
-		//syserror += pow((jerdo_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)),2);
+		double jeserror = max( fabs(jesup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)), fabs(jesdo_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)));
+		double jererror = max( fabs(jerup_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)), fabs(jerdo_MET->GetBinContent(ibin)-p_MET->GetBinContent(ibin)));
+		syserror += pow(jeserror,2);
+		syserror += pow(jererror,2);
 		p_MET->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_Mt->GetSize(); ibin++){
@@ -658,10 +381,10 @@ void analysis_VGBkg(){
 		syserror += pow((scaleup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
 		syserror += pow((normup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
 		syserror += pow((isrup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
-		syserror += pow((jesup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
-		syserror += pow((jesdo_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
-		syserror += pow((jerup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
-		syserror += pow((jerdo_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)),2);
+		double jeserror = max( fabs(jesup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)), fabs(jesdo_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)));
+		double jererror = max( fabs(jerup_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)), fabs(jerdo_Mt->GetBinContent(ibin)-p_Mt->GetBinContent(ibin)));
+		syserror += pow(jeserror,2);
+		syserror += pow(jererror,2);
 		p_Mt->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_HT->GetSize(); ibin++){
@@ -670,18 +393,20 @@ void analysis_VGBkg(){
 		syserror += pow((normup_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
 		syserror += pow((isrup_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
 		syserror += pow((scaleup_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
-		syserror += pow((jesup_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
-		syserror += pow((jesdo_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)),2);
+		double jeserror = max( fabs(jesup_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)), fabs(jesdo_HT->GetBinContent(ibin)-p_HT->GetBinContent(ibin)));
+		syserror += pow(jeserror,2);
 		p_HT->SetBinError(ibin,sqrt(syserror));
 	}	
 	for(int ibin(1); ibin < p_dPhiEleMET->GetSize(); ibin++){
 		double syserror(0);
 		syserror += p_dPhiEleMET->GetBinError(ibin)* p_dPhiEleMET->GetBinError(ibin);
 		syserror += pow((scaleup_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
-		syserror += pow((jesup_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
-		syserror += pow((jesdo_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
-		syserror += pow((jerup_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
-		syserror += pow((jerdo_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
+		syserror += pow((normup_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
+		syserror += pow((isrup_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)),2);
+		double jeserror = max( fabs(jesup_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)), fabs(jesdo_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)));
+		double jererror = max( fabs(jerup_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)), fabs(jerdo_dPhiEleMET->GetBinContent(ibin)-p_dPhiEleMET->GetBinContent(ibin)));
+		syserror += pow(jeserror,2);
+		syserror += pow(jererror,2);
 		p_dPhiEleMET->SetBinError(ibin,sqrt(syserror));
 	}	
 

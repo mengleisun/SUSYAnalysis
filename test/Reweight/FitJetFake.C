@@ -53,8 +53,6 @@
 
 bool useMC = true;
 bool doIterate = true;
-float METLOWCUT = 0;
-float METHIGHCUT = 70;
 
 int
 FitJetFake(float lowercut, float uppercut, int detType){
@@ -69,7 +67,7 @@ FitJetFake(float lowercut, float uppercut, int detType){
 	else if(detType == 2)myfile.open("JetFakeRate-ISR-EE.txt", std::ios_base::app | std::ios_base::out);
 	std::ostringstream datasetname;
 	datasetname.str("");
-	//datasetname << "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root";
+	//datasetname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_ISR_data.root";
 	datasetname << "/uscms_data/d3/mengleis/test/plot_hadron_ISR.root";
 
 	char lowername[3];
@@ -135,8 +133,6 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		}
 	}
 
-	TFile *outputfile = TFile::Open("JetFakeRate-ISR-FullEcal.root","RECREATE");
-	outputfile->cd();
 	hname.str("");
 	hname << "fracHad2D_" << lowername << "-" << uppername;
 	TH2F* fracHad2D = new TH2F(hname.str().c_str(),"hadron fraction;Lower #sigma_{i#etai#eta} Threshold(GeV);Upper #sigma_{i#etai#eta} Threshold(GeV)",10,SigmaCutLower[0], SigmaCutLower[SigmaCutLower.size()-1],26,0.014,0.04);
@@ -152,7 +148,6 @@ FitJetFake(float lowercut, float uppercut, int detType){
 	float mc_phoEt(0);
 	float mc_phoEta(0); 
 	float mc_phoPhi(0); 
-	float mc_sigMET(0);
 	float mc_phoSigma(0);
 	float mc_phoChIso(0);
 	std::vector<int> *mc_mcPID=0;
@@ -164,7 +159,6 @@ FitJetFake(float lowercut, float uppercut, int detType){
 	mctree->SetBranchAddress("phoEt",     &mc_phoEt);
 	mctree->SetBranchAddress("phoEta",    &mc_phoEta);
 	mctree->SetBranchAddress("phoPhi",    &mc_phoPhi);
-	mctree->SetBranchAddress("sigMET",    &mc_sigMET);
 	mctree->SetBranchAddress("phoSigma",  &mc_phoSigma);
 	mctree->SetBranchAddress("phoChIso",  &mc_phoChIso);
 	if(useMC){
@@ -175,18 +169,19 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		mctree->SetBranchAddress("mcMomPID",&mc_mcMomPID);
 	}
 
+	//TChain *egtree = new TChain("hadronTree");
 	TChain *egtree = new TChain("signalTree");
 	egtree->Add(datasetname.str().c_str());
 	float phoEt(0);
 	float phoEta(0);
-	float sigMET(0);
 	float phoSigma(0);
 	float phoChIso(0);
+	float llmass(0);
 	egtree->SetBranchAddress("phoEt",     &phoEt);
 	egtree->SetBranchAddress("phoEta",    &phoEta);
-	egtree->SetBranchAddress("sigMET",    &sigMET);
 	egtree->SetBranchAddress("phoSigma",  &phoSigma);
 	egtree->SetBranchAddress("phoChIso",  &phoChIso);
+	egtree->SetBranchAddress("dilepMass", &llmass);
 
 
 	double hadfrac(0);
@@ -209,9 +204,8 @@ FitJetFake(float lowercut, float uppercut, int detType){
 	for(unsigned ievt(0); ievt < mctree->GetEntries(); ievt++){
 		mctree->GetEntry(ievt);
 		if(mc_phoEt < lowercut || mc_phoEt > uppercut)continue;
-		if(mc_sigMET < METLOWCUT || mc_sigMET > METHIGHCUT)continue;
 		if(detType == 1 && fabs(mc_phoEta) > 1.4442)continue;
-		//else if(detType == 2 && (fabs(mc_phoEta) < 1.56 || fabs(mc_phoEta) > 2.4) )continue;
+		else if(detType == 2 && (fabs(mc_phoEta) < 1.56 || fabs(mc_phoEta) > 2.4) )continue;
 
 		bool isFake(true);
 		unsigned mcIndex(0);
@@ -259,12 +253,12 @@ FitJetFake(float lowercut, float uppercut, int detType){
 
 	for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
 		egtree->GetEntry(ievt);
-		if(sigMET < METLOWCUT || sigMET > METHIGHCUT)continue;
+		
+		if(llmass < 80 || llmass > 100)continue;
 
 		if(phoEt < lowercut || phoEt > uppercut )continue;
-		if(sigMET < METLOWCUT || sigMET > METHIGHCUT)continue;
 		if(detType == 1 && fabs(phoEta) > 1.4442)continue;
-		//else if(detType == 2 && ( fabs(phoEta) < 1.56 || fabs(phoEta) > 2.4) )continue;
+		else if(detType == 2 && ( fabs(phoEta) < 1.56 || fabs(phoEta) > 2.4) )continue;
 
 		if(phoSigma <= StandardCut){
 			h_target->Fill(phoChIso);
@@ -440,6 +434,5 @@ FitJetFake(float lowercut, float uppercut, int detType){
 		myfile << datasetname.str().c_str() << std::endl;
 	} 
 	myfile.close();
-	outputfile->Write();
 	return 1;
 }

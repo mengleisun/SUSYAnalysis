@@ -1,43 +1,136 @@
 #!/bin/bash
-#set ptbins =(30 35 40 45 50 55 60 65 70 75 80 90 100 120 150 10000)
-ptbins=(30 35 40 45 50 55 60 65 70 75 80 90 100 120 150 180 10000)
-#EtaBins=(0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5)
-#EtaBins=(1.5 1.55 1.60 1.65 1.70 1.75 1.80 1.85 1.90 1.95 2.00 2.05 2.10 2.15 2.20 2.25 2.30 2.35 2.40 2.45 2.5)
-EtaBins=(1.56 1.57 1.58 1.59 1.6 1.61 1.62 1.63 1.64 1.65 1.66 1.67 1.68 1.69 1.7 1.71 1.72 1.73 1.74 1.75 1.76 1.77 1.78 1.79 1.8 1.81 1.82 1.83 1.84 1.85 1.86 1.87 1.88 1.89 1.9 1.91 1.92 1.93 1.94 1.95 1.96 1.97 1.98 1.99 2 2.01 2.02 2.03 2.04 2.05 2.06 2.07 2.08 2.09 2.1 2.11 2.12 2.13 2.14 2.15 2.16 2.17 2.18 2.19 2.2 2.21 2.22 2.23 2.24 2.25 2.26 2.27 2.28 2.29 2.3 2.31 2.32 2.33 2.34 2.35 2.36 2.37 2.38 2.39 2.4 2.41 2.42 2.43 2.44 2.45 2.46 2.47 2.48 2.49 2.5)
-VertexBins=(1 4 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 10000)
+#ptbins=(30 35 40 45 50 55 60 65 70 75 80 90 100 120 150 180 10000)
+#EtaBins=(0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5 1.55 1.6 1.65 1.7 1.75 1.8 1.85 1.9 1.95 2 2.05 2.1 2.15 2.2 2.25 2.3 2.35 2.4 2.45 2.5)
+#VertexBins=(1 8 10 12 14 16 18 20 22 24 26 28 30 32 34 36 38 40 42 44 10000)
+ptbins=(30 10000)
 
-#for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
-#do
-#	j=$((i+1))
-#  root -b -q "FitKer.C+(0, 0, ${ptbins[$i]},${ptbins[$j]}, 40,140)" 
-#done 
-#
-#for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
-#do
-#	j=$((i+1))
-#  root -b -q "FitKer.C+(0, 1, ${ptbins[$i]},${ptbins[$j]}, 40,140)" 
-#done 
+rm configFitKer.txt
+echo 'useCMSShape 0' >> configFitKer.txt 
+echo 'useExpo 0'     >> configFitKer.txt
+echo 'useKer  1'     >> configFitKer.txt
+echo 'useDY  0'      >> configFitKer.txt
+echo 'SaveOutput 1'  >> configFitKer.txt
 
-for (( i = 0 ; i < ${#EtaBins[@]} ; i++ ))
+for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
 do
 	j=$((i+1))
-  root -b -q "FitKer.C+(1, 0, ${EtaBins[$i]},${EtaBins[$j]}, 40,140)" 
+  root -b -q "FitKer.C+(0, 0, ${ptbins[$i]},${ptbins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(0, 1, ${ptbins[$i]},${ptbins[$j]}, 60,120)" 
 done 
 
 for (( i = 0 ; i < ${#EtaBins[@]} ; i++ ))
 do
 	j=$((i+1))
-  root -b -q "FitKer.C+(1, 1, ${EtaBins[$i]},${EtaBins[$j]}, 40,140)" 
+  root -b -q "FitKer.C+(1, 0, ${EtaBins[$i]},${EtaBins[$j]}, 60,120)" 
 done 
 
-#for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
-#do
-#	j=$((i+1))
-#  root -b -q "FitKer.C+(2, 0, ${VertexBins[$i]},${VertexBins[$j]}, 40,140)" 
-#done 
-#
-#for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
-#do
-#	j=$((i+1))
-#  root -b -q "FitKer.C+(2, 1, ${VertexBins[$i]},${VertexBins[$j]}, 40,140)" 
-#done 
+for (( i = 0 ; i < ${#EtaBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(1, 1, ${EtaBins[$i]},${EtaBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(2, 0, ${VertexBins[$i]},${VertexBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(2, 1, ${VertexBins[$i]},${VertexBins[$j]}, 60,120)" 
+done 
+
+
+rm configFitKer.txt
+echo 'useCMSShape 0' >> configFitKer.txt 
+echo 'useExpo 0'     >> configFitKer.txt
+echo 'useKer  1'     >> configFitKer.txt
+echo 'useDY  1'      >> configFitKer.txt
+echo 'SaveOutput 1'  >> configFitKer.txt
+
+for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(0, 0, ${ptbins[$i]},${ptbins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(0, 1, ${ptbins[$i]},${ptbins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#EtaBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(1, 0, ${EtaBins[$i]},${EtaBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#EtaBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(1, 1, ${EtaBins[$i]},${EtaBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(2, 0, ${VertexBins[$i]},${VertexBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(2, 1, ${VertexBins[$i]},${VertexBins[$j]}, 60,120)" 
+done 
+
+
+rm configFitKer.txt
+echo 'useCMSShape 0' >> configFitKer.txt 
+echo 'useExpo 1'     >> configFitKer.txt
+echo 'useKer  0'     >> configFitKer.txt
+echo 'useDY  0'      >> configFitKer.txt
+echo 'SaveOutput 1'  >> configFitKer.txt
+
+for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(0, 0, ${ptbins[$i]},${ptbins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#ptbins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(0, 1, ${ptbins[$i]},${ptbins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#EtaBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(1, 0, ${EtaBins[$i]},${EtaBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#EtaBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(1, 1, ${EtaBins[$i]},${EtaBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(2, 0, ${VertexBins[$i]},${VertexBins[$j]}, 60,120)" 
+done 
+
+for (( i = 0 ; i < ${#VertexBins[@]} ; i++ ))
+do
+	j=$((i+1))
+  root -b -q "FitKer.C+(2, 1, ${VertexBins[$i]},${VertexBins[$j]}, 60,120)" 
+done 

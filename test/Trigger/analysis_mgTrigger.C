@@ -31,9 +31,9 @@ void analysis_mgTrigger(){//main
 
 	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-	char outputname[100] = "/uscms_data/d3/mengleis/plot_MuonTrigger_ReMiniAOD_else.root";
+	char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_ReMiniAOD.root";
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/plot_MuonTrigger_ReMiniAOD_else.log"); 
+	logfile.open("/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_ReMiniAOD.log"); 
 
 	logfile << "analysis_mgTrigger()" << std::endl;
 
@@ -189,13 +189,13 @@ void analysis_mgTrigger(){//main
 
 			for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
 				if(!itpho->isLoose())continue;
-				if(!itpho->isEB())continue;
+				//if(!itpho->isEB())continue;
 				bool PixelVeto = itpho->PixelSeed()==0? true: false;
 				bool GSFveto(true);
 				bool FSRVeto(true);
 				for(std::vector<recoEle>::iterator ie = Ele.begin(); ie != Ele.end(); ie++){
 					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) <= 0.05)GSFveto = false;
-					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3 && DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) > 0.05 && ie->getCalibPt()>2.0)FSRVeto=false;
+					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3 && ie->getCalibPt()>2.0)FSRVeto=false;
 				}
 				for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
 					if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getPt()>2.0)FSRVeto=false;
@@ -232,6 +232,7 @@ void analysis_mgTrigger(){//main
 						Z_phoChIso=probePho->getChIso();
 						Z_phoNeuIso=probePho->getNeuIso();
 						Z_phoSigma=probePho->getSigma();
+						Z_phoR9 = probePho->getR9();
 						Z_muPt=probeMu->getPt();
 						Z_muMiniIso=probeMu->getMiniIso();
 

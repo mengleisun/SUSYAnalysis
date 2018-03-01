@@ -51,26 +51,19 @@
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_fakes.h"
 
+int  eventType = 1; // 1 = eg, 2 = mg, 3 = MCeg, 4 = MCmg
 bool useMC = true;
 bool doIterate = true;
 float METLOWCUT = 0;
 float METHIGHCUT = 70;
 
 int
-RunJetFake(float lowercut, float uppercut, int detType, float loweta, float higheta){
+FitJetFake(float lowercut, float uppercut, int detType, float loweta, float higheta){
 
 	setTDRStyle();   
 	time_t now = time(0);
-
-	std::cout << "start fitting " << std::endl;
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-	ofstream myfile;
-	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-EB.txt", std::ios_base::app | std::ios_base::out);
-	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-EE.txt", std::ios_base::app | std::ios_base::out);
-	std::ostringstream datasetname;
-	datasetname.str("");
-	//datasetname << "/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root";
-	datasetname << "/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root";
+	int nBinTotal = 20;
+	if(lowercut > 150)nBinTotal = 10;
 
 	char lowername[3];
 	sprintf(lowername, "%d", (int)lowercut);
@@ -79,7 +72,53 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 	  sprintf(uppername, "%d", (int)uppercut);
 	}
 	else sprintf(uppername, "Inf");
+
+	std::cout << "start fitting " << std::endl;
+	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	ofstream myfile;
+	std::string  outputType;
+	std::string  outputDet;
+	std::ostringstream  myfilename;  myfilename.str("");
+	std::ostringstream  Hist1Dname;  Hist1Dname.str("");
+	std::ostringstream  Hist2Dname;  Hist2Dname.str("");
+	switch(eventType){
+		case 1: outputType = "DoubleEG-"; break;
+		case 2: outputType = "MuonEG-"; break;
+		case 3: outputType = "MCEG-"; break;
+		case 4: outputType = "MCMG-"; break;
+	}
+	if(detType == 1)outputDet = "EB";
+	else if(detType == 2)outputDet = "EE";
+
+	//myfilename << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-" << outputType << outputDet << ".txt";
+	myfilename << "./JetFakeRate-" << outputType << outputDet << ".txt";
+	//Hist1Dname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/frac-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".pdf";
+	//Hist2Dname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/can2D-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".pdf";
+	Hist1Dname << "./frac-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".pdf";
+	Hist2Dname << "./can2D-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".pdf";
+	myfile.open(myfilename.str().c_str(), std::ios_base::app | std::ios_base::out);
+
+	ofstream logfile;
+	logfile.open("fittingquality.log", std::ios_base::app | std::ios_base::out);
+	logfile << outputType << " " << lowername << " " << uppername << std::endl;
 	
+
+	TChain *datatree = new TChain("hadronTree");
+	switch(eventType){
+		case 1: datatree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root"); break;
+		case 2: datatree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root"); break;
+		case 3: datatree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
+						datatree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WJet.root"); 
+						datatree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_QCD40.root"); 
+						break;
+	}	
+
+	std::ostringstream mcTreename; 
+	mcTreename.str("");
+	if(eventType == 1 || eventType == 3)mcTreename << "egTree";
+	else if(eventType == 2 || eventType == 4)mcTreename << "mgTree";
+	TChain *mctree = new TChain(mcTreename.str().c_str());
+	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_hadron_GJet.root");
 	
 	/*************************************/
 	/*      double normfactor = par[0];  */  
@@ -92,8 +131,7 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 	/*************************************/
 	std::ostringstream elefake_config;
 	elefake_config.str("");
-	if(detType == 1)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/EleFakeRate-ByPtVtx-EB.txt";
-	else if(detType == 2)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/EleFakeRate-ByPtVtx-EE.txt";
+	elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-ByPtVtx-" << outputDet << ".txt";
 	std::ifstream elefake_file(elefake_config.str().c_str());
 	double scalefactor(0);
 	double ptslope(0);
@@ -146,11 +184,11 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 	unsigned nLower = SigmaCutLower.size();
 	std::ostringstream hname;
 	hname.str(""); hname <<"ChIsoTar-pt-" << lowername << "-" << uppername;
-	TH1D* h_target= new TH1D(hname.str().c_str(),";Iso_{h^{#pm}} (GeV);",20, 0.0, 20); 
+	TH1D* h_target= new TH1D(hname.str().c_str(),";Iso_{h^{#pm}} (GeV);",nBinTotal, 0.0, 20); 
 	hname.str(""); hname <<"mcChIso-pt-" <<  lowername << "-" << uppername;
-	TH1D* mc_sig = new TH1D(hname.str().c_str(), ";Iso_{h^#pm} (GeV);",20, 0.0, 20);
+	TH1D* mc_sig = new TH1D(hname.str().c_str(), ";Iso_{h^#pm} (GeV);",nBinTotal, 0.0, 20);
 	hname.str(""); hname <<"mcChIso-fake-pt-" << lowername << "-" << uppername;
-	TH1D* mc_fake = new TH1D(hname.str().c_str(),";Iso_{h^#pm} (GeV);",20, 0.0, 20);
+	TH1D* mc_fake = new TH1D(hname.str().c_str(),";Iso_{h^#pm} (GeV);",nBinTotal, 0.0, 20);
 	TH1D* h_bg[nLower][nUpper];
 	
 	TH1*  mc_predict[nLower][nUpper];
@@ -168,14 +206,16 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 			hname.str("");
 			hname << "can" << lowername << "-" << uppername << "_" << SigmaCutLower[iLower] << "_" << SigmaCutUpper[iUpper] ;
 			can[iLower][iUpper]=new TCanvas(hname.str().c_str(),hname.str().c_str(),600,600);
+			can[iLower][iUpper]->SetBottomMargin(0.15);
 			hname.str(""); hname <<"ChIsoHad-pt-" <<  lowername << "-" << uppername << "_" << SigmaCutLower[iLower] << "_" << SigmaCutUpper[iUpper];
-			h_bg[iLower][iUpper] = new TH1D(hname.str().c_str(), hname.str().c_str(), 20, 0.0, 20);
+			h_bg[iLower][iUpper] = new TH1D(hname.str().c_str(), hname.str().c_str(), nBinTotal, 0.0, 20);
 			hname.str(""); hname <<"mcChIso-sideband-pt-" <<  lowername << "-" << uppername << "_" << SigmaCutLower[iLower] << "_" << SigmaCutUpper[iUpper];
-			mc_sbcontamination[iLower][iUpper] = new TH1D(hname.str().c_str(), hname.str().c_str(),20, 0.0, 20);   
+			mc_sbcontamination[iLower][iUpper] = new TH1D(hname.str().c_str(), hname.str().c_str(), nBinTotal, 0.0, 20);   
 		}
 	}
 
-	TFile *outputfile = TFile::Open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-FullEcal.root","RECREATE");
+	//TFile *outputfile = TFile::Open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MCeg-FullEcal.root","RECREATE");
+	TFile *outputfile = TFile::Open("./JetFakeRate-MCeg-FullEcal.root","RECREATE");
 	outputfile->cd();
 	hname.str("");
 	hname << "fracHad2D_" << lowername << "-" << uppername;
@@ -186,13 +226,9 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 
 
 //************ Signal Tree **********************//
-	TChain *mctree = new TChain("egTree");
-	//mctree->Add("/uscms_data/d3/mengleis/Sep1/plot_hadron_GJet.root");
-	mctree->Add("/uscms_data/d3/mengleis/Sep1/plot_hadron_mgGJet.root");
 	float mc_phoEt(0);
 	float mc_phoEta(0); 
 	float mc_phoPhi(0); 
-	float mc_sigMET(0);
 	float mc_phoSigma(0);
 	float mc_phoChIso(0);
 	std::vector<int> *mc_mcPID=0;
@@ -204,7 +240,6 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 	mctree->SetBranchAddress("phoEt",     &mc_phoEt);
 	mctree->SetBranchAddress("phoEta",    &mc_phoEta);
 	mctree->SetBranchAddress("phoPhi",    &mc_phoPhi);
-	mctree->SetBranchAddress("sigMET",    &mc_sigMET);
 	mctree->SetBranchAddress("phoSigma",  &mc_phoSigma);
 	mctree->SetBranchAddress("phoChIso",  &mc_phoChIso);
 	if(useMC){
@@ -215,8 +250,8 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 		mctree->SetBranchAddress("mcMomPID",&mc_mcMomPID);
 	}
 
-	TChain *egtree = new TChain("hadronTree");
-	egtree->Add(datasetname.str().c_str());
+	float crosssection(1);
+	float ntotalevent(1);
 	float phoEt(0);
 	float phoEta(0);
 	float sigMET(0);
@@ -228,17 +263,21 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 	std::vector<float> *eleproxySigma=0;
 	std::vector<float> *eleproxyChIso=0;
 	std::vector<int>   *eleproxynVertex=0;
-	egtree->SetBranchAddress("phoEt",     &phoEt);
-	egtree->SetBranchAddress("phoEta",    &phoEta);
-	egtree->SetBranchAddress("sigMET",    &sigMET);
-	egtree->SetBranchAddress("phoSigma",  &phoSigma);
-	egtree->SetBranchAddress("phoChIso",  &phoChIso);
-	egtree->SetBranchAddress("eleproxyEt",&eleproxyEt);
-	egtree->SetBranchAddress("eleproxyEta",&eleproxyEta);
-	egtree->SetBranchAddress("eleproxyPhi",&eleproxyPhi);
-	egtree->SetBranchAddress("eleproxySigma", &eleproxySigma);
-	egtree->SetBranchAddress("eleproxyChIso", &eleproxyChIso);
-	egtree->SetBranchAddress("eleproxynVertex",&eleproxynVertex);
+	if(eventType == 3 || eventType == 4){
+		datatree->SetBranchAddress("crosssection",&crosssection);
+		datatree->SetBranchAddress("ntotalevent", &ntotalevent);
+	}
+	datatree->SetBranchAddress("phoEt",     &phoEt);
+	datatree->SetBranchAddress("phoEta",    &phoEta);
+	datatree->SetBranchAddress("sigMET",    &sigMET);
+	datatree->SetBranchAddress("phoSigma",  &phoSigma);
+	datatree->SetBranchAddress("phoChIso",  &phoChIso);
+	datatree->SetBranchAddress("eleproxyEt",&eleproxyEt);
+	datatree->SetBranchAddress("eleproxyEta",&eleproxyEta);
+	datatree->SetBranchAddress("eleproxyPhi",&eleproxyPhi);
+	datatree->SetBranchAddress("eleproxySigma", &eleproxySigma);
+	datatree->SetBranchAddress("eleproxyChIso", &eleproxyChIso);
+	datatree->SetBranchAddress("eleproxynVertex",&eleproxynVertex);
 
 
 	double hadfrac(0);
@@ -260,8 +299,8 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 
 	for(unsigned ievt(0); ievt < mctree->GetEntries(); ievt++){
 		mctree->GetEntry(ievt);
+
 		if(mc_phoEt < lowercut || mc_phoEt > uppercut)continue;
-		if(mc_sigMET < METLOWCUT || mc_sigMET > METHIGHCUT)continue;
 		if(detType == 1 && fabs(mc_phoEta) > 1.4442)continue;
 		else if(detType == 2 && (fabs(mc_phoEta) < loweta || fabs(mc_phoEta) > higheta) )continue;
 
@@ -309,14 +348,18 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 
 	if(nMCtarget > 0)mcfakerate = 1.0*nMCfaketarget/nMCtarget;
 
-	for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
-		egtree->GetEntry(ievt);
+	for(unsigned ievt(0); ievt < datatree->GetEntries(); ievt++){
+		datatree->GetEntry(ievt);
 		if(sigMET < METLOWCUT || sigMET > METHIGHCUT)continue;
+
+		double LumiWeight = 1;
+		if(eventType == 3 || eventType == 4)LumiWeight = 35.8*crosssection*1000/ntotalevent;
 
 		for(unsigned iele(0); iele < eleproxyEt->size(); iele++){
 			if(detType == 1 && fabs( (*eleproxyEta)[iele]) > 1.4442)continue;
 			else if(detType == 2 && ( fabs( (*eleproxyEta)[iele]) < loweta || fabs( (*eleproxyEta)[iele]) > higheta) )continue;
 			double w_ele = -1.0*f_elefake( (*eleproxyEt)[iele], (*eleproxynVertex)[iele], fabs( (*eleproxyEta)[iele]));
+			w_ele = w_ele*LumiWeight;
 			if( (*eleproxyEt)[iele] < lowercut || (*eleproxyEt)[iele]  > uppercut)continue;
 
 			if( (*eleproxySigma)[iele] <= StandardCut){
@@ -344,23 +387,27 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 		else if(detType == 2 && ( fabs(phoEta) < loweta || fabs(phoEta) > higheta) )continue;
 
 		if(phoSigma <= StandardCut){
-			h_target->Fill(phoChIso);
-			totalden+=1;
-			if(phoChIso < StandardIso)nden+=1;
+			h_target->Fill(phoChIso,LumiWeight);
+			totalden+=1*LumiWeight;
+			if(phoChIso < StandardIso)nden+=1*LumiWeight;
 		}
 		else{
 			for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
 				for(unsigned iLower(0); iLower<nLower; iLower++){
 					if(phoSigma > SigmaCutLower[iLower] && phoSigma < SigmaCutUpper[iUpper]){
-						h_bg[iLower][iUpper]->Fill(phoChIso);
-						totalnum[iLower][iUpper] +=1;
-						if(phoChIso < StandardIso)nnum[iLower][iUpper] +=1;
+						h_bg[iLower][iUpper]->Fill(phoChIso, LumiWeight);
+						totalnum[iLower][iUpper] +=1*LumiWeight;
+						if(phoChIso < StandardIso)nnum[iLower][iUpper] +=1*LumiWeight;
 					}
 				}
 			}
 		}
 
 	}
+	h_target->Sumw2();
+	for(unsigned iUpper(0); iUpper<nUpper; iUpper++)
+		for(unsigned iLower(0); iLower<nLower; iLower++)
+			h_bg[iLower][iUpper]->Sumw2();
 
 	std::cout << "data tree has been filled" << std::endl;
 
@@ -368,13 +415,14 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 	districan->Divide(2);
 	districan->cd(1);
 	h_target->Draw();
-	mc_sig->Scale(h_target->Integral(1,20)/mc_sig->Integral(1,20));
+	mc_sig->Scale(h_target->Integral(1,nBinTotal)/mc_sig->Integral(1,nBinTotal));
 	mc_sig->SetLineColor(kRed);
 	mc_sig->Draw("hist same");	
 	districan->cd(2);
 	h_bg[0][0]->Draw();
 
-	std::cout << "target " << h_target->Integral(1,20) << std::endl;
+	std::cout << "target " << h_target->Integral(1,nBinTotal) << std::endl;
+
 
 	for(unsigned iUpper(0); iUpper<nUpper; iUpper++){
 		for(unsigned iLower(0); iLower<nLower; iLower++){
@@ -383,9 +431,11 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 			if(mc_sbcontamination[iLower][iUpper]->GetEntries()==0)frac_passSigma = 0;
 			double phoPurity(0);
 			templateCorrFactor[iLower][iUpper] = 0.0;
+	int itertime = 0;
 			if(doIterate){
 				while(iteratorUncertainty > 0.01){
 
+					itertime += 1; logfile << "iter " << itertime << std::endl;
 					TH1D *hist_new=(TH1D*)h_bg[iLower][iUpper]->Clone();
 					hist_new->Add(mc_sbcontamination[iLower][iUpper], -1*templateCorrFactor[iLower][iUpper]/mc_sbcontamination[iLower][iUpper]->GetEntries());
 					hist_new->Sumw2();
@@ -403,6 +453,8 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 					lastUpdatePurity = phoPurity;
 					templateCorrFactor[iLower][iUpper] = totalden*phoPurity*nsideband[iLower][iUpper]/nsignalregion;
 					templateContainer[iLower][iUpper]->Clear();
+					if( fabs(SigmaCutLower[iLower]- StandardCut) < 0.00005 && iUpper == 0)logfile << "  Standard "  << "iteratorUncertainty " << iteratorUncertainty << " phoPurity " << phoPurity << "  templateCorrFactor " << templateCorrFactor[iLower][iUpper] << std::endl;
+					else logfile << "  " << SigmaCutLower[iLower] << " " << SigmaCutLower[iUpper] << " " << "iteratorUncertainty " << iteratorUncertainty << " phoPurity " << phoPurity << "  templateCorrFactor " << templateCorrFactor[iLower][iUpper] << std::endl;
 					hist_new->Delete();
 				}
 			}
@@ -417,7 +469,7 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 				Int_t status = fitter[iLower][iUpper]->Fit();
 			}
 			if(iteratorUncertainty <= 0.01 || !doIterate){
-				double den = nden/totalden; 
+				double den = nden/totalden;  
 				double denerror = (1.0/sqrt(nden)+ 1.0/sqrt(totalden))*den;
 				double num = (nnum[iLower][iUpper] - templateCorrFactor[iLower][iUpper]*frac_passSigma)/(totalnum[iLower][iUpper] - templateCorrFactor[iLower][iUpper]); 
 				double numerror = (1.0/sqrt(nnum[iLower][iUpper]) + 1.0/sqrt(totalnum[iLower][iUpper]))*num;
@@ -432,9 +484,10 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 				hname.str("");
 				hname << lowername << "< pt <" << uppername; 
 				h_target->SetTitle(hname.str().c_str());
-				h_target->SetMinimum(h_target->GetBinContent(20));
+				h_target->SetMinimum(h_target->GetBinContent(nBinTotal));
 				result[iLower][iUpper]->SetMinimum(100);
 				gPad->SetLogy();
+				h_target->GetXaxis()->SetTitleOffset(0.8);
 				h_target->SetMarkerStyle(20);
 				h_target->Draw("Ep");
 				result[iLower][iUpper]->SetLineColor(kBlue);
@@ -475,11 +528,7 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 					leg->AddEntry(result[iLower][iUpper], "true photons");
 					leg->AddEntry(mc_predict[iLower][iUpper], "hadrons");
 					leg->Draw("same");
-					hname.str("");
-					hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/frac-" << lowername << "-" << uppername << "-MuonEG-FullEcal";
-					if(detType == 1)hname << "-EB.pdf";
-					else if(detType == 2)hname << "-EE.pdf";
-					can[iLower][iUpper]->SaveAs(hname.str().c_str());
+					can[iLower][iUpper]->SaveAs(Hist1Dname.str().c_str());
 				}
 				if(fracBkg >0 && fracBkg < 1)fracHad2D->Fill(SigmaCutLower[iLower]+0.00005, SigmaCutUpper[iUpper]+0.00005, num*fracBkg/den);
 				if(fracBkg >0 && fracBkg < 1)fracHad1D->Fill(num*fracBkg/den);
@@ -493,17 +542,15 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 		hadfrac = fracHad1D->GetMean();	
 	}
 
-	hname.str(""); hname << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/plot/can2D-" << lowername << "-" << uppername << "-MuonEG-FullEcal.pdf";
 	can2D->cd();
 	fracHad2D->Draw("colz");
-	can2D->SaveAs(hname.str().c_str());
+	can2D->SaveAs(Hist2Dname.str().c_str());
 	systematicError = highestfrac - lowestfrac;
 	myfile << " " << lowername << " " << uppername << " " << hadfrac << " "; 
 	myfile << sqrt(fittingError*fittingError + systematicError*systematicError) << " ";
 	myfile << systematicError << "	" << " ";
 	myfile << mcfakerate;
-        if(detType == 1)myfile << " EB" <<  std::endl;
-        else if(detType == 2)myfile << " EE" <<  std::endl;
+	myfile << outputDet <<  std::endl;
 	char* dt = ctime(&now);
 	if(uppercut > 500){
 		myfile<< std::endl;
@@ -514,9 +561,9 @@ RunJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 		myfile << std::endl;
 		for(unsigned u(0); u < nUpper; u++)myfile << SigmaCutUpper[u] << " ";
 		myfile << std::endl;
-		myfile << datasetname.str().c_str() << std::endl;
 	} 
 	myfile.close();
+	logfile.close();
 	outputfile->Write();
 	return 1;
 }

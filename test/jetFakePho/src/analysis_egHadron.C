@@ -31,9 +31,9 @@ void analysis_egHadron(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/plot_hadron_DoubleEG_ReMiniAOD.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/plot_hadron_DoubleEG.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/plot_hadron_DoubleEG_ReMiniAOD.log"); 
+  logfile.open("/uscms_data/d3/mengleis/Sep1/plot_hadron_DoubleEG.log"); 
 
   logfile << "analysis_hadron()" << std::endl;
 
@@ -325,5 +325,3 @@ void analysis_egHadron(){//main
 	} 
 outputfile->Write();
 }
-
-

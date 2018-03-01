@@ -45,9 +45,9 @@ void analysis_ISR(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/test/resTree_ISR_data.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_ISR_data.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/test/resTree_ISR_data.log"); 
+  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_ISR_data.log"); 
 
   logfile << "analysis_mg()" << std::endl;
 
@@ -56,17 +56,6 @@ void analysis_ISR(){//main
 	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_MuonEG_FebReminiAOD_BCD.root");
 	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_MuonEG_FebReminiAOD_EFG.root");
 	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_MuonEG_FebReminiAOD_H.root");
-
-
-//  RunType datatype(SingleMuon2016); 
-//  TChain* es = new TChain("ggNtuplizer/EventTree");
-//	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_B.root");
-//	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_C.root");
-//	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_D.root");
-//	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_E.root");
-//	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_F.root");
-//	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_G.root");
-//	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_H.root");
 
   const unsigned nEvts = es->GetEntries(); 
 	float MCweight = 1;	
@@ -100,7 +89,7 @@ void analysis_ISR(){//main
   float ZdRPhoLep(0);
   float ZHT(0);
   float ZnJet(0);
-	float ZJetPt(0);
+	float ZISRJetPt(0);
  
 	Ztree->Branch("MCweight",  &MCweight); 
   Ztree->Branch("phoEt",     &ZphoEt);
@@ -122,44 +111,21 @@ void analysis_ISR(){//main
   Ztree->Branch("dRPhoLep",  &ZdRPhoLep);
   Ztree->Branch("HT",        &ZHT);
   Ztree->Branch("nJet",      &ZnJet);
-	Ztree->Branch("JetPt",     &ZJetPt);
-//************ ZJet Tree **********************//
-  TTree *ZJettree = new TTree("ZJetTree","ZJetTree");
-  float ZJetphoEt(0);
-  float ZJetphoEta(0);
-  float ZJetphoPhi(0);
-  float ZJetlepPt(0);
-  float ZJetlepEta(0);
-  float ZJetlepPhi(0);
-  float ZJetsigMT(0);
-  float ZJetsigMET(0);
-  float ZJetsigMETPhi(0);
-  float ZJetdPhiLepMET(0);
-	float ZJetthreeMass(0);
-	float ZJetdilepMass(0);
-  int   ZJetnVertex(0);
-  float ZJetdRPhoLep(0);
-  float ZJetHT(0);
-  float ZJetnJet(0);
-	float ZJetJetPt(0);
-  
-  ZJettree->Branch("phoEt",     &ZJetphoEt);
-  ZJettree->Branch("phoEta",    &ZJetphoEta);
-  ZJettree->Branch("phoPhi",    &ZJetphoPhi);
-  ZJettree->Branch("lepPt",     &ZJetlepPt);
-  ZJettree->Branch("lepEta",    &ZJetlepEta);
-  ZJettree->Branch("lepPhi",    &ZJetlepPhi);
-  ZJettree->Branch("sigMT",     &ZJetsigMT);
-  ZJettree->Branch("sigMET",    &ZJetsigMET);
-  ZJettree->Branch("sigMETPhi", &ZJetsigMETPhi);
-  ZJettree->Branch("dPhiLepMET",&ZJetdPhiLepMET);
-	ZJettree->Branch("threeMass", &ZJetthreeMass);
-	ZJettree->Branch("dilepMass", &ZJetdilepMass);
-  ZJettree->Branch("nVertex",   &ZJetnVertex);
-  ZJettree->Branch("dRPhoLep",  &ZJetdRPhoLep);
-  ZJettree->Branch("HT",        &ZJetHT);
-  ZJettree->Branch("nJet",      &ZJetnJet);
-	ZJettree->Branch("JetPt",     &ZJetJetPt);
+	Ztree->Branch("ISRJetPt",     &ZISRJetPt);
+
+//*************** for jet-photon fake rate ***********************//
+	TTree *hadrontree = new TTree("hadronTree","hadronTree");
+	float hadron_phoEt(0);
+	float hadron_phoEta(0);
+	float hadron_phoPhi(0);
+	float hadron_phoSigma(0);
+	float hadron_phoChIso(0);
+
+	hadrontree->Branch("phoEt",     &hadron_phoEt);
+	hadrontree->Branch("phoEta",    &hadron_phoEta);
+	hadrontree->Branch("phoPhi",    &hadron_phoPhi);
+	hadrontree->Branch("phoSigma",  &hadron_phoSigma);
+	hadrontree->Branch("phoChIso",  &hadron_phoChIso);
 
 //*********** histo list **********************//
   TH1F *p_eventcount = new TH1F("p_eventcount","p_eventcount",7,0,7);
@@ -230,10 +196,9 @@ void analysis_ISR(){//main
 
 			bool hasPho(false);
 			std::vector<recoPhoton>::iterator signalPho = Photon.begin();
-			std::vector< std::vector<recoPhoton>::iterator >  proxyPhoCollection;
-			proxyPhoCollection.clear();
-			std::vector< std::vector<recoPhoton>::iterator >  jetPhoCollection;
-			jetPhoCollection.clear();
+			// ******* for jet-photon fake rate***************//
+			bool hasHadronPho(false);
+			std::vector<recoPhoton>::iterator hadronPho = Photon.begin();
 			for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
 				if(itpho->getR9() < 0.5)continue;
 				if(!itpho->passHLTSelection())continue;
@@ -244,15 +209,20 @@ void analysis_ISR(){//main
 				bool GSFveto(true);
 				bool FSRVeto(true);
 				for(std::vector<recoEle>::iterator ie = Ele.begin(); ie != Ele.end(); ie++){
-					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) <= 0.03)GSFveto = false;
+					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) <= 0.02)GSFveto = false;
 					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3)FSRVeto=false;
 				}
 				for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
 					if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getEt()>2.0)FSRVeto=false;
 
-				if(itpho->getChIso()<20 && itpho->getSigma()< 0.02 && itpho->isEB()){
-						if(GSFveto && PixelVeto && FSRVeto)jetPhoCollection.push_back(itpho);
+				// ******** very loose, before sigma and isolation cut.  For jet-photon fake rate, and hadron proxy ************//	
+				if(GSFveto && PixelVeto && FSRVeto){
+					if(!hasHadronPho){
+						hasHadronPho = true;
+						hadronPho = itpho;
+					}
 				}
+
 				if(!itpho->passSignalSelection())continue;
 				if(GSFveto && PixelVeto && FSRVeto){
 					if(!hasPho){
@@ -260,10 +230,6 @@ void analysis_ISR(){//main
 						npassPho +=1;
 						signalPho = itpho;
 					}
-				}
-
-				if((!PixelVeto || !GSFveto)){
-					if(itpho->isEB())proxyPhoCollection.push_back(itpho);
 				}
 			}
 
@@ -294,7 +260,7 @@ void analysis_ISR(){//main
 							if(!im->isMedium() || im->getMiniIso() > 0.2)continue;
 							double llmass = (im->getP4()+signalLep->getP4()).M();
 							double llgmass = (im->getP4()+signalLep->getP4()+signalPho->getP4()).M();
-							if( (80 < llmass && llmass < 100) || ( 80 < llgmass && llgmass < 100)){
+							if( 80 < llmass && llmass < 100){
 								foundZG = true;
 								trailLep = im;
 							}
@@ -326,7 +292,7 @@ void analysis_ISR(){//main
 							ZnJet = 0;
 							ZHT = 0;
 							TLorentzVector JetVec(0,0,0,0);	
-							ZJetPt = 0;
+							ZISRJetPt = 0;
 							for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 								if(!itJet->passSignalSelection())continue;
 								if(DeltaR(itJet->getEta(), itJet->getPhi(), trailLep->getEta(),trailLep->getPhi()) <= 0.4)continue;	
@@ -335,7 +301,7 @@ void analysis_ISR(){//main
 								ZHT += itJet->getPt();
 								JetVec = JetVec + itJet->getP4();
 							}
-							ZJetPt = JetVec.Pt();
+							ZISRJetPt = JetVec.Pt();
 
 							
 							Ztree->Fill();
@@ -345,67 +311,34 @@ void analysis_ISR(){//main
 				}//dR Filter
 			}//Candidate Filter
 
-		if(hasLep){ 
-			std::vector<recoMuon>::iterator jetMuon = signalLep; 
-			for(unsigned ip(0); ip < jetPhoCollection.size(); ip++){
-				std::vector<recoPhoton>::iterator jetPho = jetPhoCollection[ip];
-				if(!jetPho->isEB())continue;
-				double dRlepphoton = DeltaR(jetPho->getEta(), jetPho->getPhi(), jetMuon->getEta(), jetMuon->getPhi());
-				if(dRlepphoton>0.8){
-				if(passMETFilter(METFilter)){
+		if(hasHadronPho && hasLep){ 
+			double DeltaPhoLep = DeltaR(hadronPho->getEta(), hadronPho->getPhi(), signalLep->getEta(), signalLep->getPhi());
+			if(DeltaPhoLep > 0.8){
+				if(raw.passMETFilter(METFilter)){
 
 					bool foundZG(false); 
 					std::vector<recoMuon>::iterator trailLep=Muon.begin();	
 					for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++){
-						if(im == jetMuon)continue;
+						if(im == signalLep)continue;
 						if(!im->isMedium() || im->getMiniIso() > 0.2)continue;
-						double llmass = (im->getP4()+jetMuon->getP4()).M();
-						double llgmass = (im->getP4()+jetMuon->getP4()+jetPho->getP4()).M();
-						if( (80 < llmass && llmass < 100) || ( 80 < llgmass && llgmass < 100)){
+						double llmass = (im->getP4()+signalLep->getP4()).M();
+						if( 80 < llmass && llmass < 100){
 							foundZG = true;
 							trailLep = im;
 						}
-					}	
-
-					if(foundZG){
-						float ZJet_deltaPhi = DeltaPhi(jetMuon->getPhi(), METPhi);
-						float ZJet_MT = sqrt(2*MET*jetMuon->getPt()*(1-std::cos(ZJet_deltaPhi)));
-						float ZJet_ThreeBodyMass = (trailLep->getP4()+jetMuon->getP4()+jetPho->getP4()).M(); 
-						ZJetphoEt = jetPho->getCalibEt();
-						ZJetphoEta= jetPho->getEta();
-						ZJetphoPhi= jetPho->getPhi();
-						ZJetlepPt = jetMuon->getPt();
-						ZJetlepEta= jetMuon->getEta();
-						ZJetlepPhi= jetMuon->getPhi();
-						ZJetsigMT = ZJet_MT;
-						ZJetsigMET= MET;
-						ZJetsigMETPhi = METPhi;
-						ZJetdPhiLepMET = ZJet_deltaPhi; 
-						ZJetthreeMass = ZJet_ThreeBodyMass;
-						ZJetdilepMass = (trailLep->getP4()+jetMuon->getP4()).M();
-						ZJetnVertex = nVtx; 
-						ZJetdRPhoLep= dRlepphoton;
-
-						ZJetnJet = 0;
-						ZJetHT = 0;
-						TLorentzVector JetVec(0,0,0,0);	
-						ZJetJetPt = 0;
-						for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
-							if(!itJet->passSignalSelection())continue;
-							if(DeltaR(itJet->getEta(), itJet->getPhi(), trailLep->getEta(),trailLep->getPhi()) <= 0.4)continue;	
-							if(DeltaR(itJet->getEta(), itJet->getPhi(), jetMuon->getEta(),jetMuon->getPhi()) <= 0.4)continue;
-							ZJetnJet += 1;
-							ZJetHT += itJet->getPt();
-							JetVec = JetVec + itJet->getP4();
-						}
-						ZJetJetPt = JetVec.Pt();
-
-						ZJettree->Fill();
 					}
 
-			}//MET Filter
-			}//dR filter
-		} // loop on pho collection
+					if(foundZG){	
+						hadron_phoEt = hadronPho->getCalibEt();
+						hadron_phoEta = hadronPho->getEta();
+						hadron_phoPhi = hadronPho->getPhi();
+						hadron_phoSigma = hadronPho->getSigma();
+						hadron_phoChIso = hadronPho->getChIso();
+			
+						hadrontree->Fill();
+					}
+				}
+			}
 		}
 
 	}//loop on  events

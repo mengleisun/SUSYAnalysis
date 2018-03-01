@@ -30,6 +30,8 @@
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_jet.h"
 
+double Normalization = 0.98;
+
 bool isHardLepton(int momID){
 		if((fabs(momID) >= 0 && fabs(momID) <= 6) || momID==21 || fabs(momID) == 15 || fabs(momID) == 999 || fabs(momID) == 23 || fabs(momID) == 24)return true;
 		else return false;
@@ -48,8 +50,8 @@ bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
 			bool isPromptFinal(false);
       int momid = abs(itMC->getMomPID());
       if(abs(itMC->getPID())<=5 && (momid==6 || momid==23 || momid==24 || momid==25))isPromptFinal = true;
-			else if(abs(itMC->getPID()) == 11 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
-			else if(abs(itMC->getPID()) == 13 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 11 && (momid<=6 || momid==23 || momid==24 || momid== 22 || momid== 15))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 13 && (momid<=6 || momid==23 || momid==24 || momid== 22 || momid== 15))isPromptFinal = true;
 			else if(abs(itMC->getPID()) == 15 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
 			else if(abs(itMC->getPID()) == 22 && (momid == 11 || momid == 13 || momid == 15 || momid==23 || momid==24))isPromptFinal = true;
 			if(!isPromptFinal)continue;
@@ -61,21 +63,30 @@ bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
 		return matched;
 } 
 		
+bool passFilter(int filter){
+  bool passfilter(true);
+  for(int im(1); im <= 8; im++){
+		if(im != 5){ // no ee Bad Sc filter
+    	if(((filter >> im)&1)!=0){passfilter = false; return passfilter;}
+		}
+	}
+
+  return passfilter;
+}
 
 void analysis_VGamma(){//main 
 	
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WZG.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/DiLepton/resTree_VGamma_TT.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep13/resTree_VGamma_WZG.log"); 
-
+  logfile.open("/uscms_data/d3/mengleis/DiLepton/VG.log"); 
   logfile << "analysis_VGamma()" << std::endl;
 
   RunType datatype(MC);
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZG_RunIISummer16MiniAODv2-TrancheIV_v6.root");
-  logfile << "root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZG_RunIISummer16MiniAODv2-TrancheIV_v6.root" << std::endl;
+	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
+  logfile << "VG";
 	logfile << "muon MiniIso" << std::endl;
  
   const unsigned nEvts = es->GetEntries(); 
@@ -85,14 +96,18 @@ void analysis_VGamma(){//main
   TFile *outputfile = TFile::Open(outputname,"RECREATE");
   outputfile->cd();
 
+	//int mcType = MCType::generalMC;
   //int mcType = MCType::WGJet40;
   //int mcType = MCType::WGJet130;
   //int mcType = MCType::ZGInclusive;
   //int mcType = MCType::WGJetInclusive;
-  //int mcType = MCType::TT;
-  //int mcType = MCType::DYLL50;
   //int mcType = MCType::TTG;
-  int mcType = MCType::WZG;
+  //int mcType = MCType::DYLL50;
+  int mcType = MCType::TT;
+  //int mcType = MCType::WWG;
+  //int mcType = MCType::WW;
+  //int mcType = MCType::WZG;
+  //int mcType = MCType::WZ;
   if(datatype == MC && mcType == MCType::NOMC){std::cout << "wrong MC type" << std::endl; throw;} 
   logfile << "mcType" << mcType << std::endl;
 
@@ -100,7 +115,11 @@ void analysis_VGamma(){//main
   float ntotalevent = es->GetEntries();
 	float PUweight(1);
 	float llmass(0);
-	int   nBJet(0); 
+	int   nBJet(0);
+	float ISRWeight(1);
+	float pdfWeight(0);
+	std::vector<float> pdfSystWeight;
+	std::vector<float> ScaleSystWeight; 
 //************ Signal Tree **********************//
   TTree *egtree = new TTree("egTree","egTree");
   float eg_phoEt(0);
@@ -109,6 +128,9 @@ void analysis_VGamma(){//main
   float eg_lepPt(0);
   float eg_lepEta(0);
   float eg_lepPhi(0);
+	float trailPt(0);
+	float trailEta(0);
+	float trailPhi(0);
   float eg_sigMT(0);
   float eg_sigMET(0);
   float eg_sigMETPhi(0);
@@ -145,13 +167,20 @@ void analysis_VGamma(){//main
 
 	egtree->Branch("crosssection",&crosssection);
 	egtree->Branch("ntotalevent", &ntotalevent);
+	egtree->Branch("ISRWeight", &ISRWeight);
+	egtree->Branch("pdfWeight", &pdfWeight);
+	egtree->Branch("pdfSystWeight", &pdfSystWeight);
+	egtree->Branch("ScaleSystWeight", &ScaleSystWeight);
   egtree->Branch("phoEt",     &eg_phoEt);
   egtree->Branch("phoEta",    &eg_phoEta);
   egtree->Branch("phoPhi",    &eg_phoPhi);
   egtree->Branch("lepPt",     &eg_lepPt);
   egtree->Branch("lepEta",    &eg_lepEta);
   egtree->Branch("lepPhi",    &eg_lepPhi);
-	egtree->Branch("PUweight",      &PUweight);
+	egtree->Branch("trailPt",   &trailPt);
+	egtree->Branch("trailEta",  &trailEta);
+	egtree->Branch("trailPhi",  &trailPhi);
+	egtree->Branch("PUweight",  &PUweight);
   egtree->Branch("sigMT",     &eg_sigMT);
   egtree->Branch("sigMET",    &eg_sigMET);
   egtree->Branch("sigMETPhi", &eg_sigMETPhi);
@@ -232,6 +261,10 @@ void analysis_VGamma(){//main
  
 	mgtree->Branch("crosssection",&crosssection);
 	mgtree->Branch("ntotalevent", &ntotalevent);
+	mgtree->Branch("ISRWeight", &ISRWeight);
+	mgtree->Branch("pdfWeight", &pdfWeight);
+	mgtree->Branch("pdfSystWeight", &pdfSystWeight);
+	mgtree->Branch("ScaleSystWeight", &ScaleSystWeight);
   mgtree->Branch("phoEt",     &mg_phoEt);
   mgtree->Branch("phoEta",    &mg_phoEta);
   mgtree->Branch("phoPhi",    &mg_phoPhi);
@@ -333,11 +366,33 @@ void analysis_VGamma(){//main
 	
         if(raw.nPho <1)continue;
 
+	      int Nmedpho(0);
+	      for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
+	        if(!itpho->isMedium())continue;
+	        if(itpho->getR9() < 0.5 || itpho->getR9() > 1.0)continue;
+	        if(fabs(itpho->getEta()) > 1.4442 || itpho->getCalibEt() < 40)continue;
+	        if(itpho->getSigma() < 0.005)continue;
+	        if(itpho->PixelSeed() != 0)continue;
+	
+	        Nmedpho+=1;
+	      }
+	      if(Nmedpho >= 2)continue;
+
 				nBJet = 0;
 				for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 					if(itJet->getPt() < 20)continue;
 					if(itJet->isBJet())nBJet+=1;
 				}
+				//pdfWeight = raw.pdfWeight;
+				pdfWeight = 0; 
+				pdfSystWeight.clear();
+				ScaleSystWeight.clear(); 
+			//	for(unsigned i(0); i < raw.pdfSystWeight->size(); i++){
+			//		pdfSystWeight.push_back( (*raw.pdfSystWeight)[i] );
+			//	}
+			//	for(unsigned i(0); i < raw.genScaleSystWeights->size(); i++){
+			//		ScaleSystWeight.push_back( (*raw.genScaleSystWeights)[i]);
+			//	}
 				//process MC first  ****************************/
 				llmass = -1;
 				double WGPt = -1;
@@ -388,7 +443,7 @@ void analysis_VGamma(){//main
 					 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3)FSRVeto=false;
 					}
 					for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
-					 if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getEt()>2.0)FSRVeto=false;
+						if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getPt()>2.0)FSRVeto=false;
 					if(GSFveto && PixelVeto && FSRVeto){
 						if((itpho->fireDoubleTrg(5) || itpho->fireDoubleTrg(6))){
 					 		if(!hasegPho){
@@ -416,17 +471,16 @@ void analysis_VGamma(){//main
  
         bool hasEle(false);
         std::vector<recoEle>::iterator signalEle = Ele.begin();
-        if(hasegPho){
-          for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
-            if(hasEle)break;
-						if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))continue;
-						if(itEle->fireTrgs(21) || itEle->fireTrgs(22)){
-							if(itEle->passSignalSelection()){
-								hasEle=true; 
-								signalEle = itEle;
-							}
+        for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
+          if(hasEle)break;
+					if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))continue;
+//					if((itEle->isEB() && (itEle->getD0() > 0.05 || itEle->getDz() > 0.10)) || (itEle->isEE() && ( itEle->getD0() > 0.10 || itEle->getDz() > 0.20)) )continue;
+					if(itEle->fireTrgs(21) || itEle->fireTrgs(22)){
+						if(itEle->passSignalSelection()){
+							hasEle=true; 
+							signalEle = itEle;
 						}
-          }
+					}
         }
 
         bool hasMu(false);
@@ -442,6 +496,21 @@ void analysis_VGamma(){//main
 						}
 					}
         }
+
+				bool hasTrail(false);
+				std::vector<recoMuon>::iterator trailLep = Muon.begin();
+				for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
+					if(itMu->getPt() < 25)continue;
+					if(itMu->passSignalSelection()){
+						if(!hasTrail){
+							hasTrail = true;
+							trailLep = itMu;
+						}
+					}
+				}
+
+
+				bool hasDoubleEG(false);
 	
 				ISRJetPt = 0;
 				TLorentzVector JetVec(0,0,0,0);	
@@ -449,28 +518,42 @@ void analysis_VGamma(){//main
 					if(!itJet->passSignalSelection())continue;
 					if(!nisrMatch(itJet->getEta(), itJet->getPhi(), MCData))JetVec = JetVec + itJet->getP4();
 				}
-				ISRJetPt = JetVec.Pt();	
+				ISRJetPt = JetVec.Pt();
+				double reweightF(1);	
+				if(ISRJetPt < 50)reweightF = 1.015;
+				else if(ISRJetPt >= 50 && ISRJetPt < 100)reweightF  = 1.110;
+				else if(ISRJetPt >= 100 && ISRJetPt < 150)reweightF = 0.845;
+				else if(ISRJetPt >= 150 && ISRJetPt < 200)reweightF = 0.715;
+				else if(ISRJetPt >= 200 && ISRJetPt < 250)reweightF =	0.730;
+				else if(ISRJetPt >= 250 && ISRJetPt < 300)reweightF =	0.732;
+				else if(ISRJetPt >= 300)reweightF =  0.642; 
+				ISRWeight = reweightF*Normalization;	
 ///*************************   eg filters *****************************//
- //       if(hasegPho && hasEle && (((raw.HLTPho >> 14)&1)==1)){
- //         double dReg = DeltaR(egsignalPho->getEta(), egsignalPho->getPhi(), signalEle->getEta(), signalEle->getPhi()); 
- //         if(dReg>0.8){
- //           if(fabs((egsignalPho->getP4()+signalEle->getP4()).M() - 91.188) > 10.0){
- //             if(METFilter == 0){
-
         if(hasegPho && hasEle && (((raw.HLTPho >> 14)&1)==1)){
           double dReg = DeltaR(egsignalPho->getEta(), egsignalPho->getPhi(), signalEle->getEta(), signalEle->getPhi()); 
           if(dReg>0.8){
-            	if(fabs((egsignalPho->getP4()+signalEle->getP4()).M() - 91.188) > 10.0){
-              if(METFilter == 0){
+            	if(((egsignalPho->getP4()+signalEle->getP4()).M() - 91.188) > 10.0){
+              if(passFilter(METFilter)){
 
+								hasDoubleEG = true;
 								float deltaPhi = DeltaPhi(signalEle->getPhi(), METPhi);
 								float MT = sqrt(2*MET*signalEle->getPt()*(1-std::cos(deltaPhi)));
-        	    	eg_phoEt = egsignalPho->getCalibEt();
+        	    	eg_phoEt = egsignalPho->getEt();
 			    			eg_phoEta= egsignalPho->getEta();
                 eg_phoPhi= egsignalPho->getPhi();
-			    			eg_lepPt = signalEle->getCalibPt();
+			    			eg_lepPt = signalEle->getPt();
  			    			eg_lepEta= signalEle->getEta();
                 eg_lepPhi= signalEle->getPhi();
+								if(hasTrail){
+									trailPt = trailLep->getPt();
+									trailEta = trailLep->getEta();
+									trailPhi = trailLep->getPhi();
+								}
+								else{
+									trailPt  = 0; 
+									trailEta = 0;
+									trailPhi = 0;
+								}
  			    			eg_sigMT = MT;
 			    			eg_sigMET= MET;
                 eg_sigMETPhi = METPhi;
@@ -499,16 +582,6 @@ void analysis_VGamma(){//main
 								eg_HTJESdo = 0;
 								for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 									if(!itJet->passSignalSelection())continue;
-								//	bool isLep(false);
-          			//	for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
-								//		if(!itEle->isMedium() || itEle->getMiniIso() > 0.1 || itEle->getPt() < 25)continue;
-								//		if(DeltaR(itJet->getEta(), itJet->getPhi(), itEle->getEta(), itEle->getPhi()) <= 0.4 && fabs(itJet->getPt() - itEle->getPt())/itEle->getPt() < 1)isLep=true;
-								//	}
-								//	for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
-								//		if(!itMu->isMedium() || itMu->getMiniIso() > 0.2 || itMu->getPt() < 25)continue;
-								//		if(DeltaR(itJet->getEta(), itJet->getPhi(), itMu->getEta(), itMu->getPhi()) <= 0.4 && fabs(itJet->getPt() - itMu->getPt())/itMu->getPt() < 1)isLep=true;
-								//	}
-								//	if(isLep)continue;
 									
 									if(!nisrMatch(itJet->getEta(), itJet->getPhi(), MCData))eg_nISRJet += 1;
 									if(DeltaR(itJet->getEta(), itJet->getPhi(), signalEle->getEta(), signalEle->getPhi()) <= 0.4)continue;
@@ -548,15 +621,11 @@ void analysis_VGamma(){//main
         }// ele + pho candidate
        
 //**********************  mg filter **************************************//         
-//        if(hasmgPho && hasMu && (((raw.HLTEleMuX >> 8)&1)!=0 || ((raw.HLTEleMuX >> 41)&1)!=0)){
-//					double dRmg = DeltaR(mgsignalPho->getEta(), mgsignalPho->getPhi(), signalMu->getEta(), signalMu->getPhi());
-//					if(dRmg>0.8){
-//						if(METFilter == 0){ 
  
-       if(hasmgPho && hasMu && (((raw.HLTEleMuX >> 8)&1)!=0 || ((raw.HLTEleMuX >> 41)&1)!=0)){
+       if(hasmgPho && hasMu && (((raw.HLTEleMuX >> 8)&1)!=0 || ((raw.HLTEleMuX >> 41)&1)!=0) && !hasDoubleEG){
 					double dRmg = DeltaR(mgsignalPho->getEta(), mgsignalPho->getPhi(), signalMu->getEta(), signalMu->getPhi());
 					if(dRmg>0.8){
-						if(METFilter == 0){ 
+						if(passFilter(METFilter)){ 
 
 						float deltaPhi = DeltaPhi(signalMu->getPhi(), METPhi);
 						float MT = sqrt(2*MET*signalMu->getPt()*(1-std::cos(deltaPhi)));

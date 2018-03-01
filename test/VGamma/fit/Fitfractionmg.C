@@ -46,14 +46,16 @@
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
 #include "../../../include/analysis_tools.h"
+#include "../../../include/tdrstyle.C"
 
 int
 Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocut){
 	gStyle->SetOptStat(0);
+	setTDRStyle();
   RooAbsReal::defaultIntegratorConfig()->getConfigSection("RooIntegrator1D").setRealValue("maxSteps",50000); 
 	std::ostringstream histname;
 	ofstream myfile;
-	myfile.open("VGamma_scalefactor_mg.txt", std::ios_base::app | std::ios_base::out);
+	myfile.open("VGamma_scalefactor_mg_test.txt", std::ios_base::app | std::ios_base::out);
 
 	std::ostringstream filename;
 	filename.str("");
@@ -76,7 +78,7 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	TFile *file_VG = TFile::Open(filename.str().c_str());
 
 	TH1D  *p_sig = (TH1D*)file_sig->Get("p_dPhiEleMET");
-	TH1D  *p_rare = (TH1D*)file_rare->Get("p_reweight_dPhiEleMET");
+	TH1D  *p_rare = (TH1D*)file_rare->Get("p_dPhiEleMET");
 	histname.str("");
 	if(ih == 0)histname << "p_dPhiEleMET";
 	else histname << "toy_eledPhiEleMET_" << ih;
@@ -90,22 +92,24 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	p_target->Add(p_jet, -1);
 	p_target->Sumw2();
   TH1D *p_proxy = (TH1D*)file_qcd->Get("p_dPhiEleMET");
-  TH1D *p_MC = (TH1D*)file_VG->Get("p_dPhiEleMET"); 
-  //TH1D *p_MC = (TH1D*)file_VG->Get("jesup_dPhiEleMET"); 
-	gRandom = new TRandom3(0);
-	gRandom->SetSeed(0);
-	double radomMC = -1+ gRandom->Rndm()*2.0;
-	if(ih == 0)radomMC = 0;
-	for(int ibin(1); ibin < p_MC->GetSize(); ibin++)p_MC->SetBinContent(ibin, p_MC->GetBinContent(ibin)+radomMC*p_MC->GetBinError(ibin));
+  TH1D *p_MC;
+	if(ih < 500){
+		p_MC = (TH1D*)file_VG->Get("p_dPhiEleMET"); 
+		gRandom = new TRandom3(0);
+		gRandom->SetSeed(0);
+		double radomMC = gRandom->Gaus(0, 1);
+		if(ih == 0)radomMC = 0;
+		for(int ibin(1); ibin < p_MC->GetSize(); ibin++){
+			radomMC =  gRandom->Gaus(0, 1);
+			p_MC->SetBinContent(ibin, p_MC->GetBinContent(ibin)+radomMC*p_MC->GetBinError(ibin));
+		}
+	}
+	else{
+		histname.str("");
+		histname << "toy_VGdPhiEleMET_" << ih-500;
+		p_MC = (TH1D*)file_VG->Get(histname.str().c_str());
+	}
 	p_MC->Sumw2();
-
-  p_proxy->GetXaxis()->SetTitle("#Delta#phi");
-  p_target->GetXaxis()->SetTitle("#Delta#phi");
-
-//	p_rawsig->Rebin(2);
-//	p_target->Rebin(2);
-//	p_proxy->Rebin(2);
-//	p_MC->Rebin(2);	
 
   RooRealVar dphi("dphi","",0,3.2);
   RooDataHist* h_target = new RooDataHist("h_target","h_target",dphi,p_target);
@@ -165,70 +169,84 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	for(int ibin(0); ibin < 32; ibin++)p_combine_error->SetPoint(ibin, -0.05+ibin*0.1, p_combine->GetBinContent(ibin));
 	for(int ibin(0); ibin < 32; ibin++)p_combine_error->SetPointError(ibin, 0.05, staterror*p_combine->GetBinContent(ibin));
 
-
-//	RooDataHist* h_combine = new RooDataHist("h_combine","h_combine",dphi, p_combine);
-//	h_combine->plotOn(frame,
-//       RooFit::MarkerColor(kGreen-4));
   TCanvas *canres=new TCanvas("canres","",600,600);
-  canres->cd(1);
-	TPad *canpt_pad1 = new TPad("canpt_pad1", "pad1", 0, 0.3, 1, 1.0);
-	canpt_pad1->SetBottomMargin(0);
+	setCanvas(canres); 
+  canres->cd();
+	TPad *canpt_pad1 = new TPad("canpt_pad1", "pad1", 0, 0.35, 1, 1.0);
+	setTopPad(canpt_pad1); 
 	canpt_pad1->Draw();          
-	canpt_pad1->cd();   
-	p_target->SetTitle("#Delta#phi(#mu, E_{T}^{miss})"); 
-	//p_target->SetMaximum(500);
-	p_target->SetMinimum(0);
+	canpt_pad1->cd();  
+	p_target->GetYaxis()->SetTitle("Events / (0.1)");
+	p_target->SetTitle(""); 
+	p_target->SetMaximum(1.5*p_target->GetBinContent(p_target->GetMaximumBin()));
+	p_target->SetMinimum(1);
 	p_target->SetMarkerStyle(20);
 	p_target->Draw("EP");
-	p_combine_error->SetFillColor(kBlue);
-	p_combine_error->SetFillStyle(3001);
+	p_combine->SetLineColor(kBlue);
+	p_combine->SetLineWidth(0);
+	p_combine->SetFillColorAlpha(kBlue,0.2);
+	p_combine->Draw("hist same");
+	p_combine_error->SetFillColor(kBlack);
+	p_combine_error->SetFillStyle(3345);
 	p_combine_error->Draw("E2");
 	p_target->Draw("EP same");
-	p_combine->SetLineColor(kBlue);
-	p_combine->SetLineWidth(2);
-	p_combine->Draw("hist same");
 	p_qcd->SetLineColor(kRed);
+	p_qcd->SetLineWidth(3);
 	p_qcd->Draw("hist same");
 	p_VGAMMA->SetLineColor(kGreen);
+	p_VGAMMA->SetLineWidth(3);
 	p_VGAMMA->Draw("hist same");
 	
-	TLegend *leg=new TLegend(0.6,0.1,0.85,0.3);
-	leg->AddEntry(p_target, "observed");
-	leg->AddEntry(p_combine, "fit result");
-	leg->AddEntry(p_qcd, "fake leptons");
+	TLegend *leg=new TLegend(0.5,0.6,0.85,0.9);
+	leg->SetNColumns(2);
+	leg->SetFillStyle(0);
+	leg->SetBorderSize(0);
+	leg->SetFillColor(0);
+	p_combine->SetMarkerSize(0);
+	p_VGAMMA->SetMarkerSize(0);
+	p_qcd->SetMarkerSize(0);
+	p_combine_error->SetMarkerSize(0);
+	p_combine_error->SetLineWidth(0);
+	leg->AddEntry(p_target, "Data");
+	leg->AddEntry(p_combine,"Total fit");
+	leg->AddEntry(p_VGAMMA, "V#gamma");
+	leg->AddEntry(p_qcd, "Misid. #mu proxy");
+	leg->AddEntry(p_combine_error, "stat. unc.");
 	leg->Draw("same");
-	 
+ 	gPad->RedrawAxis();
+  CMS_lumi( canpt_pad1, 11 );
+
 	canres->cd();   
-	TPad *canpt_pad2 = new TPad("canpt_pad2", "pad2", 0, 0.05, 1, 0.3);
-	canpt_pad2->SetTopMargin(0);
+	TPad *canpt_pad2 = new TPad("canpt_pad2", "pad2", 0, 0, 1, 0.35);
 	canpt_pad2->SetBottomMargin(0.3);
 	canpt_pad2->Draw();
 	canpt_pad2->cd(); 	
-	TH1D *dummy_ptratio = new TH1D("dummy_ptratio",";#Delta#phi(l, E_{T}^{miss});fit/data",32,0,3.2);
-	dummy_ptratio->SetMaximum(2);
-	dummy_ptratio->SetMinimum(0);
-	dummy_ptratio->GetXaxis()->SetLabelFont(63);
-	dummy_ptratio->GetXaxis()->SetLabelSize(14);
-	dummy_ptratio->GetYaxis()->SetLabelFont(63);
-	dummy_ptratio->GetYaxis()->SetLabelSize(14);
+	TH1D *dummy_ptratio = new TH1D("dummy_ptratio",";|#Delta#phi(#mu, p_{T}^{miss})|;#frac{fit}{data}",32,0,3.2);
+	dummy_ptratio->SetMaximum(1.5);
+	dummy_ptratio->SetMinimum(0.5);
+	dummy_ptratio->GetYaxis()->SetNdivisions(504);
 	dummy_ptratio->Draw();
   TLine *flatratio = new TLine(0,1,3.2,1);
 	flatratio->Draw("same");
 	fitratio->SetMarkerStyle(20);
 	fitratio->Draw("EP same");
-	fitratio_error->SetFillStyle(3005);
+	fitratio_error->SetFillColor(kBlack);
+	fitratio_error->SetFillStyle(3345);
 	fitratio_error->Draw("E2 same");	
 
-	std::ostringstream plotname;
-	plotname << "fit_dPhi_mg_" << leplow << "_" << lephigh << "_met40" << "_iso" << isocut << ".pdf";
-  if(ih == 0)canres->SaveAs(plotname.str().c_str());
+	if(ih == 0)canres->SaveAs("fit_dPhi_mg.pdf");	
+	else{
+		std::ostringstream savename;
+		savename.str("");
+		savename << "fit_dPhi_mg_sys" << ih << ".pdf";
+		canres->SaveAs(savename.str().c_str());
+	}
 
   double nMCtotal(0);
   for(unsigned i(1); i<=32; i++)nMCtotal+= p_MC->GetBinContent(i);
   std::cout << "factor for fake: " << fakefrac.getVal()*p_target->Integral(1, p_target->GetSize()) << "/" << p_proxy->Integral(1, p_proxy->GetSize()) << std::endl;
   std::cout << "factor for MC: " << (1-fakefrac.getVal())*p_target->Integral(1, p_target->GetSize()) << "/" << p_MC->Integral(1, p_MC->GetSize())  << std::endl;
   std::cout << "fakefrac=" << fakefrac.getVal()<< std::endl;
-
 	
 	float fakescale = fakefrac.getVal()*p_target->Integral(1, p_target->GetSize())/p_proxy->Integral(1, p_proxy->GetSize());
 	float fakescaleerror = fakefrac.getError()*p_target->Integral(1, p_target->GetSize())/p_proxy->Integral(1, p_proxy->GetSize());
@@ -236,47 +254,6 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	float vgammascaleerror = fakefrac.getError()*p_target->Integral(1, p_target->GetSize())/p_MC->Integral(1, p_MC->GetSize()); 
 	myfile << leplow << " " << lephigh << " " << fakescale << " " << fakescaleerror  << " " << vgammascale << " " << vgammascaleerror << std::endl; 
 	myfile.close();
-
-
-        TH1D *p_LepPt_qcd = (TH1D*)file_qcd->Get("p_LepPt");
-        TH1D *p_LepPt_sig = (TH1D*)file_sig->Get("p_LepPt");
-        TH1D *p_LepPt_ele = (TH1D*)file_ele->Get("p_LepPt");
-        TH1D *p_LepPt_jet = (TH1D*)file_jet->Get("p_LepPt");
-        TH1D *p_LepPt_rare = (TH1D*)file_rare->Get("p_LepPt");
-        TH1D *p_LepPt_MC = (TH1D*)file_VG->Get("p_LepPt");
-        p_LepPt_sig->Add(p_LepPt_ele, -1);
-        p_LepPt_sig->Add(p_LepPt_jet, -1);
-        p_LepPt_sig->Add(p_LepPt_rare, -1);
-				p_LepPt_sig->Add(p_LepPt_MC, -1*vgammascale);
-
-				p_LepPt_sig->Rebin(2);
-				p_LepPt_qcd->Rebin(2);
-
-        TCanvas *canscale = new TCanvas("canscale","", 600,600);
-        canscale->cd();
-				TPad *canscale_pad1 = new TPad("canscale_pad1", "pad1", 0, 0.3, 1, 1.0);
-				canscale_pad1->SetBottomMargin(0);
-				canscale_pad1->Draw();          
-				canscale_pad1->cd();   
-        gPad->SetLogy();
-        p_LepPt_sig->SetMarkerStyle(20);
-				p_LepPt_qcd->SetMinimum(1);
-			  p_LepPt_qcd->SetLineColor(kRed);
-        p_LepPt_qcd->Draw();
-        p_LepPt_sig->Draw("EP same");
-
-				TH1D *p_scale = (TH1D*)p_LepPt_sig->Clone("p_scale");
-				p_scale->Divide(p_LepPt_qcd);
-				canscale->cd();
-				TPad *canscale_pad2 = new TPad("canscale_pad2", "pad2", 0, 0, 1, 0.3);
-        canscale_pad2->SetBottomMargin(0.05);
-        canscale_pad2->Draw();          
-        canscale_pad2->cd();
-				p_scale->Draw(); 
-//        plotname.str("");
-//        plotname << "fit_lepPt_mg_met" << metlow << "_" << methigh << "_pt" <<  leplow << "_" << lephigh <<  "_iso" << isocut << ".pdf";
-//        canscale->SaveAs(plotname.str().c_str());
-//
 
   return 1;
 }

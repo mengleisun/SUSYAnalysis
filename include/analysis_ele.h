@@ -9,6 +9,7 @@
 #include "TLorentzVector.h"
 #endif
 
+#include<iostream>
 
 
   class recoEle{
@@ -137,12 +138,12 @@ inline bool isTight() {
 }
 
 inline bool isEB(){
-     if(fabs(p4_.Eta())<1.444)return true;
+     if(fabs(p4_.Eta())<1.4442)return true;
      else return false;
 }
 
 inline bool isEE(){
-     if(fabs(p4_.Eta())>1.56 && fabs(p4_.Eta()) < 2.5)return true;
+     if(fabs(p4_.Eta())>1.566 && fabs(p4_.Eta()) < 2.5)return true;
      else return false;
 }
 

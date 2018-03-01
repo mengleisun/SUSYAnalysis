@@ -1,0 +1,2 @@
+METbin1 200
+METbin2 400

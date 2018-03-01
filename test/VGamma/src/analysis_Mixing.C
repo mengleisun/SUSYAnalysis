@@ -29,15 +29,39 @@
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_jet.h"
 
+bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
+
+    bool matched=false;
+    for(std::vector<mcData>::iterator itMC = genParticles.begin(); itMC!= genParticles.end(); itMC++){
+      if(matched)break;
+			bool isPromptFinal(false);
+      int momid = abs(itMC->getMomPID());
+      if(abs(itMC->getPID())<=5 && (momid==6 || momid==23 || momid==24 || momid==25))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 11 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 13 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 15 && (momid<=6 || momid==23 || momid==24 || momid== 22))isPromptFinal = true;
+			else if(abs(itMC->getPID()) == 22 && (momid == 11 || momid == 13 || momid == 15 || momid==23 || momid==24))isPromptFinal = true;
+			if(!isPromptFinal)continue;
+			if(DeltaR(jetEta, jetPhi, itMC->getEta(), itMC->getPhi()) < 0.3){
+				//std::cout << "match " << itMC->getPID() << " " << itMC->getMomPID() << " status:" << itMC->getStatus() << std::endl; 
+      	matched = true;
+			}
+    } // Loop over MC particles
+		return matched;
+} 
+		
+
 void analysis_Mixing(){//main 
 	
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/test/mixing_ZG_TH1D.root";
+  //char outputname[100] = "/uscms_data/d3/mengleis/Sep1/mixing_WGToLNu130_TH1D.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/test.root";
 
   RunType datatype(MC); 
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
+//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WGJets_MonoPhoton_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1ANDext1.root");
 //WGJets_MonoPhoton_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root
 //WGJets_MonoPhoton_PtG-40to130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root
 //WGToLNuG_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root
@@ -60,8 +84,13 @@ void analysis_Mixing(){//main
 	TH1D *egamma_phoEt = new TH1D("egamma_phoEt","",400,0,400);
   TH1D *mugamma_phoEt = new TH1D("mugamma_phoEt","",400,0,400);
 
+	double all_totalEvent(0), all_reweight(0);
+	double nopixel_totalEvent(0), nopixel_reweight(0);
+	double id_totalEvent(0), id_reweight(0);
+	double egamma_totalEvent(0), egamma_reweight(0);
+	double mugamma_totalEvent(0), mugamma_reweight(0);
 
-  int mcType = MCType::ZGInclusive;
+  int mcType = MCType::WGJet130;
   if(datatype == MC && mcType == MCType::NOMC){std::cout << "wrong MC type" << std::endl; throw;} 
 
   float crosssection = MC_XS[mcType];
@@ -269,11 +298,13 @@ void analysis_Mixing(){//main
   int jetNumber(0);
   int METFilter(0);
 
+	int theoryCut(0);
+	int highEta(0);
   std::cout << "Total evetns : " << nEvts << std::endl;
 
     for (unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
   
-      if (ievt%100000==0) std::cout << " -- Processing event " << ievt << std::endl;
+      if (ievt%100000==0){ std::cout << " -- Processing event " << ievt << std::endl;  std::cout << "highEta " << highEta << " theory " << theoryCut << std::endl;}
 
         raw.GetData(es, ievt);
         MCData.clear();
@@ -301,6 +332,52 @@ void analysis_Mixing(){//main
 				
 				PUweight = getPUESF(nVtx);
 	
+				double ISRJetPt = 0;
+				TLorentzVector JetVec(0,0,0,0);	
+				for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
+					if(!itJet->passSignalSelection())continue;
+					if(!nisrMatch(itJet->getEta(), itJet->getPhi(), MCData))JetVec = JetVec + itJet->getP4();
+				}
+				ISRJetPt = JetVec.Pt();
+				double reweightF(1);	
+				if(ISRJetPt < 50)reweightF = 1.015;
+				else if(ISRJetPt >= 50 && ISRJetPt < 100)reweightF  = 1.110;
+				else if(ISRJetPt >= 100 && ISRJetPt < 150)reweightF = 0.845;
+				else if(ISRJetPt >= 150 && ISRJetPt < 200)reweightF = 0.715;
+				else if(ISRJetPt >= 200 && ISRJetPt < 250)reweightF =	0.730;
+				else if(ISRJetPt >= 250 && ISRJetPt < 300)reweightF =	0.732;
+				else if(ISRJetPt >= 300)reweightF =  0.642; 
+
+				bool hasHighPho(false);
+				 std::vector<mcData>::iterator sigMCNeu = MCData.begin();
+				 std::vector<mcData>::iterator sigMCLep = MCData.begin();
+				 std::vector<mcData>::iterator sigMCPho = MCData.begin();
+				 bool hassigMCNeu(false), hassigMCLep(false), hassigMCPho(false);	
+				 for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){
+					if(itMC->getEt() < 1.0)continue;
+					if(!hassigMCLep){
+						if( abs(itMC->getPID()) == 15){sigMCLep = itMC; hassigMCLep = true;}
+						else if(abs(itMC->getPID()) == 11 || abs(itMC->getPID()) == 13){sigMCLep = itMC; hassigMCLep = true;}
+					}
+					if(!hassigMCNeu){
+						if( abs(itMC->getPID()) == 16){sigMCNeu = itMC; hassigMCNeu = true;}
+						else if( abs(itMC->getPID()) == 12 || abs(itMC->getPID()) == 14 ){sigMCNeu = itMC; hassigMCNeu = true;}
+					}
+					if( abs(itMC->getPID()) == 22 && itMC->getPt() > 15 && fabs(itMC->getEta()) < 2.5){ sigMCPho = itMC; hassigMCPho = true;}
+					if( abs(itMC->getPID()) == 22 && itMC->getPt() > 175 && fabs(itMC->getEta()) < 1.4442)hasHighPho = true;
+				 }
+
+				if(hasHighPho)highEta+= 1;
+				if( hassigMCNeu && hassigMCLep && hassigMCPho){
+					if( sigMCLep->getPt() > 25 && sigMCNeu->getPt() > 25 && fabs(sigMCLep->getEta()) < 2.5 &&
+							DeltaR( sigMCLep->getEta(), sigMCLep->getPhi(), sigMCPho->getEta(), sigMCPho->getPhi()) > 0.7 &&
+              (sigMCLep->getP4()+sigMCNeu->getP4()).M() > 40){
+						theoryCut += 1;
+					 // if( sigMCPho->getPt() > 130)highEta+= 1;
+					}
+				}	
+
+
         if(raw.nPho <1)continue;
 
   			pho_phoEt.clear();
@@ -315,6 +392,10 @@ void analysis_Mixing(){//main
 				pho_mcMomPID.clear();
 				pho_mcGMomPID.clear();
 				pho_mcStatus.clear();
+
+				{all_totalEvent += 1; all_reweight += reweightF; }
+				bool hasnopixel(false);
+				bool hasid(false);
 
 				bool hasleading(false);
         bool hasegPho(false);
@@ -331,12 +412,14 @@ void analysis_Mixing(){//main
 						if(itpho->PixelSeed()==0){
 							nopixel_phoEt->Fill(itpho->getCalibEt());
 							pho_phoveto.push_back(1);
+							if(!hasnopixel){nopixel_totalEvent += 1; nopixel_reweight += reweightF; hasnopixel=true;}
 						}
 						else pho_phoveto.push_back(0);
 						if(itpho->isLoose())pho_phoID.push_back(1);
 						else pho_phoID.push_back(0);
 						if(itpho->passSignalSelection() && itpho->PixelSeed()==0){
 							id_phoEt->Fill(itpho->getCalibEt());
+							if(!hasid){id_totalEvent += 1; id_reweight += reweightF; hasid = true;}
 						}
 
 					if(itpho->getR9() < 0.5)continue;
@@ -421,6 +504,7 @@ void analysis_Mixing(){//main
  //             if(METFilter == 0){
 
         if(hasegPho && hasEle){
+								{egamma_totalEvent += 1; egamma_reweight += reweightF;}
           double dReg = DeltaR(egsignalPho->getEta(), egsignalPho->getPhi(), signalEle->getEta(), signalEle->getPhi()); 
           if(dReg>0.8){
             {
@@ -504,6 +588,7 @@ void analysis_Mixing(){//main
 //						if(METFilter == 0){ 
  
        if(hasmgPho && hasMu){
+								{mugamma_totalEvent += 1; mugamma_reweight += reweightF;}
 					double dRmg = DeltaR(mgsignalPho->getEta(), mgsignalPho->getPhi(), signalMu->getEta(), signalMu->getPhi());
 					if(dRmg>0.8){
 						if(METFilter == 0){ 
@@ -581,6 +666,11 @@ void analysis_Mixing(){//main
 outputfile->Write();
 outputfile->Close();
 
+	std::cout << "all_totalEvent" << all_totalEvent << " all_reweight " << all_reweight << " ratio " << all_totalEvent/all_reweight << std::endl;
+	std::cout << "nopixel_totalEvent" << nopixel_totalEvent << " nopixel_reweight " << nopixel_reweight << " ratio " << nopixel_totalEvent/nopixel_reweight << std::endl;
+	std::cout << "id_totalEvent" << id_totalEvent << " id_reweight " << id_reweight << " ratio " << id_totalEvent/id_reweight << std::endl;
+	std::cout << "egamma_totalEvent" << egamma_totalEvent << " egamma_reweight " << egamma_reweight << " ratio " << egamma_totalEvent/egamma_reweight << std::endl;
+	std::cout << "mugamma_totalEvent" << mugamma_totalEvent << " mugamma_reweight " << mugamma_reweight << " ratio " << mugamma_totalEvent/mugamma_reweight << std::endl;
 }
 
 

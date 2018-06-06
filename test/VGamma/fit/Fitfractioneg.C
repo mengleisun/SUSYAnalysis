@@ -50,31 +50,34 @@
 
 int
 Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocut){
-	gStyle->SetOptStat(0);
 	setTDRStyle();
+	gStyle->SetOptStat(0);
+	gStyle->SetErrorX(0);
+	gStyle->SetTitleXOffset(2.5);
   RooAbsReal::defaultIntegratorConfig()->getConfigSection("RooIntegrator1D").setRealValue("maxSteps",50000); 
 	std::ostringstream histname;
 	ofstream myfile;
 	myfile.open("VGamma_scalefactor_eg.txt", std::ios_base::app | std::ios_base::out);
 
+	TString filepath = "/uscms_data/d3/mengleis/Approval/test/Background/";
 	std::ostringstream filename;
 	filename.str("");
-	filename << "../../Background/controlTree_egamma_signal_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << filepath << "controlTree_egamma_signal_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_sig = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_egamma_eleBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << filepath << "controlTree_egamma_eleBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_ele = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_egamma_jetbkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << filepath << "controlTree_egamma_jetbkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_jet = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_egamma_rareBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << filepath << "controlTree_egamma_rareBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_rare = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_egamma_qcd_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << "_iso" << isocut << ".root";
+	filename << filepath << "controlTree_egamma_qcd_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << "_iso" << isocut << ".root";
 	TFile *file_qcd = TFile::Open(filename.str().c_str());
 	filename.str("");
-	filename << "../../Background/controlTree_egamma_VGBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
+	filename << filepath << "controlTree_egamma_VGBkg_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_VG = TFile::Open(filename.str().c_str());
 
 	TH1D  *p_sig = (TH1D*)file_sig->Get("p_dPhiEleMET");
@@ -174,6 +177,7 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	setTopPad(canpt_pad1); 
 	canpt_pad1->Draw();          
 	canpt_pad1->cd();  
+	gStyle->SetErrorX(0);
 	p_target->GetYaxis()->SetTitle("Events / (0.1)");
 	p_target->SetTitle(""); 
 	p_target->SetMaximum(1.5*p_target->GetBinContent(p_target->GetMaximumBin()));
@@ -192,6 +196,7 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	p_qcd->SetLineWidth(3);
 	p_qcd->Draw("hist same");
 	p_VGAMMA->SetLineColor(kGreen);
+	p_VGAMMA->SetLineStyle(2);
 	p_VGAMMA->SetLineWidth(3);
 	p_VGAMMA->Draw("hist same");
 	
@@ -205,11 +210,11 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	p_qcd->SetMarkerSize(0);
 	p_combine_error->SetMarkerSize(0);
 	p_combine_error->SetLineWidth(0);
-	leg->AddEntry(p_target, "Data");
+	leg->AddEntry(p_target, "Data", "ep");
 	leg->AddEntry(p_combine,"Total fit");
-	leg->AddEntry(p_VGAMMA, "V#gamma");
-	leg->AddEntry(p_qcd, "Misid. e proxy");
-	leg->AddEntry(p_combine_error, "stat. unc.");
+	leg->AddEntry(p_VGAMMA, "V#gamma","l");
+	leg->AddEntry(p_qcd, "Misid. e proxy","l");
+	leg->AddEntry(p_combine_error, "Fit uncertainty");
 	leg->Draw("same");
  	gPad->RedrawAxis();
   CMS_lumi( canpt_pad1, 11 );

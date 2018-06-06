@@ -165,8 +165,8 @@ void fitJetFunc(int detType){
 	if(detType == 1){
 		sigtree->Draw("phoEt >> p_sigPhoEt", " phoEt >35 && sigMET < 70 && fabs(phoEta) < 1.4442");
 		std::cout << "signal " << p_sigPhoEt->GetEntries() << std::endl;
-		controltree->Draw("phoEt >> p_controlPhoEt", "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442 && phoChIso < 15");
-		controltree->Draw("phoEt >> p_checkEt",  "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442 && phoChIso < 15");
+		controltree->Draw("phoEt >> p_controlPhoEt", "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442 && phoChIso < 1.29");
+		controltree->Draw("phoEt >> p_checkEt",  "phoEt > 35 && sigMET < 70 && fabs(phoEta) < 1.4442 && phoChIso < 1.29");
 	}
 	if(detType == 2){
 		sigtree->Draw("phoEt >> p_sigPhoEt", " phoEt >35 && sigMET < 70 && fabs(phoEta) > 1.56 && fabs(phoEta) < 2.1");
@@ -339,7 +339,7 @@ void fitJetFunc(int detType){
 	TF1 *fitden = new_controlPhoEt->GetFunction("fitfunc_den");
 	ofstream myfile;
 	//if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-new.txt");
-	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-15.txt");
+	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-129.txt");
 	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EE.txt");
 
 	TH1D *ratio = new TH1D("transfer fraction","",int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE),35,300);

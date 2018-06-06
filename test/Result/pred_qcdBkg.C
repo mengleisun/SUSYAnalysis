@@ -1,4 +1,21 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
+
+struct runinfo{
+	int runN;
+	int lumiN;
+	Long_t eventN;
+	int binN;
+};
+
+bool compareByRun(const runinfo &a, const runinfo &b)
+{
+		if(a.runN < b.runN)
+			return true;
+		else if(a.runN == b.runN)
+			return a.lumiN < b.lumiN;
+		else return false;
+}
+
 
 void pred_qcdBkg(){
 
@@ -115,10 +132,19 @@ void pred_qcdBkg(){
 	TH1D *unweight_Mt = new TH1D("unweight_Mt","M_{T}; M_{T} (GeV);",nSigMtBins,sigMtBins);
 	TH1D *unweight_HT = new TH1D("unweight_HT","HT; HT (GeV);",nSigHTBins, sigHTBins);
 	TH1D *unweight_dPhiEleMET = new TH1D("unweight_dPhiEleMET","dPhiEleMET",32,0,3.2); 
+	
+	std::vector<runinfo> sig_runV;
+	sig_runV.clear();
+	
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
-	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+	//if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
+	//if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root");
+	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
+	int   run(0);
+	Long_t event(0);
+	int   lumis(0);
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -137,6 +163,9 @@ void pred_qcdBkg(){
   float HT(0);
   float nJet(0);
   
+	fakeEtree->SetBranchAddress("run",       &run);	
+	fakeEtree->SetBranchAddress("event",     &event);
+	fakeEtree->SetBranchAddress("lumis",     &lumis);
   fakeEtree->SetBranchAddress("phoEt",     &phoEt);
   fakeEtree->SetBranchAddress("phoEta",    &phoEta);
   fakeEtree->SetBranchAddress("phoPhi",    &phoPhi);
@@ -208,6 +237,12 @@ void pred_qcdBkg(){
 		int SigBinIndex(-1);
 		SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 		if(SigBinIndex >=0){
+			runinfo sig_runinfo;
+			sig_runinfo.runN = run;
+			sig_runinfo.eventN = event;
+			sig_runinfo.lumiN = lumis;
+			sig_runinfo.binN = SigBinIndex;
+			sig_runV.push_back(sig_runinfo);
 			h_qcdfakelep_norm->Fill( SigBinIndex, w_qcd);
 			h_qcdfakelep_controlsample->Fill( SigBinIndex );
 			h_qcdfakelep_normup->Fill( SigBinIndex, w_qcd_up); 
@@ -341,6 +376,8 @@ void pred_qcdBkg(){
 	h_qcdfakelep_syserr_isr->Write();     
 
 	for(unsigned ibin(1); ibin < h_qcdfakelep_controlsample->GetSize(); ibin++)std::cout <<"bin " << ibin << " " <<  h_qcdfakelep_controlsample->GetBinContent(ibin) << std::endl; 
+	std::sort(sig_runV.begin(), sig_runV.end(), compareByRun);
+	for(unsigned i=0; i < sig_runV.size(); i++)std::cout <<  sig_runV[i].binN+18 << " " <<  sig_runV[i].runN << " " << sig_runV[i].lumiN << " " << sig_runV[i].eventN << std::endl;	
 	outputfile->Write();
 	outputfile->Close();
 }

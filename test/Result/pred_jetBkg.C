@@ -1,7 +1,23 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 #define NTOY 1000
 bool useGaussFit=false;
+
+struct runinfo{
+	int runN;
+	int lumiN;
+	Long_t eventN;
+	int binN;
+};
+
+bool compareByRun(const runinfo &a, const runinfo &b)
+{
+		if(a.runN < b.runN)
+			return true;
+		else if(a.runN == b.runN)
+			return a.lumiN < b.lumiN;
+		else return false;
+}
 
 void pred_jetBkg(){
 
@@ -60,7 +76,7 @@ void pred_jetBkg(){
 	std::stringstream AltJetFakeRateFile;
   AltJetFakeRateFile.str();
 	if(channelType==1)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-5.txt";
-	if(channelType==2)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-5.txt";
+	if(channelType==2)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-129.txt";
 	std::ifstream Altjetfakefile(AltJetFakeRateFile.str().c_str());
 	for(int i(0); i < 4; i++){
 		Altjetfakefile >> paratype >> paravalue;
@@ -98,7 +114,10 @@ void pred_jetBkg(){
 	TH1D *p_ET_nom = new TH1D("p_ET_nom","",4, sysETBin);
 	TH1D *p_ET_stat = new TH1D("p_ET_stat","",4, sysETBin);
 	TH1D *p_ET_alt = new TH1D("p_ET_alt","",4, sysETBin);
-		
+	
+	std::vector<runinfo> sig_runV;
+	sig_runV.clear();
+	
 	double predict_lowEt(0), predict_highEt(0), proxy_lowEt(0), proxy_highEt(0);
 	double toy_predict_lowEt[NTOY];
 	double toy_predict_highEt[NTOY];
@@ -184,11 +203,14 @@ void pred_jetBkg(){
 
 	/************ jet tree **************************/ 
 		TChain *jettree = new TChain("jetTree");
-		//if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
-		//if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto_onelep.root");
+		//if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+		//if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root");
+		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
 
+  	int   run(0);
+  	Long64_t  event(0);
+  	int   lumis(0);
 		float phoEt(0);
 		float phoEta(0);
 		float phoPhi(0);
@@ -204,7 +226,10 @@ void pred_jetBkg(){
 		float dRPhoLep(0);
 		float HT(0);
 		float nJet(0);
-		
+	
+		//jettree->SetBranchAddress("run",       &run);	
+		//jettree->SetBranchAddress("event",     &event);
+		//jettree->SetBranchAddress("lumis",     &lumis);
 		jettree->SetBranchAddress("phoEt",     &phoEt);
 		jettree->SetBranchAddress("phoEta",    &phoEta);
 		jettree->SetBranchAddress("phoPhi",    &phoPhi);
@@ -288,6 +313,12 @@ void pred_jetBkg(){
 			int SigBinIndex(-1);
 			SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 			if(SigBinIndex >= 0){
+				runinfo sig_runinfo;
+				sig_runinfo.runN = run;
+				sig_runinfo.eventN = event;
+				sig_runinfo.lumiN = lumis;
+				sig_runinfo.binN = SigBinIndex;
+				sig_runV.push_back(sig_runinfo);
 				h_jetfakepho_norm->Fill( SigBinIndex, w_jet);
 				h_jetfakepho_controlsample->Fill( SigBinIndex );
 		  	if(phoEt < 200){
@@ -458,7 +489,9 @@ void pred_jetBkg(){
 	p_ET_nom->Write();	
 	p_ET_stat->Write();	
 	p_ET_alt->Write();	
-	
+
+	std::sort(sig_runV.begin(), sig_runV.end(), compareByRun);
+	for(unsigned i=0; i < sig_runV.size(); i++)std::cout <<  sig_runV[i].binN << " " <<  sig_runV[i].runN << " " << sig_runV[i].lumiN << " " << sig_runV[i].eventN << std::endl;	
 	outputfile->Write();
 	outputfile->Close();
 

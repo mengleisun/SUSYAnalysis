@@ -25,7 +25,7 @@
 #include "TGraphErrors.h"
 #include "../../include/tdrstyle.C"
 
-int channel = 1; // 1 = eg, 2 = mg
+int channel = 2; // 1 = eg, 2 = mg
 
 void plot_bkg(){//main  
 
@@ -65,12 +65,12 @@ void plot_bkg(){//main
 
 	TFile *file_t5 = TFile::Open("signalTree_T5WG.root");
 	TFile *file_tchi=TFile::Open("signalTree_TChiWG.root");
-	TH1D *p_t5wg_MET_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_MET_signal_1700_1000_eg");
-	TH1D *p_tchiwg_MET_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_MET_signal_eg");
-	TH1D *p_t5wg_HT_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_HT_signal_1700_1000_eg");
-	TH1D *p_tchiwg_HT_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_HT_signal_eg");
-	TH1D *p_t5wg_PhoEt_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_PhoEt_signal_1700_1000_eg");
-	TH1D *p_tchiwg_PhoEt_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_PhoEt_signal_eg");
+	TH1D *p_t5wg_MET_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_MET_signal_1700_1000_mg");
+	TH1D *p_tchiwg_MET_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_MET_signal_mg");
+	TH1D *p_t5wg_HT_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_HT_signal_1700_1000_mg");
+	TH1D *p_tchiwg_HT_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_HT_signal_mg");
+	TH1D *p_t5wg_PhoEt_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_PhoEt_signal_1700_1000_mg");
+	TH1D *p_tchiwg_PhoEt_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_PhoEt_signal_mg");
 
 	Double_t bkgEtBins[]={35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
 	int nBkgEtBins= sizeof(bkgEtBins)/sizeof(bkgEtBins[0]) -1;
@@ -325,12 +325,12 @@ void plot_bkg(){//main
 	p_tchiwg_MET_signal_800->SetLineColor(28);
 	p_tchiwg_MET_signal_800->SetLineStyle(2);
 	p_tchiwg_MET_signal_800->SetLineWidth(4);
-	leg_mt->AddEntry(p_allMt,"observed");
-	leg_mt->AddEntry(p_rareMt,"t#bar{t}#gamma/WW#gamma/WZ#gamma");
+	leg_mt->AddEntry(p_allMt,"observed","epl");
+	leg_mt->AddEntry(p_rareMt,"t#bar{t}#gamma / WW#gamma / WZ#gamma");
 	leg_mt->AddEntry(p_eleMt,"e#rightarrow#gamma fakes");
 	leg_mt->AddEntry(p_jetMt,"j#rightarrow#gamma fakes");
 	leg_mt->AddEntry(p_qcdMt,"fake lepton");
-	leg_mt->AddEntry(p_VGMt, "W#gamma/Z#gamma");
+	leg_mt->AddEntry(p_VGMt, "W#gamma / Z#gamma");
   leg_mt->AddEntry(p_t5wg_MET_signal_1700_1000, "T5Wg");
 	leg_mt->AddEntry(p_tchiwg_MET_signal_800, "TChiWg");
 	leg_mt->AddEntry(ratioerror_Mt, "Unc");
@@ -432,7 +432,9 @@ void plot_bkg(){//main
   chantex.SetNDC();
   chantex.SetTextFont(42);
   chantex.SetTextSize(0.05);    
-  chantex.DrawLatex(0.4,0.85,"M_{T} > 100 GeV, p_{T}^{miss} > 120 GeV");
+  chantex.DrawLatex(0.4,0.87,"M_{T} > 100 GeV, p_{T}^{miss} > 120 GeV");
+  chantex.SetTextSize(0.07);    
+	chantex.DrawLatex(0.8,0.5,"(d)");
  	gPad->RedrawAxis();
   CMS_lumi( pt_pad1, 11 );
 
@@ -526,7 +528,10 @@ void plot_bkg(){//main
 //	leg_met->AddEntry(p_VGMET, "WG/ZG");
 	leg_mt->Draw("same");
 	p_allMET->Draw("E same");
-  chantex.DrawLatex(0.4,0.85,"M_{T} > 100 GeV");
+  chantex.SetTextSize(0.05);    
+  chantex.DrawLatex(0.4,0.87,"M_{T} > 100 GeV");
+  chantex.SetTextSize(0.07);    
+	chantex.DrawLatex(0.8,0.5,"(b)");
  	gPad->RedrawAxis();
   CMS_lumi( met_pad1, 11 );
 
@@ -711,7 +716,10 @@ void plot_bkg(){//main
 	error_HT->Draw("E2 same");
 	leg_mt->Draw("same");
 	p_allHT->Draw("E same");
-  chantex.DrawLatex(0.4,0.85,"M_{T} > 100 GeV,p_{T}^{miss} > 120 GeV");
+  chantex.SetTextSize(0.05);    
+  chantex.DrawLatex(0.4,0.87,"M_{T} > 100 GeV, p_{T}^{miss} > 120 GeV");
+  chantex.SetTextSize(0.07);    
+	chantex.DrawLatex(0.8,0.5,"(f)");
  	gPad->RedrawAxis();
   CMS_lumi( HT_pad1, 11 );
 

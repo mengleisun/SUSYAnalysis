@@ -31,17 +31,31 @@ bool rawData::passHLT(){
 
 bool rawData::passMETFilter(int filter){
   bool passfilter(true);
-  for(int im(1); im <= 8; im++)
-    if(((filter >> im)&1)!=0){passfilter = false; return passfilter;}
+  for(int im(1); im <= 8; im++){
+		if(im != 5){ // no ee Bad Sc filter
+    	if(((filter >> im)&1)!=0){passfilter = false; return passfilter;}
+		}
+	}
 
-  switch(runtype_){
-    case DoubleEG2016: case MuonEG2016: case SingleElectron2016:case SingleMuon2016: case DoubleMuon2016: case MET2016: 
-									if(((filter >> 9)&1)!=1){passfilter = false; return passfilter;}
-									if(((filter >> 10)&1)!=1){passfilter = false; return passfilter;}
-									break; 
-    default: return passfilter; break;
-  }
+//  switch(runtype_){
+//    case DoubleEG2016: case MuonEG2016: case SingleElectron2016:case SingleMuon2016: case DoubleMuon2016: case MET2016: 
+//									if(((filter >> 9)&1)!=1){passfilter = false; return passfilter;}
+//									if(((filter >> 10)&1)!=1){passfilter = false; return passfilter;}
+//									break; 
+//    default: return passfilter; break;
+//  }
 
   return passfilter;
 }
 
+int rawData::failFilterStep(int filter){
+		int failStep(-1);
+		
+  	for(int im(1); im <= 8; im++){
+			if(im != 5){ // no ee Bad Sc filter
+    		if(((filter >> im)&1)!=0){failStep = im; return failStep;}
+			}
+		}
+		
+		return failStep;
+}

@@ -1,4 +1,4 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void pred_sig(){
 
@@ -23,9 +23,11 @@ void pred_sig(){
 
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_SingleEvent.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+	//if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+
+	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG.root");
+  if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG.root");
 
   int   run(0);
   Long64_t  event(0);

@@ -3,6 +3,7 @@
 
 #ifndef ROOT_TTree
 #include "TTree.h"
+#include "TString.h"
 #endif
 
 using namespace std;
@@ -36,8 +37,7 @@ enum RunType{
     rawData(TTree *tree, RunType type): runtype_(type)
   {    
 	  if(type == MC || type == MCDoubleEG || type == MCMuonEG||  type == MCSingleElectron || type == MCSingleMuon||  type == MCDoubleMuon || type == MCMET ){
-		tree->SetBranchAddress("br_flag",      &br_flag);
-		tree->SetBranchAddress("weight",       &weight);
+		tree->SetBranchAddress("EventTag",     &EventTag);
 		
 		tree->SetBranchAddress("nMC",          &nMC);
 		tree->SetBranchAddress("mcPID",        &mcPID);
@@ -178,9 +178,8 @@ enum RunType{
 		bool passMETFilter(int filter);
 		int  failFilterStep(int filter);
     RunType runtype_;
-	
-		int       br_flag=0; 
-		float     weight=0;	
+
+		TString   *EventTag=0;	
     Int_t     run=0;
     Long64_t  event=0;
     Int_t     lumis=0;

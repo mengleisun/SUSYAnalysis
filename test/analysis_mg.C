@@ -33,9 +33,11 @@ void analysis_mg(){//main
 
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto_onelep.root";
+  //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto_onelep.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto.log"); 
+  //logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto.log"); 
+  logfile.open("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.log"); 
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
@@ -143,6 +145,9 @@ void analysis_mg(){//main
 	float proxytrailEta(0);
 	float proxytrailPhi(0);
   
+  proxytree->Branch("run",       &run);
+  proxytree->Branch("event",     &event);
+  proxytree->Branch("lumis",     &lumis);
   proxytree->Branch("phoEt",     &proxyphoEt);
   proxytree->Branch("phoEta",    &proxyphoEta);
   proxytree->Branch("phoPhi",    &proxyphoPhi);
@@ -185,6 +190,9 @@ void analysis_mg(){//main
 	float jettrailEta(0);
 	float jettrailPhi(0);
   
+  jettree->Branch("run",       &run);
+  jettree->Branch("event",     &event);
+  jettree->Branch("lumis",     &lumis);
   jettree->Branch("phoEt",     &jetphoEt);
   jettree->Branch("phoEta",    &jetphoEta);
   jettree->Branch("phoPhi",    &jetphoPhi);
@@ -225,6 +233,9 @@ void analysis_mg(){//main
   float fakeLepHT(0);
   int   fakeLepnJet(0);
   
+  fakeLeptree->Branch("run",       &run);
+  fakeLeptree->Branch("event",     &event);
+  fakeLeptree->Branch("lumis",     &lumis);
   fakeLeptree->Branch("phoEt",     &fakeLepphoEt);
   fakeLeptree->Branch("phoEta",    &fakeLepphoEta);
   fakeLeptree->Branch("phoPhi",    &fakeLepphoPhi);
@@ -344,17 +355,17 @@ void analysis_mg(){//main
 
 			if(raw.nMu < 1 || raw.nPho <1)continue;
 
-      int Nmedpho(0);
-      for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
-        if(!itpho->isMedium())continue;
-        if(itpho->getR9() < 0.5 || itpho->getR9() > 1.0)continue;
-        if(fabs(itpho->getEta()) > 1.4442 || itpho->getCalibEt() < 40)continue;
-        if(itpho->getSigma() < 0.005)continue;
-        if(itpho->PixelSeed() != 0)continue;
+  //    int Nmedpho(0);
+  //    for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
+  //      if(!itpho->isMedium())continue;
+  //      if(itpho->getR9() < 0.5 || itpho->getR9() > 1.0)continue;
+  //      if(fabs(itpho->getEta()) > 1.4442 || itpho->getCalibEt() < 40)continue;
+  //      if(itpho->getSigma() < 0.005)continue;
+  //      if(itpho->PixelSeed() != 0)continue;
 
-        Nmedpho+=1;
-      }
-      if(Nmedpho >= 2)continue;
+  //      Nmedpho+=1;
+  //    }
+  //    if(Nmedpho >= 2)continue;
 
 			nBJet = 0;
 			for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){

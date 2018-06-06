@@ -1,4 +1,5 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
+#include "TArrow.h"
 
 #define NTOY 1000
 bool useGaussFit=false;
@@ -11,6 +12,7 @@ bool useGaussFit=false;
 void closure_efakepho(int ichannel){
 
   setTDRStyle();
+	gStyle->SetTitleXOffset(2.5);
   gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 
@@ -478,7 +480,7 @@ void closure_efakepho(int ichannel){
 	pt_pad1->Draw();                                                        
 	pt_pad1->cd();                                                          
 	gPad->SetLogy();
-	p_PhoEt->SetMaximum(100*p_PhoEt->GetBinContent(p_PhoEt->GetMaximumBin())); 
+	p_PhoEt->SetMaximum(200*p_PhoEt->GetBinContent(p_PhoEt->GetMaximumBin())); 
 	p_PhoEt->GetXaxis()->SetRangeUser(35,200);                              
 	p_PhoEt->GetXaxis()->SetLabelSize(0);
 	p_PhoEt->Draw();                                                        
@@ -500,9 +502,10 @@ void closure_efakepho(int ichannel){
 	DY_PhoEt->SetMarkerColor(kYellow);
 	error_PhoEt->SetMarkerSize(0);
 	error_PhoEt->SetLineWidth(0);
-	leg->AddEntry(p_PhoEt,"Direct simulation");
-	leg->AddEntry(pred_PhoEt,"t#bar{t}/WW/WZ");
-	leg->AddEntry(DY_PhoEt,"DY");
+	leg->AddEntry(p_PhoEt,"Direct simulation", "pel");
+	leg->AddEntry(pred_PhoEt,"t#bar{t} / WW / WZ");
+	leg->AddEntry(DY_PhoEt,"Drell#scale[0.5]{ }#minusYan");
+
 	leg->AddEntry(error_PhoEt, "Total uncertainty");
 	leg->Draw("same");
   TLatex chantex;
@@ -538,7 +541,7 @@ void closure_efakepho(int ichannel){
 	ratio->SetLineColor(kBlack);
 	ratio->Divide(pred_PhoEt);
 	ratio->SetTitle("");
-	ratio->GetYaxis()->SetTitle("#frac{Observed}{Predict}");
+	ratio->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
 	ratio->GetYaxis()->SetNdivisions(504);
 	ratio->Draw();
 	ratioerror_PhoEt->SetFillColor(12);
@@ -559,7 +562,7 @@ void closure_efakepho(int ichannel){
 	met_pad1->Draw();  
 	met_pad1->cd();  
 	gPad->SetLogy();
-	p_MET->SetMaximum(100*p_MET->GetBinContent(p_MET->GetMaximumBin())); 
+	p_MET->SetMaximum(1000*p_MET->GetBinContent(p_MET->GetMaximumBin())); 
 	p_MET->SetMinimum(0.05);
 	p_MET->GetXaxis()->SetRangeUser(0,400);
 	p_MET->GetXaxis()->SetLabelSize(0);
@@ -587,6 +590,13 @@ void closure_efakepho(int ichannel){
 	leg->Draw("same");
 	p_MET->Draw("E same");
   chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+	TLine *line_met = new TLine(70,0,70,10000);
+	line_met->SetLineStyle(2);
+	line_met->Draw("same");
+	TLatex* latex = new TLatex();
+	latex->SetTextSize(0.05);
+	latex->DrawLatex(20, 6000,"control");
+	latex->DrawLatex(20, 3000,"region");
  	gPad->RedrawAxis();
   CMS_lumi( met_pad1, 11 );
 
@@ -602,7 +612,7 @@ void closure_efakepho(int ichannel){
 	ratio_met->SetMarkerStyle(20);
 	ratio_met->Divide(pred_MET);
 	ratio_met->SetTitle("");
-	ratio_met->GetYaxis()->SetTitle("#frac{Observed}{Predict}");
+	ratio_met->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
 	ratio_met->GetYaxis()->SetRangeUser(0,2);
 	ratio_met->Draw();
 	ratioerror_MET->SetFillColor(12);
@@ -610,6 +620,10 @@ void closure_efakepho(int ichannel){
 	ratioerror_MET->Draw("E2 same");
 	ratio_met->Draw("same");
 	flatratio_met->Draw("same");
+	TLine *line_met_ratio = new TLine(70,0,70,3);
+	line_met_ratio->SetLineStyle(2);
+	line_met_ratio->Draw("same");
+ 	gPad->RedrawAxis();
 	c_met->SaveAs("closure_elefakepho_MET_mg.pdf");
 
 // ******** Mt ************************//
@@ -667,7 +681,7 @@ void closure_efakepho(int ichannel){
 	ratio_mt->SetMaximum(2);
 	ratio_mt->Divide(pred_Mt);
 	ratio_mt->SetTitle("");
-	ratio_mt->GetYaxis()->SetTitle("#frac{Observed}{Predict}");
+	ratio_mt->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
 	ratio_mt->Draw();
 	ratioerror_Mt->SetFillColor(12);
 	ratioerror_Mt->SetFillStyle(3345);
@@ -731,7 +745,7 @@ void closure_efakepho(int ichannel){
 	ratio_HT->SetMaximum(2);
 	ratio_HT->Divide(pred_HT);
 	ratio_HT->SetTitle("");
-	ratio_HT->GetYaxis()->SetTitle("#frac{Observed}{Predict}");
+	ratio_HT->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
 	ratio_HT->Draw();
 	ratioerror_HT->SetFillColor(12);
 	ratioerror_HT->SetFillStyle(3345);

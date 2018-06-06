@@ -1,34 +1,5 @@
-#include<string>
-#include<iostream>
-#include<fstream>
-#include<sstream>
-#include<algorithm>
-#include<ctime>
-
-#include "TFile.h"
-#include "TTree.h"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TCanvas.h"
-#include "TStyle.h"
-#include "TString.h"
-#include "TChain.h"
-#include "TSystem.h"
-#include "TMath.h"
-#include "TLegend.h"
-#include "TLine.h"
-#include "TProfile.h"
-#include "TLorentzVector.h"
-#include "TFileCollection.h"
-
-#include "../include/analysis_rawData.h"
-#include "../include/analysis_photon.h"
-#include "../include/analysis_muon.h"
-#include "../include/analysis_ele.h"
-#include "../include/analysis_mcData.h"
-#include "../include/analysis_tools.h"
-#include "../include/analysis_jet.h"
-
+#include "../include/analysis_commoncode.h"
+#include "../include/analysis_cuts.h"
 
 void analysis_eg(){//main 
 
@@ -36,9 +7,9 @@ void analysis_eg(){//main
 
   //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_JetIDImp.root";
   //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root";
-  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_SingleEvent2.root";
+  char outputname[100] = "/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_JetID.log"); 
+  logfile.open("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.log"); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
@@ -143,6 +114,9 @@ void analysis_eg(){//main
 	float proxytrailEta(0);
 	float proxytrailPhi(0);
   
+  proxytree->Branch("run",       &run);
+  proxytree->Branch("event",     &event);
+  proxytree->Branch("lumis",     &lumis);
   proxytree->Branch("phoEt",     &proxyphoEt);
   proxytree->Branch("phoEta",    &proxyphoEta);
   proxytree->Branch("phoPhi",    &proxyphoPhi);
@@ -186,6 +160,9 @@ void analysis_eg(){//main
 	float jettrailEta(0);
 	float jettrailPhi(0);
   
+  jettree->Branch("run",       &run);
+  jettree->Branch("event",     &event);
+  jettree->Branch("lumis",     &lumis);
   jettree->Branch("phoEt",     &jetphoEt);
   jettree->Branch("phoEta",    &jetphoEta);
   jettree->Branch("phoPhi",    &jetphoPhi);
@@ -234,6 +211,9 @@ void analysis_eg(){//main
 	float fakeLeptrailPhi(0);
   
   
+  fakeLeptree->Branch("run",       &run);
+  fakeLeptree->Branch("event",     &event);
+  fakeLeptree->Branch("lumis",     &lumis);
   fakeLeptree->Branch("phoEt",     &fakeLepphoEt);
   fakeLeptree->Branch("phoEta",    &fakeLepphoEta);
   fakeLeptree->Branch("phoPhi",    &fakeLepphoPhi);
@@ -326,12 +306,10 @@ void analysis_eg(){//main
   int METFilter(0);
   logfile << "RunType: " << datatype << std::endl;
 
-
   TFile *skimfile = TFile::Open("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/select_DoubleEG_signal.root","RECREATE");
   TDirectory *dir_out = skimfile->mkdir("ggNtuplizer");
   dir_out->cd();
   TTree *tree_out = es->CloneTree(0);
-
 
   std::cout << "Total evetns : " << nEvts << std::endl;
   logfile << "Total evetns : " << nEvts << std::endl;
@@ -366,17 +344,17 @@ void analysis_eg(){//main
 
 			if(raw.nEle < 1 || raw.nPho <1)continue;
 
-      int Nmedpho(0);
-      for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
-        if(!itpho->isMedium())continue;
-        if(itpho->getR9() < 0.5 || itpho->getR9() > 1.0)continue;
-        if(fabs(itpho->getEta()) > 1.4442 || itpho->getCalibEt() < 40)continue;
-        if(itpho->getSigma() < 0.005)continue;
-        if(itpho->PixelSeed() != 0)continue;
+  //    int Nmedpho(0);
+  //    for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
+  //      if(!itpho->isMedium())continue;
+  //      if(itpho->getR9() < 0.5 || itpho->getR9() > 1.0)continue;
+  //      if(fabs(itpho->getEta()) > 1.4442 || itpho->getCalibEt() < 40)continue;
+  //      if(itpho->getSigma() < 0.005)continue;
+  //      if(itpho->PixelSeed() != 0)continue;
 
-        Nmedpho+=1;
-      }
-      if(Nmedpho >= 2)continue;
+  //      Nmedpho+=1;
+  //    }
+  //    if(Nmedpho >= 2)continue;
 
 			nBJet = 0;
 			for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
@@ -401,7 +379,7 @@ void analysis_eg(){//main
 			hadeleproxyPhoCollection.clear();
 
 			for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
-				if(itpho->getR9() < 0.5)continue;
+				if(itpho->getR9() < R9EBCut)continue;
 				if(!itpho->passHLTSelection())continue;
 				if(!itpho->passBasicSelection())continue;
 				bool passSigma = itpho->passSigma(1);
@@ -411,12 +389,12 @@ void analysis_eg(){//main
 				bool photonFSRVeto(true);
 				bool eleFSRVeto(true);
 				for(std::vector<recoEle>::iterator ie = Ele.begin(); ie != Ele.end(); ie++){
-					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) <= 0.02)GSFveto = false;
-					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3 && ie->getEt()>2.0)photonFSRVeto=false;
-					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3 && DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) > 0.02)eleFSRVeto=false;
+					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) <= ElectronVetoCone)GSFveto = false;
+					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < GeneralCone && ie->getEt()>2.0)photonFSRVeto=false;
+					if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < GeneralCone && DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) > ElectronVetoCone)eleFSRVeto=false;
 				}
 				for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++){
-					if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getEt()>2.0){
+					if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < GeneralCone && im->getEt()>2.0){
 						photonFSRVeto=false;
 						eleFSRVeto=false;
 					}
@@ -450,13 +428,6 @@ void analysis_eg(){//main
 				}
 			}
 
-
-	//		if(hasPho || proxyPhoCollection.size() > 0 || jetPhoCollection.size() > 0 || hasHadronPho || hadeleproxyPhoCollection.size() > 0){
-	//			tree_out->Fill();
-	//		}
-
-			
-
 			/******************************************************************************************************************************************************************************/
 			/***********************************                                  Select Lepton                                              **********************************************/
 			bool hasLep(false);
@@ -465,21 +436,17 @@ void analysis_eg(){//main
 			proxyLepCollection.clear();
 			std::vector< std::vector<recoEle>::iterator > fakeLepCollection;
 			fakeLepCollection.clear();
-			std::vector< std::vector<recoEle>::iterator > miniisoLep;
-			miniisoLep.clear();
 			for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
-				if(itEle->isMedium() && itEle->getPt() > 15 && itEle->getMiniIso() < 0.2)miniisoLep.push_back(itEle);
-				if(itEle->getCalibPt() < 25)continue;
 
+				if(itEle->getCalibPt() < 25)continue;
 				if(itEle->isFakeProxy())fakeLepCollection.push_back(itEle);	
-				if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))continue;
-				//if((itEle->isEB() && (itEle->getD0() > 0.05 || itEle->getDz() > 0.10)) || (itEle->isEE() && ( itEle->getD0() > 0.10 || itEle->getDz() > 0.20)) )continue;
+				if((itEle->isEB() && itEle->getR9() < R9EBCut) || (itEle->isEE() && itEle->getR9() < R9EECut))continue;
 
 				if(!itEle->passHLTSelection())continue;
 				//if(itEle->isFakeProxy())fakeLepCollection.push_back(itEle);	
 				//if(itEle->isLooseFakeProxy())fakeLepCollection.push_back(itEle);//Loose the proxy definition	
 				if(itEle->passSignalSelection()){
-					if(!hasLep)proxyLepCollection.push_back(itEle);
+					proxyLepCollection.push_back(itEle);
 					if(!hasLep){
 						hasLep=true; 
 						npassLep +=1;

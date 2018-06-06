@@ -36,7 +36,7 @@ void compareTree(){//main
 
 	std::ostringstream treeName;
 	treeName.str("");
-	treeName << "jetTree";
+	treeName << "signalTree";
 
 	bool   EBOnly = true;
 	double scalefactor1 = 1; 
@@ -81,7 +81,7 @@ void compareTree(){//main
 	int  Nsig_2(0);
 //************ Signal Tree **********************//
   TChain *tree = new TChain(treeName.str().c_str());
-  tree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+  tree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -121,6 +121,7 @@ void compareTree(){//main
  
 		double weight = scalefactor1; 
 		if(EBOnly && fabs(phoEta) > 1.4442)continue;
+    if(phoEt < 35)continue;
 
 		if(sigMT > 100 && sigMET > 120)Nsig_1 += 1;
 		p_phoEt_data->Fill(phoEt, weight); 
@@ -143,7 +144,7 @@ void compareTree(){//main
 
 //************ Signal Tree **********************//
   TChain *tree2 = new TChain(treeName.str().c_str());
-  tree2->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_SingleEvent.root");
+  tree2->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
   float second_phoEt(0);
   float second_phoEta(0);
   float second_phoPhi(0);
@@ -185,6 +186,7 @@ void compareTree(){//main
 
 		double weight = scalefactor2; 
 		if(EBOnly && fabs(second_phoEta) > 1.4442)continue;
+    if(second_phoEt < 35)continue;
 
 		if(second_sigMT > 100 && second_sigMET > 120)Nsig_2 += 1;
 		p_phoEt_2->Fill(second_phoEt, weight); 

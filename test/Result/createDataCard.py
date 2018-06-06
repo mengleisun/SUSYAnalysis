@@ -3,7 +3,7 @@ import os
 import ROOT
 import argparse
 
-limdir = './'
+limdir = './combinecard/'
 
 n_channels = 36
 n_processes= 6
@@ -30,8 +30,11 @@ file_out.write("imax 36 number of channels\n")
 file_out.write("jmax 5  number of backgrounds\n")
 file_out.write("kmax *  number of nuisance parameters\n")
 file_out.write("------------\n")
+#file_out.write("bin             lg_1  lg_2  lg_3  lg_4  lg_5  lg_6  lg_7  lg_8  lg_9  lg_10  lg_11  lg_12  lg_13  lg_14  lg_15  lg_16  lg_17  lg_18  lg_19  lg_20  lg_21  lg_22  lg_23  lg_24  lg_25  lg_26  lg_27  lg_28  lg_29  lg_30  lg_31  lg_32  lg_33  lg_34  lg_35  lg_36   \n")
 file_out.write("bin             1  2  3  4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36   \n")
-file_out.write("observation    309  494  85  32  64  45  1  1  5  12  23  20  4  12  7  1  1  0  153  276  67   32   46   32   1  1  4  10  21  14  6  9  4  0  1  3  \n")
+#file_out.write("observation    309  494  85  32  64  45  1  1  5  12  23  20  4  12  7  1  1  0  153  276  67   32   46   32   1  1  4  10  21  14  6  9  4  0  1  3  \n")
+## COmbine ##
+file_out.write("observation    309  501  86  33  65  45  1  1  5  12  24  20  4  13  7  1  1  0  154  276  67   32   46   32   1  1  4  10  22  15  7  9  4  0  1  3  \n")
 
 file_out.write("------------\n")
 

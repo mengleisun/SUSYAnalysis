@@ -51,7 +51,6 @@ bool recoMuon::isFakeProxy(){
   if(!isLoose()){passCut = false; return passCut;}
   if(getD0() > 0.05 || getDz() > 0.1){passCut = false; return passCut;}
   if(isMedium() && getMiniIso() <= 0.2){passCut = false; return passCut;}
-  //if(getRelIso() <= 0.15){passCut = false; return passCut;}
   else passCut = true;
 
   return passCut;

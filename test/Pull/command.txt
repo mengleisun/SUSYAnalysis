@@ -1,0 +1,3 @@
+combine -M MaxLikelihoodFit counting_t5Wg_1000_100.txt -n T5WG --minimizerStrategy 0 --saveWithUncertainties --saveNormalizations
+
+python test/mlfitNormsToText.py -u mlfitT5WG.root

@@ -2,6 +2,7 @@
 
 #define NTOY 1000
 bool useGaussFit=false;
+bool dopostfit=true;
 
 void pred_eleBkg(){
 

@@ -19,8 +19,8 @@ float cmsTextFont   = 62;  // default is helvetic-bold
 
 bool writeExtraText = true;
 //TString extraText   = "";
-//TString extraText   = "Preliminary";
-TString extraText   = "Simulation";
+TString extraText   = "Simulation Preliminary";
+//TString extraText   = "Simulation";
 float extraTextFont = 52;  // default is helvetica-italics
 
 // text sizes and text offsets with respect to the top frame
@@ -67,7 +67,7 @@ CMS_lumi( TPad* pad, int iPosX )
   pad->cd();
 
   TString lumiText;
-  lumiText += "35.8 fb^{-1} (13 TeV)";
+  lumiText += "35.9 fb^{-1} (13 TeV)";
 
   TLatex latex;
   latex.SetNDC();

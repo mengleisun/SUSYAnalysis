@@ -1,7 +1,7 @@
 #include "../include/analysis_commoncode.h"
 #include "../include/analysis_cuts.h"
 
-#define debugMCLevel 0
+#define debugMCLevel 4
 enum branchType{
 	gg = 1,
 	gZ = 2,
@@ -10,6 +10,11 @@ enum branchType{
 	ZZ = 5,
 	HH = 6,
 	noType = 7	
+};
+
+struct decayChain{
+	std::vector<mcData>::iterator iter; 
+  std::vector< std::vector<mcData>::iterator > daughter;
 };
 
 void analysis_SUSY(){//main  
@@ -22,16 +27,18 @@ void analysis_SUSY(){//main
 	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/GGM_GravitinoLSP_M1-200to1500_M2-200to1500.root");
 	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2_scan.root");
 	es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiNG_BF50N50G_TuneCUETP8M1.root");
-	//es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/GGM_GravitinoLSP_M1-50to1500_M3-1000to2500.root");
+	//es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/SMS-T6Wg_TuneCUETP8M1_RunIISummer16MiniAODv2_scan.root");
 
 	RunType datatype(MC); 
 	std::ostringstream outputname;
 	//outputname << "/uscms_data/d3/mengleis/test/resTree_TChiWG.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_test.root";
-	outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNg_test_debug.root";
+	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNg_test_debug.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_test.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_M1M3.root";
+	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T6WG.root";
+	outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNG_debug.root";
 
 	int SUSYtype(-1);
 	if(outputname.str().find("T5WG") != std::string::npos){
@@ -294,7 +301,7 @@ void analysis_SUSY(){//main
 	int nVtx(0);
 	int jetNumber(0);
 
-	const unsigned nEvts = es->GetEntries()/100; 
+	const unsigned nEvts = es->GetEntries()/10; 
 	std::cout << "total event : " << nEvts << std::endl;
 
 	for(unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
@@ -402,13 +409,19 @@ void analysis_SUSY(){//main
 
 		std::vector< pair<int, int> > finalState;
 		finalState.clear();
+		std::vector< std::vector<mcData>::iterator > itMCList;
+		itMCList.clear();	
 		if(debugMCLevel > 0)std::cout << std::endl;
 		bool hasLepFromPho(false);	
 		for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){ 
-	
-			if(debugMCLevel >= 3 && itMC->getPt() > 1.0)std::cout << itMC->getPID() << " " << itMC->getMomPID() << "  " << itMC->getMass() << " " << itMC->getmomMass() << "  " << itMC->getEta() << " " << itMC->getPhi() << std::endl;
-			else if(debugMCLevel >= 2 && itMC->getPt() > 1.0 && (fabs(itMC->getPID()) > 100000 || fabs(itMC->getPID()) < 26))std::cout << itMC->getPID() << " " << itMC->getMomPID() << "  " << itMC->getMass() << " " << itMC->getmomMass() << "  " << itMC->getEta() << " " << itMC->getPhi() << std::endl;
-			else if(debugMCLevel >= 1 && itMC->getPt() > 1.0 && fabs(itMC->getPID()) > 100000)std::cout << itMC->getPID() << " " << itMC->getMomPID() << "  " << itMC->getMass() << " " << itMC->getmomMass()  << "  " << itMC->getEta() << " " << itMC->getPhi() << std::endl;
+
+			if(debugMCLevel >= 1 && itMC->getPt() > 0.1){
+				bool inList(false);
+				for(unsigned imc(0); imc < itMCList.size(); imc++){
+					if( itMC->getPID() == itMCList[imc]->getPID() && itMC->getMomPID() == itMCList[imc]->getMomPID() && DeltaR(itMC->getEta(), itMC->getPhi(), itMCList[imc]->getEta(), itMCList[imc]->getPhi()) < 0.3)inList=true;
+				}
+				if(!inList)itMCList.push_back(itMC);
+			}
 			
 			if(fabs(itMC->getPID()) > 20 && fabs(itMC->getPID()) < 26 && fabs(itMC->getMomPID()) > 1000000){
 				finalState.push_back( make_pair(fabs(itMC->getPID()), fabs(itMC->getMomPID())) );
@@ -466,10 +479,6 @@ void analysis_SUSY(){//main
 		else if(hasBranchPho && hasBranchW)decaybranch = branchType::gW;
 		else if(hasBranchPho && !hasBranchZ && !hasBranchH && !hasBranchW)decaybranch = branchType::gg;
 		else decaybranch = branchType::noType;
-		std::cout << "type:" << decaybranch << " "; 
-		if(hasLepFromPho)std::cout << "yes" << std::endl;
-		else std::cout << "no" << std::endl;
-		std::cout << std::endl;
 		// Calculate HT 
 		for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 			if(!itJet->passSignalSelection())continue;
@@ -634,12 +643,10 @@ void analysis_SUSY(){//main
 					}	
 					// Fill the e+g tree
 					egtree->Fill();
-
 				}// Z mass Filter
 			}//dR filter
 		}// ele + pho candidate
 		 
-
 		if( signalPho != Photon.end() && signalMu != Muon.end() && egsignalEle == Ele.end()){// mu+e+g events are counted in e+g channel
 			double dRmg = DeltaR(signalPho->getEta(), signalPho->getPhi(), signalMu->getEta(), signalMu->getPhi());
 			if(dRmg>PhoLepdR){
@@ -686,13 +693,115 @@ void analysis_SUSY(){//main
 					mg_HTJESup += itJet->getPt()*(1+itJet->getPtUnc());
 					mg_HTJESdo += itJet->getPt()*(1-itJet->getPtUnc());
 				}
-				if(decaybranch == branchType::gg){
-				std::cout << "hasmg" << std::endl;
-				std::cout << std::endl;	}
 				mgtree->Fill();
 			}//dR Filter
 		}//Candidate Filter
 
+		std::vector< decayChain > chains;
+		chains.clear();
+		for(unsigned imc(0); imc<itMCList.size(); imc++){
+			decayChain element;
+			element.iter = itMCList[imc];
+			element.daughter.clear();
+			for(unsigned id(0); id < itMCList.size(); id++){
+				if(itMCList[imc]->getPID() == itMCList[id]->getMomPID() && DeltaR( itMCList[imc]->getEta(), itMCList[imc]->getPhi(), itMCList[id]->getmomEta(), itMCList[id]->getmomPhi()) < 0.3)element.daughter.push_back( itMCList[id] );
+			}
+			//if(element.daughter.size() > 0)chains.push_back(element);
+			chains.push_back(element);
+		}
+
+		std::vector< decayChain > branchOne;
+		std::vector< decayChain > branchTwo;
+		branchOne.clear();
+		branchTwo.clear(); 
+
+		for(unsigned ic(0); ic < chains.size(); ic++){
+			if(fabs(chains[ic].iter->getMomPID()) > 100000 ){
+				bool findbranch(false);
+				for(unsigned ione(0); ione < branchOne.size(); ione++){
+					if( fabs(chains[ic].iter->getMomPID()) == fabs(branchOne[ione].iter->getMomPID()) && DeltaR(chains[ic].iter->getmomEta(), chains[ic].iter->getmomPhi(), branchOne[ione].iter->getmomEta(), branchOne[ione].iter->getmomPhi()) < 0.3){branchOne.push_back(chains[ic]); findbranch=true;break;	}
+				}
+				for(unsigned itwo(0); itwo < branchTwo.size(); itwo++){
+					if( fabs(chains[ic].iter->getMomPID()) == fabs(branchTwo[itwo].iter->getMomPID()) && DeltaR(chains[ic].iter->getmomEta(), chains[ic].iter->getmomPhi(), branchTwo[itwo].iter->getmomEta(), branchTwo[itwo].iter->getmomPhi()) < 0.3){branchTwo.push_back(chains[ic]); findbranch=true;break;	}
+				}
+				if(!findbranch && branchOne.size() == 0)branchOne.push_back(chains[ic]);
+				else if(!findbranch && branchTwo.size() == 0)branchTwo.push_back(chains[ic]);
+			}
+		}
+		
+			//	if(decaybranch != 1)continue;
+			//	if(!acceptMu)continue;
+			//	else std::cout << "acc" << std::endl;
+			//	for(unsigned imc(0); imc<itMCList.size(); imc++){
+			//		printf("%10d %8.2f %8.2f %8.2f   %10d %8.2f %8.2f %8.2f \n", itMCList[imc]->getPID(), itMCList[imc]->getPt(), itMCList[imc]->getEta(), itMCList[imc]->getPhi(), itMCList[imc]->getMomPID(), itMCList[imc]->getmomPt(), itMCList[imc]->getmomEta(), itMCList[imc]->getmomPhi());
+			//	}
+				
+				for(unsigned ione(0); ione < branchOne.size(); ione++){
+					if(ione == 0)std::cout << branchOne[ione].iter->getMomPID() << "-> ";
+					std::cout <<  branchOne[ione].iter->getPID() << " ";
+				}
+				std::cout << std::endl;
+				for(unsigned ione(0); ione < branchOne.size(); ione++){
+					if(branchOne[ione].daughter.size() > 0){
+						std::cout << branchOne[ione].iter->getPID() << "-> ";
+						for(unsigned id(0); id < branchOne[ione].daughter.size();  id++)std::cout << (branchOne[ione].daughter)[id]->getPID() << " ";
+						std::cout << std::endl;
+					}
+				}
+				for(unsigned ione(0); ione < branchTwo.size(); ione++){
+					if(ione == 0)std::cout << branchTwo[ione].iter->getMomPID() << "-> ";
+					std::cout <<  branchTwo[ione].iter->getPID() << " ";
+				}
+				std::cout << std::endl;
+				for(unsigned ione(0); ione < branchTwo.size(); ione++){
+					if(branchTwo[ione].daughter.size() > 0){
+						std::cout << "\t" << branchTwo[ione].iter->getPID() << "-> ";
+						for(unsigned id(0); id < branchTwo[ione].daughter.size();  id++)std::cout << (branchTwo[ione].daughter)[id]->getPID() << " ";
+						std::cout << std::endl;
+					}
+				}
+
+				bool hasPhotonConv(false);
+				for(unsigned ione(0); ione < branchOne.size(); ione++){
+					if(branchOne[ione].daughter.size() >= 2){
+						if(branchOne[ione].iter->getPID() == 22 && fabs((branchOne[ione].daughter)[0]->getPID()) == 11 && fabs((branchOne[ione].daughter)[1]->getPID()) == 11){hasPhotonConv = true; std::cout << "conv " << branchOne[ione].iter->getPt() << " " << branchOne[ione].iter->getEta() << " " << branchOne[ione].iter->getPhi() << std::endl;}
+					}
+				}
+				for(unsigned ione(0); ione < branchTwo.size(); ione++){
+					if(branchTwo[ione].daughter.size() >= 2){
+						if(branchTwo[ione].iter->getPID() == 22 && fabs((branchTwo[ione].daughter)[0]->getPID()) == 11 && fabs((branchTwo[ione].daughter)[1]->getPID()) == 11){hasPhotonConv = true; std::cout << "conv " << branchTwo[ione].iter->getPt() << " " << branchTwo[ione].iter->getEta() << " " << branchTwo[ione].iter->getPhi() << std::endl;}
+					}
+				}
+
+				int NrecoPho(0);
+					for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
+						if(!itpho->passSignalSelection())continue;
+						bool PixelVeto = itpho->PixelSeed()==0? true: false;
+						if(PixelVeto ){
+							NrecoPho += 1;
+						}
+					}
+				
+				
+				if(decaybranch== 1){
+					if(hasPhotonConv)std::cout << "conve " << NrecoPho << std::endl;
+					else std::cout << "prompt " << NrecoPho << std::endl;	
+				}
+				
+
+	//	int iNEU(0);	
+	//	for(unsigned ic(0); ic < chains.size(); ic++){
+	//		if(chains[ic].iter->getPID() == 1000022)iNEU+=1;
+	//		if(fabs(chains[ic].iter->getPID()) > 100000 )std::cout << chains[ic].iter->getMomPID() << " "  << chains[ic].iter->getPID() << "->";
+	//		else if(fabs(chains[ic].iter->getMomPID()) > 100000 && fabs(chains[ic].iter->getGMomPID()) > 100000 )std::cout << "\t\t" << chains[ic].iter->getMomPID() << " " << chains[ic].iter->getPID() << "->";
+	//		else if(fabs(chains[ic].iter->getMomPID()) > 100000)std::cout <<  "\t" << chains[ic].iter->getMomPID() << " "  << chains[ic].iter->getPID() << "->";
+	//		else continue;
+	//		for(unsigned id(0); id < chains[ic].daughter.size();  id++)std::cout << (chains[ic].daughter)[id]->getPID() << " ";
+	//		std::cout << std::endl;
+	//	}
+	//	if(iNEU != 2)std::cout << "NO" << std::endl;
+	//	std::cout << "type: " << decaybranch << std::endl;
+	
 	}//loop on entries
 
 

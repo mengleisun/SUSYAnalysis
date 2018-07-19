@@ -144,6 +144,25 @@ void closure_efakepho(int ichannel){
 		if(phoEt < 35 || lepPt < 25)continue;
 		if(fabs(phoEta) > 1.4442 || fabs(lepEta) > 2.5)continue;
 
+//******* ori *****************
+//		bool isFakePho(false);
+//		double mindR(0.3),deltaE(1);
+//		double minEledR(3.0);
+//		unsigned matchIndex(0);
+//		for(unsigned iMC(0); iMC < mcPID->size(); iMC++){
+//			double dR = DeltaR((*mcEta)[iMC], (*mcPhi)[iMC], phoEta, phoPhi);
+//			double dE = fabs((*mcPt)[iMC] - phoEt)/phoEt;
+//			//if(dR < mindR && dE < 0.5){mindR=dR; matchIndex=iMC;deltaE = dE;}
+//			if(dR < mindR){mindR=dR; matchIndex=iMC;deltaE = dE;}
+//			if(fabs((*mcPID)[iMC]) == 11 && dR < minEledR)minEledR = dR;
+//		}
+//		if(mindR < 0.1){
+//			if(((*mcPID)[matchIndex] == 11 || (*mcPID)[matchIndex] == -11))isFakePho = true;
+//		}
+//		if(minEledR < 0.02)isFakePho = true;
+//
+//		if(!isFakePho)continue;
+//******** ori ***************
 
 		bool isFakePho(false);
 		double mindR(0.3),deltaE(1);
@@ -161,6 +180,15 @@ void closure_efakepho(int ichannel){
 		}
 		if(minEledR < 0.02)isFakePho = true;
 
+		if(!isFakePho){
+			std::cout << "event " << ievt << std::endl; 
+			for(unsigned iMC(0); iMC < mcPID->size(); iMC++){
+				double dR = DeltaR((*mcEta)[iMC], (*mcPhi)[iMC], phoEta, phoPhi);
+				double dE = fabs((*mcPt)[iMC] - phoEt)/phoEt;
+				std::cout << fabs((*mcPID)[iMC] << " dR " << dR << " dE " << dE << std::endl;
+			}
+		}
+	
 		if(!isFakePho)continue;
 
 		if(phoEt > MAXET)phoEt = MAXET;
@@ -512,7 +540,8 @@ void closure_efakepho(int ichannel){
   chantex.SetNDC();
   chantex.SetTextFont(42);
   chantex.SetTextSize(0.07);    
-  chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+  //chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+  chantex.DrawLatex(0.58,0.82," e + #gamma");
  	gPad->RedrawAxis();
   CMS_lumi( pt_pad1, 11 );
 		
@@ -541,7 +570,7 @@ void closure_efakepho(int ichannel){
 	ratio->SetLineColor(kBlack);
 	ratio->Divide(pred_PhoEt);
 	ratio->SetTitle("");
-	ratio->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
+	ratio->GetYaxis()->SetTitle("#frac{Simulation}{Prediction}");
 	ratio->GetYaxis()->SetNdivisions(504);
 	ratio->Draw();
 	ratioerror_PhoEt->SetFillColor(12);
@@ -549,7 +578,7 @@ void closure_efakepho(int ichannel){
 	ratioerror_PhoEt->Draw("E2 same");
 	ratio->Draw("same");
 	flatratio->Draw("same");
-	c_pt->SaveAs("closure_elefakepho_PhotonEt_mg.pdf");
+	c_pt->SaveAs("closure_elefakepho_PhotonEt_eg.pdf");
 
 
 
@@ -589,14 +618,18 @@ void closure_efakepho(int ichannel){
 	error_MET->Draw("E2 same");
 	leg->Draw("same");
 	p_MET->Draw("E same");
-  chantex.DrawLatex(0.58,0.82," #mu + #gamma");
-	TLine *line_met = new TLine(70,0,70,10000);
+  //chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+  chantex.DrawLatex(0.58,0.82," e + #gamma");
+	//TLine *line_met = new TLine(70,0,70,10000);
+	TLine *line_met = new TLine(70,0,70,100000);
 	line_met->SetLineStyle(2);
 	line_met->Draw("same");
 	TLatex* latex = new TLatex();
 	latex->SetTextSize(0.05);
-	latex->DrawLatex(20, 6000,"control");
-	latex->DrawLatex(20, 3000,"region");
+	//latex->DrawLatex(20, 6000,"control");
+	//latex->DrawLatex(20, 3000,"region");
+	latex->DrawLatex(20, 60000,"control");
+	latex->DrawLatex(20, 30000,"region");
  	gPad->RedrawAxis();
   CMS_lumi( met_pad1, 11 );
 
@@ -612,7 +645,7 @@ void closure_efakepho(int ichannel){
 	ratio_met->SetMarkerStyle(20);
 	ratio_met->Divide(pred_MET);
 	ratio_met->SetTitle("");
-	ratio_met->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
+	ratio_met->GetYaxis()->SetTitle("#frac{Simulation}{Prediction}");
 	ratio_met->GetYaxis()->SetRangeUser(0,2);
 	ratio_met->Draw();
 	ratioerror_MET->SetFillColor(12);
@@ -624,7 +657,7 @@ void closure_efakepho(int ichannel){
 	line_met_ratio->SetLineStyle(2);
 	line_met_ratio->Draw("same");
  	gPad->RedrawAxis();
-	c_met->SaveAs("closure_elefakepho_MET_mg.pdf");
+	c_met->SaveAs("closure_elefakepho_MET_eg.pdf");
 
 // ******** Mt ************************//
 	TCanvas *c_mt = new TCanvas("Mt", "Mt",600,600);
@@ -662,7 +695,8 @@ void closure_efakepho(int ichannel){
 	error_Mt->Draw("E2 same");
 	leg->Draw("same");
 	p_Mt->Draw("E same");
-  chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+  //chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+  chantex.DrawLatex(0.58,0.82," e + #gamma");
  	gPad->RedrawAxis();
   CMS_lumi( mt_pad1, 11 );
 
@@ -681,14 +715,14 @@ void closure_efakepho(int ichannel){
 	ratio_mt->SetMaximum(2);
 	ratio_mt->Divide(pred_Mt);
 	ratio_mt->SetTitle("");
-	ratio_mt->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
+	ratio_mt->GetYaxis()->SetTitle("#frac{Simulation}{Prediction}");
 	ratio_mt->Draw();
 	ratioerror_Mt->SetFillColor(12);
 	ratioerror_Mt->SetFillStyle(3345);
 	ratioerror_Mt->Draw("E2 same");
 	ratio_mt->Draw("same");
 	flatratio_mt->Draw("same");
-	c_mt->SaveAs("closure_elefakepho_MT_mg.pdf");
+	c_mt->SaveAs("closure_elefakepho_MT_eg.pdf");
 
 // ******** HT ************************//
 	TCanvas *c_HT = new TCanvas("HT", "HT",600,600);
@@ -726,7 +760,8 @@ void closure_efakepho(int ichannel){
 	error_HT->Draw("E2 same");
 	leg->Draw("same");
 	p_HT->Draw("E same");
-  chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+  //chantex.DrawLatex(0.58,0.82," #mu + #gamma");
+  chantex.DrawLatex(0.58,0.82," e + #gamma");
  	gPad->RedrawAxis();
   CMS_lumi( HT_pad1, 11 );
 
@@ -745,13 +780,13 @@ void closure_efakepho(int ichannel){
 	ratio_HT->SetMaximum(2);
 	ratio_HT->Divide(pred_HT);
 	ratio_HT->SetTitle("");
-	ratio_HT->GetYaxis()->SetTitle("#frac{Simulation}{Predict}");
+	ratio_HT->GetYaxis()->SetTitle("#frac{Simulation}{Prediction}");
 	ratio_HT->Draw();
 	ratioerror_HT->SetFillColor(12);
 	ratioerror_HT->SetFillStyle(3345);
 	ratioerror_HT->Draw("E2 same");
 	flatratio_HT->Draw("same");
-	c_HT->SaveAs("closure_elefakepho_HT_mg.pdf");
+	c_HT->SaveAs("closure_elefakepho_HT_eg.pdf");
 
 }
 

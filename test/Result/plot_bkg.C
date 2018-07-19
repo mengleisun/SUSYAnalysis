@@ -40,20 +40,20 @@ void plot_bkg(){//main
 	std::ostringstream rarename; rarename.str(""); 
 
 	if(channel == 1){
-			signame <<  "signalTree_egamma_signal.root";
-			elename <<  "signalTree_egamma_eleBkg.root";  
-			jetname <<  "signalTree_egamma_jetbkg.root";
-			qcdname <<  "signalTree_egamma_qcd.root";
-			VGname  <<  "signalTree_egamma_VGBkg.root";
-			rarename << "signalTree_egamma_rareBkg.root";
+			signame <<  "vetoDiPhoData/signalTree_egamma_signal.root";
+			elename <<  "vetoDiPhoData/signalTree_egamma_eleBkg.root";  
+			jetname <<  "vetoDiPhoData/signalTree_egamma_jetbkg.root";
+			qcdname <<  "vetoDiPhoData/signalTree_egamma_qcd.root";
+			VGname  <<  "vetoDiPhoData/signalTree_egamma_VGBkg.root";
+			rarename << "vetoDiPhoData/signalTree_egamma_rareBkg.root";
 	}
 	else if(channel == 2){
-			signame << "signalTree_mg_signal.root";
-			elename << "signalTree_mg_eleBkg.root";  
-			jetname << "signalTree_mg_jetbkg.root";
-			qcdname << "signalTree_mg_qcd.root";
-			VGname  << "signalTree_mg_VGBkg.root";
-			rarename <<"signalTree_mg_rareBkg.root";
+			signame << "vetoDiPhoData/signalTree_mg_signal.root";
+			elename << "vetoDiPhoData/signalTree_mg_eleBkg.root";  
+			jetname << "vetoDiPhoData/signalTree_mg_jetbkg.root";
+			qcdname << "vetoDiPhoData/signalTree_mg_qcd.root";
+			VGname  << "vetoDiPhoData/signalTree_mg_VGBkg.root";
+			rarename <<"vetoDiPhoData/signalTree_mg_rareBkg.root";
 	}
 
 	TFile *file_sig = TFile::Open(signame.str().c_str());

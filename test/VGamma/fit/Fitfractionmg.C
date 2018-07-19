@@ -104,7 +104,7 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 		if(ih == 0)radomMC = 0;
 		for(int ibin(1); ibin < p_MC->GetSize(); ibin++){
 			radomMC =  gRandom->Gaus(0, 1);
-			p_MC->SetBinContent(ibin, p_MC->GetBinContent(ibin)+radomMC*p_MC->GetBinError(ibin));
+			if(ih != 0)p_MC->SetBinContent(ibin, p_MC->GetBinContent(ibin)+radomMC*p_MC->GetBinError(ibin));
 		}
 	}
 	else{

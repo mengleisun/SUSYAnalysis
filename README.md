@@ -8,3 +8,5 @@ https://fwyzard.web.cern.ch/fwyzard/hlt/2016/summary.html
 
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
 
+https://twiki.cern.ch/twiki/bin/viewauth/CMS/HLTPathsRunIIList
+

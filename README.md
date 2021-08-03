@@ -20,3 +20,6 @@ https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLT2016
 https://twiki.cern.ch/twiki/bin/view/CMS/SUSRecommendationsRun2Legacy
 
 https://twiki.cern.ch/twiki/bin/view/CMS/SUSRecommendations18
+
+https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgHLTPathDetails
+

@@ -10,3 +10,9 @@ https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2
 
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/HLTPathsRunIIList
 
+
+https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLT2018
+
+https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLT2017
+
+https://twiki.cern.ch/twiki/bin/view/CMS/MuonHLT2016

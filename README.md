@@ -23,3 +23,5 @@ https://twiki.cern.ch/twiki/bin/view/CMS/SUSRecommendations18
 
 https://twiki.cern.ch/twiki/bin/viewauth/CMS/EgHLTPathDetails
 
+https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
+

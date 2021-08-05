@@ -27,3 +27,5 @@ https://twiki.cern.ch/twiki/bin/view/CMS/MissingETUncertaintyPrescription
 
 https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2
 
+https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPOG
+

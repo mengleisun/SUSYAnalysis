@@ -15,19 +15,47 @@ enum RunType{
   SingleElectron2015 = 3,
   SingleMuon2015 = 4,
   DoubleMuon2015 = 5,
+
   DoubleEG2016 = 6,
   MuonEG2016 = 7,
   SingleElectron2016 = 8,
   SingleMuon2016 = 9,
   DoubleMuon2016 = 10,
   MET2016 = 11,
-	MCDoubleEG = 12,
-	MCMuonEG = 13,
-	MCSingleElectron = 14,
-	MCSingleMuon = 15,
-	MCDoubleMuon = 16,
-	MCMET = 17,
-  nRunType = 18
+	MCDoubleEG2016 = 12,
+	MCMuonEG2016 = 13,
+	MCSingleElectron2016 = 14,
+	MCSingleMuon2016 = 15,
+	MCDoubleMuon2016 = 16,
+	MCMET2016 = 17,
+
+  DoubleEG2017 = 18,
+  MuonEG2017 = 19,
+  SingleElectron2017 = 20,
+  SingleMuon2017 = 21,
+  DoubleMuon2017 = 22,
+  MET2017 = 23,
+	MCDoubleEG2017 = 24,
+	MCMuonEG2017 = 25,
+	MCSingleElectron2017 = 26,
+	MCSingleMuon2017 = 27,
+	MCDoubleMuon2017 = 28,
+	MCMET2017 = 29,
+
+  DoubleEG2018 = 30,
+  MuonEG2018 = 31,
+  SingleElectron2018 = 32,
+  SingleMuon2018 = 33,
+  DoubleMuon2018 = 34,
+  MET2018 = 35,
+	MCDoubleEG2018 = 36,
+	MCMuonEG2018 = 37,
+	MCSingleElectron2018 = 38,
+	MCSingleMuon2018 = 39,
+	MCDoubleMuon2018 = 40,
+	MCMET2018 = 41,
+
+  nRunType = 42
 };
 
 
@@ -36,7 +64,7 @@ enum RunType{
   public:
     rawData(TTree *tree, RunType type): runtype_(type)
   {    
-	  if(type == MC || type == MCDoubleEG || type == MCMuonEG||  type == MCSingleElectron || type == MCSingleMuon||  type == MCDoubleMuon || type == MCMET ){
+	  if(type == MC || type == MCDoubleEG2016 || type == MCMuonEG2016 ||  type == MCSingleElectron2016 || type == MCSingleMuon2016 ||  type == MCDoubleMuon2016 || type == MCMET2016 ){
 		tree->SetBranchAddress("EventTag",     &EventTag);
 		
 		tree->SetBranchAddress("nMC",          &nMC);
@@ -91,6 +119,7 @@ enum RunType{
       tree->SetBranchAddress("phoCalibEt",              &phoCalibEt);
       tree->SetBranchAddress("phoEta",                  &phoEta);
       tree->SetBranchAddress("phoPhi",                  &phoPhi);
+      tree->SetBranchAddress("phoSCE",                  &phoSCE);
       tree->SetBranchAddress("phoSCEta",                &phoSCEta);
       tree->SetBranchAddress("phoSCPhi",                &phoSCPhi);
       tree->SetBranchAddress("phohasPixelSeed",         &phohasPixelSeed);
@@ -133,7 +162,9 @@ enum RunType{
       tree->SetBranchAddress("eleCalibPt",              &eleCalibPt);
       tree->SetBranchAddress("eleCalibEn",              &eleCalibEn);
       tree->SetBranchAddress("eleEta",                  &eleEta);
+      tree->SetBranchAddress("eleSCEn",                 &eleSCEn);
       tree->SetBranchAddress("eleSCEta",                &eleSCEta);
+      tree->SetBranchAddress("eleSCPhi",                &eleSCPhi);
       tree->SetBranchAddress("elePhi",                  &elePhi);
       tree->SetBranchAddress("eleR9",                   &eleR9);
       tree->SetBranchAddress("eleHoverE",               &eleHoverE);
@@ -163,6 +194,7 @@ enum RunType{
 			tree->SetBranchAddress("jetArea",   &jetArea);
 			tree->SetBranchAddress("jetJECUnc", &jetJECUnc);
 			tree->SetBranchAddress("jetCSV2BJetTags", &jetCSV2BJetTags);
+      tree->SetBranchAddress("L1ECALPrefire", &L1ECALPrefire);
 
 
     }
@@ -205,7 +237,7 @@ enum RunType{
 		float			pfMETPhi_T1UESUp = 0;
 		float			pfMETPhi_T1UESDo = 0;
     Int_t     metFilters=0;
-
+    Double_t  L1ECALPrefire=0;
     Int_t                 nMC =0;
     std::vector<int>      *mcPID =0;
     std::vector<float>    *mcPt =0;
@@ -232,6 +264,7 @@ enum RunType{
     vector<float>  *phoCalibEt = 0;
     vector<float>  *phoEta = 0;
     vector<float>  *phoPhi = 0;
+    vector<float>  *phoSCE =0;
     vector<float>  *phoSCEta =0;
     vector<float>  *phoSCPhi =0;
     vector<int>    *phohasPixelSeed =0;
@@ -276,7 +309,9 @@ enum RunType{
     vector<float>  *eleCalibPt=0;
     vector<float>  *eleCalibEn=0;
     vector<float>  *eleEta =0;
+    vector<float>  *eleSCEn =0;
     vector<float>  *eleSCEta =0;
+    vector<float>  *eleSCPhi =0;
     vector<float>  *elePhi =0;
     vector<float>  *eleR9 =0;
     vector<float>  *eleHoverE =0;

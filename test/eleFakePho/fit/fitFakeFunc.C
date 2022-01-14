@@ -54,6 +54,7 @@
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_mcData.h"
 #define NTOY 10
@@ -64,7 +65,7 @@
 #define MAXVTX 46
 bool doEB = true;
 bool doDrellYan = false;
-
+int RunYear = 2016;
 Double_t fakerate_ptDependence(Double_t *x, Double_t *par)
 {
 	double slope = par[0];
@@ -102,11 +103,14 @@ bool isElectron(int PID, int momID){
 }
 
 void fitFakeFunc(){//main 
-
+	// set to batch mode -> do not display graphics
+	gROOT->SetBatch(1);
 	ofstream resultfile;
-	resultfile.open("result_fitFakeFunc.txt");
-	 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libRooFitClasses.so");
+	if(doDrellYan==true) resultfile.open(Form("result_fitFakeFunc_DY_%d.txt",RunYear));
+        if(doDrellYan==false) resultfile.open(Form("result_fitFakeFunc_Data_%d.txt",RunYear));
+	
+	gSystem->Load("../../../lib/libAnaClasses.so");
+        gSystem->Load("../../../lib/libRooFitClasses.so");
 	setTDRStyle();
 	gStyle->SetOptStat(0);
 	gStyle->SetOptFit(0);
@@ -114,26 +118,26 @@ void fitFakeFunc(){//main
 	gStyle->SetTitleX(0.5);
 
 	/****************************   Data   *********************************/
-	std::ifstream Pt_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-Bw-ker-pt-60-120.txt");
-	std::ifstream Pt_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-DY-ker-pt-60-120.txt");
-	std::ifstream Pt_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-Bw-expo-pt-60-120.txt");
-	std::ifstream Eta_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-Bw-ker-eta-60-120.txt");
-	std::ifstream Eta_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-DY-ker-eta-60-120.txt");
-	std::ifstream Eta_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-Bw-expo-eta-60-120.txt");
-	std::ifstream Vtx_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-Bw-ker-vtx-60-120.txt");
-	std::ifstream Vtx_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-DY-ker-vtx-60-120.txt");
-	std::ifstream Vtx_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DataResult/EleFakeRate-Data-Bw-expo-vtx-60-120.txt");
+	std::ifstream Pt_file(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-Bw-ker-pt-60-120.txt",RunYear));
+        std::ifstream Pt_DYfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-DY-ker-pt-60-120.txt",RunYear));
+        std::ifstream Pt_Polfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-Bw-expo-pt-60-120.txt",RunYear));
+        std::ifstream Eta_file(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-Bw-ker-eta-60-120.txt",RunYear));
+        std::ifstream Eta_DYfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-DY-ker-eta-60-120.txt",RunYear));
+        std::ifstream Eta_Polfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-Bw-expo-eta-60-120.txt",RunYear));
+        std::ifstream Vtx_file(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-Bw-ker-vtx-60-120.txt",RunYear));
+        std::ifstream Vtx_DYfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-DY-ker-vtx-60-120.txt",RunYear));
+        std::ifstream Vtx_Polfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DataResult%d/EleFakeRate-Data-Bw-expo-vtx-60-120.txt",RunYear));
 
 	/****************************   MC      *********************************/
-//	std::ifstream Pt_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-Bw-ker-pt-60-120.txt");
-//	std::ifstream Pt_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-DY-ker-pt-60-120.txt");
-//	std::ifstream Pt_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-DY-ker-pt-60-120.txt");
-//	std::ifstream Eta_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-Bw-ker-eta-60-120.txt");
-//	std::ifstream Eta_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-DY-ker-eta-60-120.txt");
-//	std::ifstream Eta_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-DY-ker-eta-60-120.txt");
-//	std::ifstream Vtx_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-Bw-ker-vtx-60-120.txt");
-//	std::ifstream Vtx_DYfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-DY-ker-vtx-60-120.txt");
-//	std::ifstream Vtx_Polfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-DY-ker-vtx-60-120.txt");
+	/*std::ifstream Pt_file(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-Bw-ker-pt-60-120.txt",RunYear));
+        std::ifstream Pt_DYfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-DY-ker-pt-60-120.txt",RunYear));
+        std::ifstream Pt_Polfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-DY-ker-pt-60-120.txt",RunYear));
+        std::ifstream Eta_file(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-Bw-ker-eta-60-120.txt",RunYear));
+        std::ifstream Eta_DYfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-DY-ker-eta-60-120.txt",RunYear));
+        std::ifstream Eta_Polfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-DY-ker-eta-60-120.txt",RunYear));
+        std::ifstream Vtx_file(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-Bw-ker-vtx-60-120.txt",RunYear));
+        std::ifstream Vtx_DYfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-DY-ker-vtx-60-120.txt",RunYear));
+        std::ifstream Vtx_Polfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/EleFakeRate-DrellYan-DY-ker-vtx-60-120.txt",RunYear));*/
 
 	std::string line;
 	unsigned nPtBins(0);
@@ -247,11 +251,39 @@ void fitFakeFunc(){//main
 //	f1->SetParNames("slope","constant","index");
 //	result_fitpt = fr_bothcount_pt->Fit("f1","R S");
 	//*************** EB ******************//
-	f1->SetParameter(0, 29);
+	if(RunYear==2016){
+		f1->SetParameter(0,1.0e+04);
+        	f1->SetParLimits(0, 1.001e+02, 1.25601e+04);
+        	f1->SetParameter(1, -38000);
+        	f1->SetParLimits(1, -38100.0, -10000);
+        	f1->SetParameter(2,-0.4);
+        	f1->SetParLimits(2, -0.4, -0.1);
+	}
+	if(RunYear==2017){
+		f1->SetParameter(0,1.0e+04);
+		f1->SetParLimits(0, 1.001e+02, 1.25601e+04);
+                f1->SetParameter(1, -20000);
+                f1->SetParLimits(1, -39070.0, -10000);
+                f1->SetParameter(2,-0.4);
+                f1->SetParLimits(2, -0.4, -0.1);
+	}
+	if(RunYear==2018){
+		f1->SetParameter(0,1.0e+04);
+		f1->SetParLimits(0, 1.001e+02, 1.25601e+04);
+                f1->SetParameter(1, -30000);
+                f1->SetParLimits(1, -38685.0, 0);
+                f1->SetParameter(2,-0.4);
+                f1->SetParLimits(2, -0.40, -0.1);
+	}
+
+
+	
+
+/*	f1->SetParameter(0, 29);
 	f1->SetParLimits(0, 0, 1000);
 	f1->SetParameter(1, 206);
 	f1->SetParameter(2, -4 + 955*4.0/2500);
-	f1->SetParLimits(2, -4, 0);
+	f1->SetParLimits(2, -4, 0);*/
 	f1->SetParNames("slope","constant","index");
 	result_fitpt = fr_bothcount_pt->Fit("f1","R S");
 	//*************** EE ******************//
@@ -338,8 +370,8 @@ void fitFakeFunc(){//main
 
  	TF1 *fit_fakerate_vtx = new TF1("vtxfake","pol1",0,44);
  	TFitResultPtr result_fitvtx;
- 	fit_fakerate_vtx->SetParameter(0,0.02);
- 	fit_fakerate_vtx->SetParameter(1,1);
+ 	//fit_fakerate_vtx->SetParameter(0,0.02);
+ 	//fit_fakerate_vtx->SetParameter(1,1);
  	result_fitvtx = fr_bothcount_vtx->Fit("vtxfake","S");
  	for(unsigned i(0); i<nVtxBins-1; i++){
  		double fakerate = vtx_num[i]/vtx_den[i];
@@ -358,8 +390,8 @@ void fitFakeFunc(){//main
 	TH1D* invmass_prednum = new TH1D("invmass_prednum", "invmass_prednum",100,40,140);
 	
 	TChain *etree = new TChain("FakeRateTree");
-	if(doDrellYan)etree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP.root");
-	else etree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho-FullEcalTnP.root");
+	if(doDrellYan)etree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_%d.root",RunYear));
+        else etree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_DataTnP_dR05_%d.root",RunYear));
 	float invmass=0; 
 	float tagPt=0; 
 	float probePt=0; 
@@ -395,8 +427,9 @@ void fitFakeFunc(){//main
 	
 		float weight_eta(0);
  		for(unsigned i(0); i<nEtaBins; i++){
-			if(i+1 < nEtaBins)
+			if(i+1 < nEtaBins){
 				if(fabs(probeEta) > EtaBins[i] && fabs(probeEta) < EtaBins[i+1])weight_eta = eta_num[i]/eta_den[i];
+			}
 			else{ 
 				if(fabs(probeEta) > EtaBins[i])weight_eta = eta_num[i]/eta_den[i];
 			}
@@ -414,7 +447,7 @@ void fitFakeFunc(){//main
 	invmass_prednum->Sumw2();
  
 	TChain *bgtree = new TChain("BGTree");
-	bgtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_bgtemplate_FullEcal.root");
+	bgtree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_bgtemplate_FullEcal_%d.root",RunYear));
 	float invmass_bg=0; 
 	float probePt_bg=0; 
 	float probeEta_bg=0; 
@@ -441,7 +474,7 @@ void fitFakeFunc(){//main
 	
 	TH1D  *h_DYinvmass = new TH1D("h_DYinvmass","h_DYinvmass",80,70,110);
 	TChain *DYtree = new TChain("FakeRateTree");
-	DYtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP.root");
+	DYtree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_%d.root",RunYear));
 
 	float DY_invmass=0; 
 	float DY_tagPt=0; 
@@ -515,7 +548,7 @@ void fitFakeFunc(){//main
 	RooHistPdf  pdf_bg("pdf_bg","pdf_bg",mass_axis, datahist_bg);
 	RooHistPdf  pdf_bgAlter("pdf_bgAlter","pdf_bgAlter",mass_axis, datahist_bg);
 	RooDataHist *datahist_DY = new RooDataHist("DYDataSet","DYDataSet", mass_axis, h_DYinvmass);
-	RooHistPdf *DYpdf = new RooHistPdf("DYpdf","DYpdf", mass_axis, *datahist_DY); 
+	RooHistPdf *DYpdf = new RooHistPdf("DYpdf","DYpdf", mass_axis, *datahist_DY);
 	DYpdf->setInterpolationOrder(1); 
  
   RooRealVar m0( "m0", "m0", 91.188,85,95);
@@ -560,9 +593,8 @@ void fitFakeFunc(){//main
 		RooFit::LineColor(kRed),
 		RooFit::Normalization(1.0, RooAbsReal::RelativeExpected));
 	mass_Frame->Draw();
-	if(doDrellYan)c_fitMass->SaveAs("fit_totalNum_DrellYan.pdf");
-	else c_fitMass->SaveAs("fit_totalNum_data.pdf");
- 
+	if(doDrellYan)c_fitMass->SaveAs(Form("fit_totalNum_DrellYan_%d.pdf",RunYear));
+	else c_fitMass->SaveAs(Form("fit_totalNum_data_%d.pdf",RunYear));
 	mass_axis.setRange("signal",70,110);
 	RooAbsReal* igx_sig = signalResDY.createIntegral(mass_axis,RooFit::NormSet(mass_axis),RooFit::Range("signal"));
 	std::cout << "num = " <<  igx_sig->getVal()*(nSig.getVal()) << " error = " << igx_sig->getVal()*(nSig.getError()) <<  std::endl;
@@ -590,8 +622,8 @@ void fitFakeFunc(){//main
 	RooDataHist datahist_prednum("both", "", mass_axis, invmass_prednum);
 	datahist_prednum.plotOn(compare_Frame, RooFit::MarkerColor(kRed));
 	compare_Frame->Draw();
-	if(doDrellYan)cancompare->SaveAs("compare_predvsnum_DrellYan.pdf");
-	else cancompare->SaveAs("compare_predvsnum_data.pdf");
+	if(doDrellYan)cancompare->SaveAs(Form("compare_predvsnum_DrellYan_%d.pdf",RunYear));
+	else cancompare->SaveAs(Form("compare_predvsnum_data_%d.pdf",RunYear));
  
 //*************************************   Toy MC **************************************************************************//
  
@@ -646,14 +678,14 @@ void fitFakeFunc(){//main
      	float toyptvalue[graphPtBins][NTOY];
      	float lowtoyptvalue[graphPtBins];
      	float hightoyptvalue[graphPtBins];
-     	for(unsigned ii(0); ii < graphPtBins; ii++){
+     	for(int ii(0); ii < graphPtBins; ii++){
      		lowtoyptvalue[ii] = 1;
      		hightoyptvalue[ii] = 0;
      	}
      	float toyvtxvalue[graphVtxBins][NTOY];
      	float lowtoyvtxvalue[graphVtxBins];
      	float hightoyvtxvalue[graphVtxBins];
-     	for(unsigned ii(0); ii < graphVtxBins; ii++){
+     	for(int ii(0); ii < graphVtxBins; ii++){
      		lowtoyvtxvalue[ii] = 1;
      		hightoyvtxvalue[ii] = 0;
      	}
@@ -681,8 +713,9 @@ void fitFakeFunc(){//main
      		for(unsigned iEvt(0); iEvt < etreeEt.size(); iEvt++){
 					float weight_eta(0);
 			 		for(unsigned i(0); i<nEtaBins; i++){
-						if(i+1 < nEtaBins)
+						if(i+1 < nEtaBins){
 							if(fabs(etreeEta[iEvt]) > EtaBins[i] && fabs(etreeEta[iEvt]) < EtaBins[i+1])weight_eta = eta_num[i]/eta_den[i];
+						}
 						else{ 
 							if(fabs(etreeEta[iEvt]) > EtaBins[i])weight_eta = eta_num[i]/eta_den[i];
 						}
@@ -695,13 +728,13 @@ void fitFakeFunc(){//main
      		if(invmass_prednum->Integral(lowBinNumber,highBinNumber) > 0 && invmass_prednum->Integral(lowBinNumber,highBinNumber) < 1e20){
      			myfile << random_totalnum[i]/invmass_prednum->Integral(lowBinNumber,highBinNumber) << " " << data1 << " " << data2 << " " << data3 <<  " " << data4 << " " << data5 << std::endl;
      			p_scalefactor->Fill(random_totalnum[i]/invmass_prednum->Integral(lowBinNumber,highBinNumber));
-     			for(unsigned ibin(1); ibin <= graphPtBins; ibin++){
+     			for(int ibin(1); ibin <= graphPtBins; ibin++){
      				double estimated = h_toymc_pt[i]->Eval(MINPT+0.5*ibin);
      				toyptvalue[ibin-1][i] = estimated;
      				if(estimated < lowtoyptvalue[ibin-1])lowtoyptvalue[ibin-1] = estimated;
      				if(estimated > hightoyptvalue[ibin-1])hightoyptvalue[ibin-1] = estimated;
      			}
-     			for(unsigned ibin(1); ibin <= graphVtxBins; ibin++){
+     			for(int ibin(1); ibin <= graphVtxBins; ibin++){
      				double estimated = h_toymc_vtx[i]->Eval(0.5*ibin);
      				toyvtxvalue[ibin-1][i] = estimated;
      				if(estimated < lowtoyvtxvalue[ibin-1])lowtoyvtxvalue[ibin-1] = estimated;
@@ -711,7 +744,7 @@ void fitFakeFunc(){//main
      	}
      
      // *************************   Calculated errors  ***************************************************************************************************************//
-     	for(unsigned ibin(0); ibin < graphPtBins; ibin++){
+     	for(int ibin(0); ibin < graphPtBins; ibin++){
      		TH1D *h_toyptdis = new TH1D("h_toyptdis","",50,lowtoyptvalue[ibin],hightoyptvalue[ibin]);
      		for(unsigned i(0); i < NTOY; i++)h_toyptdis->Fill(toyptvalue[ibin][i]);
      		h_toyptdis->Fit("gaus");
@@ -723,7 +756,7 @@ void fitFakeFunc(){//main
      		fr_pt_ratioError->SetPointError(ibin, 0.25, fiterror/fit_fakerate_pt->Eval(MINPT+0.5*ibin));
      		delete h_toyptdis; 
      	}
-     	for(unsigned ibin(0); ibin < graphVtxBins; ibin++){
+     	for(int ibin(0); ibin < graphVtxBins; ibin++){
      		TH1D *h_toyvtxdis = new TH1D("h_toyvtxdis","",50,lowtoyvtxvalue[ibin],hightoyvtxvalue[ibin]);
      		for(unsigned i(0); i < NTOY; i++)h_toyvtxdis->Fill(toyvtxvalue[ibin][i]);
      		h_toyvtxdis->Fit("gaus");
@@ -802,8 +835,8 @@ void fitFakeFunc(){//main
      	fr_pt_ratioError->Draw("E2 same");
      	fr_pt_ratio->Draw("EP same");
 			flatratio_pt->Draw("same");
-			if(doDrellYan)canpt->SaveAs("elefake_pt_systematic_DrellYan.pdf");
-     	else canpt->SaveAs("elefake_pt_systematic_data.pdf");	
+			if(doDrellYan)canpt->SaveAs(Form("elefake_pt_systematic_DrellYan_%d.pdf",RunYear));
+	else canpt->SaveAs(Form("elefake_pt_systematic_data_%d.pdf",RunYear));
      	  
      	TCanvas *canvtx = new TCanvas("canvtx","",600,600);
      	canvtx->cd();
@@ -837,11 +870,10 @@ void fitFakeFunc(){//main
      	fr_vtx_ratioError->Draw("E2 same");
 			flatratio_vtx->Draw("same");
      	fr_vtx_ratio->Draw("EP same");
-			if(doDrellYan)canvtx->SaveAs("elefake_vtx_systematic_DrellYan.pdf");
-     	else canvtx->SaveAs("elefake_vtx_systematic_data.pdf");	
-     
-     
-     	TCanvas *caneta = new TCanvas("caneta","",600,600);
+			if(doDrellYan)canvtx->SaveAs(Form("elefake_vtx_systematic_DrellYan_%d.pdf",RunYear));
+	else canvtx->SaveAs(Form("elefake_vtx_systematic_data_%d.pdf",RunYear));  
+     	
+	TCanvas *caneta = new TCanvas("caneta","",600,600);
      	caneta->cd();
      	TPad *caneta_pad1 = new TPad("caneta_pad1", "pad1", 0, 0.05, 1, 1.0);
      	caneta_pad1->SetBottomMargin(0.15);
@@ -854,13 +886,13 @@ void fitFakeFunc(){//main
      	fr_bothcount_eta->Draw("EPL same");
      	fr_eta_sigmaband->SetFillStyle(3345);
      	fr_eta_sigmaband->Draw("E2 same");
-			if(doDrellYan)caneta->SaveAs("elefake_eta_systematic_DrellYan.pdf");
-     	else caneta->SaveAs("elefake_eta_systematic_data.pdf");
+			if(doDrellYan)caneta->SaveAs(Form("elefake_eta_systematic_DrellYan_%d.pdf",RunYear));
+     	else caneta->SaveAs(Form("elefake_eta_systematic_data_%d.pdf",RunYear));
      
      	TCanvas *canscale = new TCanvas("scale","scale",600,600);
      	p_scalefactor->Draw("hist");
-			if(doDrellYan)canscale->SaveAs("elefake_scalefactor_DrellYan.pdf");
-     	else canscale->SaveAs("elefake_scalefactor_data.pdf");		
+			if(doDrellYan)canscale->SaveAs(Form("elefake_scalefactor_DrellYan_%d.pdf",RunYear));
+     	else canscale->SaveAs(Form("elefake_scalefactor_data_%d.pdf",RunYear));		
 
 			resultfile.close();
 }

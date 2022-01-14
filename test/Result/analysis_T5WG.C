@@ -7,7 +7,7 @@ void analysis_T5WG(){//main
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	esfScaleFactor  objectESF;
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
 	TFile xSecFile("../cross/susyCrossSection.root");
 	TH1D *p_crosssection_susy   = (TH1D*)xSecFile.Get("p_gluinoxSec");
@@ -21,7 +21,7 @@ void analysis_T5WG(){//main
 	std::ostringstream histname;
 	//**************   T5WG  ***************************//
   //TFile *file_susy = TFile::Open("/uscms_data/d3/mengleis/Sep1/resTree_T5WG.root");
-  TFile *file_susy = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root");
+  TFile *file_susy = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG.root");
   TTree *tree_susy = (TTree*)file_susy->Get("SUSYtree");
 	float Mgluino_susy(0);
   float Mchargino_susy(0);
@@ -54,7 +54,7 @@ void analysis_T5WG(){//main
   TChain *mgtree_susy;
   mgtree_susy = new TChain("mgTree","mgTree");
   //mgtree_susy->Add("/uscms_data/d3/mengleis/Sep1/resTree_T5WG.root");
-  mgtree_susy->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root");
+  mgtree_susy->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG.root");
   float phoEt_susy_mg(0);
   float phoEta_susy_mg(0);
   float lepPt_susy_mg(0);
@@ -199,7 +199,7 @@ void analysis_T5WG(){//main
 
   TChain *egtree_susy;
   egtree_susy = new TChain("egTree","egTree");
-  egtree_susy->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root");
+  egtree_susy->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG.root");
   float phoEt_susy_eg(0);
   float phoEta_susy_eg(0);
   float lepPt_susy_eg(0);
@@ -340,9 +340,9 @@ void analysis_T5WG(){//main
 		} 
 	}
 
-	for(unsigned ih(0); ih < NBIN*2; ih++){
-		for(unsigned i(1); i < susy_wg_chan_rate_nom[ih]->GetXaxis()->GetNbins() + 1; i++){
-			for(unsigned j(1); j < susy_wg_chan_rate_nom[ih]->GetYaxis()->GetNbins() + 1; j++){
+	for(int ih(0); ih < NBIN*2; ih++){
+		for(int i(1); i < susy_wg_chan_rate_nom[ih]->GetXaxis()->GetNbins() + 1; i++){
+			for(int j(1); j < susy_wg_chan_rate_nom[ih]->GetYaxis()->GetNbins() + 1; j++){
 				if(p_SUSYMass->GetBinContent(i,j) < 1000){
 					p_SUSYselect->SetBinContent(i,j,-1);
 					p_SUSYMass->SetBinContent(i,j,-1);
@@ -441,8 +441,8 @@ void analysis_T5WG(){//main
 		} 
 	} 
 
-		for(unsigned i(1); i < p_SUSYMass->GetXaxis()->GetNbins() + 1; i++){
-			for(unsigned j(1); j < p_SUSYMass->GetYaxis()->GetNbins() + 1; j++){
+		for(int i(1); i < p_SUSYMass->GetXaxis()->GetNbins() + 1; i++){
+			for(int j(1); j < p_SUSYMass->GetYaxis()->GetNbins() + 1; j++){
 				float sparticleMass = p_SUSYMass->GetXaxis()->GetBinCenter(i);
 				if( fabs(sparticleMass - 1700 ) < 10 && fabs( p_SUSYMass->GetYaxis()->GetBinCenter(j) - 1000) < 5){
 					float noe = p_SUSYMass->GetBinContent(i,j);

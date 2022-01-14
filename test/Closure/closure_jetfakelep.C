@@ -41,7 +41,7 @@ void closure_jetfakelep(int ichannel){
 	setTDRStyle();   
 	gStyle->SetLegendBorderSize(0);
 	gStyle->SetLegendFillColor(0);
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 
 	// Signal Tree //
@@ -58,6 +58,7 @@ void closure_jetfakelep(int ichannel){
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
+	// signal events from QCD process
 	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/fakelep_egsignal_QCD.root");
 	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/fakelep_mgsignal_QCD.root");
 
@@ -138,6 +139,7 @@ void closure_jetfakelep(int ichannel){
 	TH1D *pred_nJet = new TH1D("pred_nJet","pred_nJet",10,0,10);
 
 	//************ Proxy Tree **********************//
+	// proxy events enriched in fake leptons from data
 	TChain *proxytree = new TChain("fakeLepTree");
 	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
 	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
@@ -186,9 +188,11 @@ void closure_jetfakelep(int ichannel){
 		if(fabs(proxyphoEta) > 1.4442 || fabs(proxylepEta) > 2.5)continue;
 
 		bool isProxy(false);
+		// for ele proxy, miniIso<0.4 and for muon proxy 0.2<miniIso<0.4
 		if(channelType==1){if(fakeLepMiniIso < 0.4)isProxy=true;}
 		else if(channelType==2){if((fakeLepMiniIso > 0.2 && fakeLepMiniIso < 0.4))isProxy=true;}
 		if(fakeLepIsStandardProxy == 0)isProxy = false;
+		// only take lepton proxies
 		if(!isProxy)continue;
 
 		pred_PhoEt->Fill(proxyphoEt,weight);
@@ -216,6 +220,7 @@ void closure_jetfakelep(int ichannel){
 
 	//************ Proxy Tree **********************//
 	TChain *mcproxytree = new TChain("fakeLepTree");
+	// proxy events enriched in fake leptons from MC
 	if(channelType==1)mcproxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/fakelep_egsignal_QCD.root");
 	if(channelType==2)mcproxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/fakelep_mgsignal_QCD.root");
 
@@ -261,8 +266,10 @@ void closure_jetfakelep(int ichannel){
 		if(fabs(mcproxyphoEta) > 1.4442 || fabs(mcproxylepEta) > 2.5)continue;
 
 		bool isProxy(false);
+		// for ele proxy, miniIso<0.4 and for muon proxy 0.2<miniIso<0.4
 		if(channelType==1){if(mcfakeLepMiniIso < 0.4)isProxy=true;}
 		else if(channelType==2){if((mcfakeLepMiniIso > 0.2 && mcfakeLepMiniIso < 0.4))isProxy=true;}
+		// only take lepton proxies
 		if(!isProxy)continue;
 
 		mcpred_PhoEt->Fill(mcproxyphoEt,weight);
@@ -282,16 +289,19 @@ void closure_jetfakelep(int ichannel){
 	p_Mt->Sumw2();
 	p_HT->Sumw2();
 	p_dPhiEleMET->Sumw2();
+	// unit normalised
 	p_PhoEt->Scale(1.0/p_PhoEt->GetEntries());
 	p_MET->Scale(1.0/p_MET->GetEntries());
 	p_Mt->Scale(1.0/p_Mt->GetEntries());
 	p_HT->Scale(1.0/p_HT->GetEntries());
 	p_dPhiEleMET->Scale(1.0/p_dPhiEleMET->GetEntries());
+
 	pred_PhoEt->Scale(1.0/pred_PhoEt->GetEntries());
 	pred_MET->Scale(1.0/pred_MET->GetEntries());
 	pred_Mt->Scale(1.0/pred_Mt->GetEntries());
 	pred_HT->Scale(1.0/pred_HT->GetEntries());
 	pred_dPhiEleMET->Scale(1.0/pred_dPhiEleMET->GetEntries());
+
 	mcpred_PhoEt->Scale(1.0/mcpred_PhoEt->GetEntries());
 	mcpred_MET->Scale(1.0/mcpred_MET->GetEntries());
 	mcpred_Mt->Scale(1.0/mcpred_Mt->GetEntries());
@@ -302,12 +312,15 @@ void closure_jetfakelep(int ichannel){
 	TCanvas *c_dphi = new TCanvas("dPhi","dPhi",600,600);
 	c_dphi->cd();
 	p_dPhiEleMET->GetYaxis()->SetRangeUser(0, 1.5*p_dPhiEleMET->GetBinContent(1));
+	// directly from simulation
 	p_dPhiEleMET->Draw();
 	p_dPhiEleMET->SetLineColor(kBlack);
 	p_dPhiEleMET->SetMarkerStyle(20);
+	// proxy template from data
 	pred_dPhiEleMET->SetLineColor(kRed);
 	pred_dPhiEleMET->Draw("hist  same");
 	mcpred_dPhiEleMET->SetLineColor(kCyan);
+	// proxy template from MC
 	mcpred_dPhiEleMET->Draw("hist  same");
 	TLegend *leg =  new TLegend(0.5,0.7,0.85,0.85);
 	leg->SetFillStyle(0);

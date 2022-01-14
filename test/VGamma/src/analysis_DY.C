@@ -1,3 +1,5 @@
+// similar to analysis_VGamma.C script
+// store llmass and WGPt (W or photon pT)
 #include<string>
 #include<iostream>
 #include<fstream>

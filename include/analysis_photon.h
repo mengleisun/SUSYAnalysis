@@ -29,39 +29,39 @@ class recoPhoton{
     float rho = raw.rho;
 
     if(eta<=1.0){
-	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0360);
-	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0597);
-	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1210);
+	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0112);
+	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0668);
+	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1113);
     }
     else if(eta>1.0 && eta<= 1.479){
-	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0377); 	
-	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0807); 	
-	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1107);
+	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0108);
+	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.1054);
+	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.0953);
     }
     else if(eta>1.479 && eta<=2.0){
-	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0306); 	
-	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0629); 	
-	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.0699);
+	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0106);
+	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0786);
+	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.0619);
     }
     else if(eta>2.0 && eta<=2.2){
-	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0283); 	
-	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0197); 	
-	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1056);
+	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.01002);
+	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0233);
+	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.0837);
     } 
     else if(eta>2.2 && eta<=2.3){
-	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0254); 	
-	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0184); 	
-	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1457);
+	  phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0098);
+	  phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0078);
+	  phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1070);
     } 
     else if(eta>2.3 && eta<=2.4){
-      phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0217); 	
-      phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0284); 
-      phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1719);
+      phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0089);
+      phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0028);
+      phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1212);
     } 
     else if(eta>2.4 && eta<=2.5){
-      phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0167); 	
-      phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0591); 	
-      phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1998); 
+      phoPFChIso_  = std::max(0.0, (*raw.phoPFChIso)[ipho] - rho*0.0087);
+      phoPFNeuIso_ = std::max(0.0, (*raw.phoPFNeuIso)[ipho]- rho*0.0137);
+      phoPFPhoIso_ = std::max(0.0, (*raw.phoPFPhoIso)[ipho]- rho*0.1466);
     } 
     else{
       phoPFChIso_  = (*raw.phoPFChIso)[ipho];

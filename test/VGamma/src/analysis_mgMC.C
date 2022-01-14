@@ -1,3 +1,4 @@
+// All kinds of mg trees are saved
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -40,9 +41,9 @@ void analysis_mgMC(){//main
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
 	
-  RunType datatype(MCMuonEG);
+  RunType datatype(MCMuonEG2016);
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	//es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
 //	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_nlo.root");
@@ -378,6 +379,7 @@ void analysis_mgMC(){//main
 				if(!itpho->passBasicSelection())continue;
 				bool passSigma = itpho->passSigma(1);
 				bool passChIso = itpho->passChIso(1);
+				// sigmaIetaIeta and charge hadronIsolation cut for signal photon, WP =1
 				bool PixelVeto = itpho->PixelSeed()==0? true: false;
 				bool GSFveto(true);
 				bool FSRVeto(true);
@@ -395,7 +397,7 @@ void analysis_mgMC(){//main
 						hasHadronPho = true;
 						hadronPho = itpho;
 					}
-
+					// Does not pass any of the SignaIetaIeta or charge hadron Isolation cut, but values are within  a threshold
 					if(!passSigma || !passChIso){
 						if( (itpho->getSigma()< 0.02 && itpho->isEB()) || (itpho->getSigma()< 0.04 && itpho->isEE()) )jetPhoCollection.push_back(itpho);
 					}
@@ -411,7 +413,7 @@ void analysis_mgMC(){//main
 						signalPho = itpho;
 					}
 				}
-
+				// For muon-gamma events : Proxy sample is photon (has pixel seed || DeltaR(photon, ele)<= 0.02) && DeltaR(photon, muon) > 0.3 
 				if((!PixelVeto || !GSFveto) && muonFSRVeto){
 						proxyPhoCollection.push_back(itpho);
 				}
@@ -431,8 +433,10 @@ void analysis_mgMC(){//main
 				if(itMu->isMedium() && itMu->getPt() > 15 && itMu->getMiniIso() < 0.2)miniisoLep.push_back(itMu);
 				if(itMu->getPt() < 25)continue;
 				if(!itMu->passHLTSelection())continue;
+				// fake lepton
 				if(itMu->isFakeProxy())fakeLepCollection.push_back(itMu);
 				if(itMu->passSignalSelection()){
+					// proxy muon is same as signal muon
 					if(proxyLepCollection.size() == 0)proxyLepCollection.push_back(itMu);
 					if(hasLep && !hasTrail){
 						hasTrail = true;
@@ -568,6 +572,7 @@ void analysis_mgMC(){//main
 		} // loop on pho collection
 
 		if(!hasPho){ 
+		// photons failing SigmaIetaIeta or charge hadron Isolation cut
 		for(unsigned ip(0); ip < jetPhoCollection.size(); ip++){
 		for(unsigned ie(0); ie < proxyLepCollection.size(); ie++){
 			std::vector<recoPhoton>::iterator jetPho = jetPhoCollection[ip];
@@ -617,7 +622,7 @@ void analysis_mgMC(){//main
 		}// loop on ele collection
 		} // loop on pho collection
 		}
-
+// for fake lepton tree
 		if(hasPho && !hasLep){
 			std::vector<recoPhoton>::iterator fakeLepPho = signalPho;
 			for(unsigned ip(0); ip < fakeLepCollection.size(); ip++){
@@ -659,7 +664,7 @@ void analysis_mgMC(){//main
 					}//dR filter
 				} // loop on pho collection
 			}
-
+// for jet-photon fake
 		if(hasHadronPho || hadeleproxyPhoCollection.size() > 0){
 			hadron_phoEt = 0;
 			hadron_phoEta = 0;

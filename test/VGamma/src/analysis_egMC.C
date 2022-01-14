@@ -41,9 +41,9 @@ void analysis_egMC(){//main
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
   //logfile << "Loose the proxy definition: no upper bounds for photon; LooseFakeProxy for electron" << std::endl;
-  RunType datatype(MCDoubleEG); 
+  RunType datatype(MCDoubleEG2016); 
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WJetsToLNu_RunIISummer16MiniAODv2-TrancheIV_v6-ext2-v1.root");
 //	es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
@@ -629,7 +629,7 @@ void analysis_egMC(){//main
 									jetnJet += 1;
 									jetHT += itJet->getPt();	
 								}
-								jettree->Fill();
+								jettree->Fill();// jet fake photon tree
 
 							}//MET Filter
 						}// Z mass Filter
@@ -682,7 +682,7 @@ void analysis_egMC(){//main
 									fakeLepnJet += 1;
 									fakeLepHT += itJet->getPt();
 								}	
-								fakeLeptree->Fill();
+								fakeLeptree->Fill();// fake lepton tree
 
 							}//MET Filter
 						}// Z mass Filter
@@ -730,6 +730,7 @@ void analysis_egMC(){//main
 					hadron_nVertex = nVtx;
 					hadron_HT = 0;
 					hadron_nJet = jetNumber;
+					// photon passing all selection, except signal selection; hadron photon
 				}}
 			}
 			for(unsigned ip(0); ip < hadeleproxyPhoCollection.size(); ip++){
@@ -744,6 +745,7 @@ void analysis_egMC(){//main
 						hadron_eleproxySigma.push_back(proxyPho->getSigma());
 						hadron_eleproxyChIso.push_back(proxyPho->getChIso());
 						hadron_eleproxynVertex.push_back(nVtx); 
+						// electron-fake-photon
 					}//dR filter
 				}// loop on ele collection
 			} // loop on pho collection

@@ -1,3 +1,4 @@
+// added some branches scalefactor, else rest is same
 #include<string>
 #include<iostream>
 #include<fstream>

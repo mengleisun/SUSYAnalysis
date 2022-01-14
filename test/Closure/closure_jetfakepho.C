@@ -41,7 +41,7 @@
 
 void closure_jetfakepho(int ichannel){
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 
 	gRandom = new TRandom3(0);
@@ -58,8 +58,9 @@ void closure_jetfakepho(int ichannel){
 	
 	std::stringstream JetFakeRateFile;
   JetFakeRateFile.str();
-	if(channelType==1)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MCEG-EB.txt";
-	if(channelType==2)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/JetFakeRate-transferfactor-MuonEG-EB.txt";
+	// fake rate input 
+	if(channelType==1)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB.txt";
+	if(channelType==2)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB.txt";
 	std::ifstream jetfakefile(JetFakeRateFile.str().c_str());
 	std::string paratype;
 	float paravalue;	
@@ -95,6 +96,7 @@ void closure_jetfakepho(int ichannel){
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
+	// signal events directly from simulation
 	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
 	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WJet.root");
 
@@ -167,12 +169,12 @@ void closure_jetfakepho(int ichannel){
 			if( (fabs((*mcPID)[matchIndex]) == 11 || fabs((*mcPID)[matchIndex]) == 22)  && (fabs((*mcMomPID)[matchIndex]) <= 6 || fabs((*mcMomPID)[matchIndex])==21 || fabs((*mcMomPID)[matchIndex])==11 || fabs((*mcMomPID)[matchIndex])== 999 || fabs((*mcMomPID)[matchIndex]) == 13 ||  fabs((*mcMomPID)[matchIndex]) == 15 || fabs((*mcMomPID)[matchIndex]) == 24 || fabs((*mcMomPID)[matchIndex]) == 23))isFakePho = false;
 		}
 		if(!isFakePho)continue;
-
+		// only fake photon considered
 		if(phoEt > MAXET)phoEt = MAXET;
 		if(sigMET > MAXMET)sigMET = MAXMET;
 		if(sigMT > MAXMT)sigMT = MAXMT;
 		if(HT > MAXHT)HT = MAXHT;	
-
+		// XSectional weight
 		p_PhoEt->Fill(phoEt, weight);
 		p_PhoEta->Fill(phoEta, weight);
 		p_LepPt->Fill(lepPt, weight);
@@ -237,6 +239,8 @@ void closure_jetfakepho(int ichannel){
 //	}
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("jetTree");
+	// jetTree for proxy events
+	// proxy events weighted by fake rate, WJet has major contribution
 	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WJet.root");
 	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WJet.root");
 
@@ -287,7 +291,6 @@ void closure_jetfakepho(int ichannel){
 		/** cut flow *****/
 		if(proxyphoEt < 35 || proxylepPt < 25)continue;
 		if(fabs(proxyphoEta) > 1.4442 || fabs(proxylepEta) > 2.5)continue;
-
 		double w_jet(0);
 		w_jet = fitfunc_num->Eval(proxyphoEt)/fitfunc_den->Eval(proxyphoEt);
 
@@ -298,6 +301,7 @@ void closure_jetfakepho(int ichannel){
 //		if(proxyphoEt >= 264)jetfakeerror = sqrt(jetfake_numerror[263]*jetfake_numerror[263]/fitfunc_den->Eval(300)/fitfunc_den->Eval(300) + jetfake_denerror[263]*jetfake_denerror[263]*w_jet*w_jet)/fitfunc_den->Eval(300); 
 //		double sysJetFakePho = jetfakeerror/w_jet;
 		w_jet = w_jet*weight;
+		// XSec weight * fake rate weight
 
 		pred_PhoEt->Fill(proxyphoEt,w_jet);
 		pred_PhoEta->Fill(proxyphoEta, w_jet);
@@ -332,6 +336,7 @@ void closure_jetfakepho(int ichannel){
 
 	//************ Proxy Tree **********************//
 	TChain *raretree = new TChain("jetTree");
+	// rare contribution from DY
 	if(channelType==1)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
 
 	if(channelType==2)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_DY.root");
@@ -394,6 +399,7 @@ void closure_jetfakepho(int ichannel){
 	//	if(rarephoEt >= 264)jetfakeerror = sqrt(jetfake_numerror[263]*jetfake_numerror[263]/fitfunc_den->Eval(300)/fitfunc_den->Eval(300) + jetfake_denerror[263]*jetfake_denerror[263]*w_jet*w_jet)/fitfunc_den->Eval(300); 
 	//	double sysJetFakePho = jetfakeerror/w_jet;
 		w_jet = w_jet*weight;
+		// XSec weight * fake rate weight
 
 
 		pred_PhoEt->Fill(rarephoEt,w_jet);
@@ -507,8 +513,8 @@ void closure_jetfakepho(int ichannel){
 	gStyle->SetLegendBorderSize(1);
 	gStyle->SetLegendFillColor(0);
 	leg->AddEntry(p_PhoEt,"observed");
-	leg->AddEntry(pred_PhoEt,"t#bar{t}/WW/WZ");
-	leg->AddEntry(DY_PhoEt,"DY");
+	leg->AddEntry(pred_PhoEt,"DY");
+	leg->AddEntry(DY_PhoEt,"WJet");
 	leg->AddEntry(error_PhoEt, "Syst. Unc.");
 	leg->Draw("same");
 	

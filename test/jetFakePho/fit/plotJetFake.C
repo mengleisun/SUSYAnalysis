@@ -26,7 +26,7 @@
 #include "../../../include/tdrstyle.C"
 #include "../../../include/analysis_tools.h"
 
-#define NBIN 16
+#define NBIN 17
 
 void plotJetFake(){//main 
 
@@ -39,9 +39,9 @@ void plotJetFake(){//main
 	bool useMC(false);
 	bool doCompare(false);
 	//std::ifstream jetfake_file("../result/JetFakeRate-ChIso-DoubleEG-ReMiniAOD.txt");
-	std::ifstream jetfake_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-DoubleEG-EB.txt");
+	std::ifstream jetfake_file("JetFakeRate-DoubleEG-EB.txt");
 	 
-	gSystem->Load("/uscms/home/mengleis/work/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 	gStyle->SetOptStat(0);
 	TGraphErrors *jetfrac = new TGraphErrors(NBIN);
 	TGraphErrors *jetfracsys = new TGraphErrors(NBIN);
@@ -60,6 +60,7 @@ void plotJetFake(){//main
 			if(!useMC)jetfake_file >> pt_lower >> pt_upper >> fakerate >> error >> systematic >> truerate;
 			if(useMC)jetfake_file >>  pt_lower >> pt_upper >> fakerate >> error >> systematic >> truerate;
 			jetfrac->SetPoint(i, (pt_lower+pt_upper)/2.0, fakerate);
+                        cout<<fakerate<<endl;
 			jetfrac->SetPointError(i, (pt_upper-pt_lower)/2.0, error);
 			jetfracsys->SetPoint(i, (pt_lower+pt_upper)/2.0, fakerate);
 			jetfracsys->SetPointError(i, 0, systematic);
@@ -117,7 +118,7 @@ void plotJetFake(){//main
 	jetfracTrue->SetFillStyle(0);
 	if(doCompare)jetfrac_nocorr->SetFillStyle(0);
 	if(doCompare)jetfrac_nocorr->Draw("P same");
-	if(useMC)jetfracTrue->Draw("same");
+	if(useMC)jetfracTrue->Draw("P same");
 	gStyle->SetLegendBorderSize(0);
 	gStyle->SetLegendFillColor(0);
 //	TLegend *leg =  new TLegend(0.4,0.75,0.85,0.9);

@@ -8,7 +8,7 @@ void analysis_TChiWG(){//main
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	esfScaleFactor  objectESF;
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 
 	TFile xSecFile("../cross/susyCrossSection.root");
 	TH1D *p_crosssection_tchiwg = (TH1D*)xSecFile.Get("p_charginoSec");
@@ -16,25 +16,24 @@ void analysis_TChiWG(){//main
 	TH1D *p_crosssection_t6wg   = (TH1D*)xSecFile.Get("p_squarkxSec");
 
 	TChain *datachain = new TChain("signalTree");
-	datachain->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+	datachain->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
 	TH1D *p_PU_data = new TH1D("p_PU_data",";N_{vtx};",100,0,100); 
   datachain->Draw("nVertex >> p_PU_data");
 	p_PU_data->Scale(1.0/p_PU_data->Integral(1,101));
 
 	std::ostringstream histname;
 	//**************   T5WG  ***************************//
-  //TFile *file_t5wg = TFile::Open("/uscms_data/d3/mengleis/Sep1/resTree_T5WG.root");
-  TFile *file_t5wg = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root");
+  TFile *file_t5wg = TFile::Open("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_2016.root");
   TTree *tree_t5wg = (TTree*)file_t5wg->Get("SUSYtree");
 //	float Mgluino_t5wg(0);
-//  float Mchargino_t5wg(0);
-//  float Mneutralino_t5wg(0);
+  float Mchargino_t5wg(0);
+  float Mneutralino_t5wg(0);
 	float Mass1_t5wg(0);
 	float Mass2_t5wg(0);
 	int   nVertex(0);
 //	tree_t5wg->SetBranchAddress("MsGsQ",      &Mgluino_t5wg);  
-//  tree_t5wg->SetBranchAddress("Mchargino",  &Mchargino_t5wg);
-//  tree_t5wg->SetBranchAddress("Mneutralino",&Mneutralino_t5wg);
+  tree_t5wg->SetBranchAddress("Mchargino",  &Mchargino_t5wg);
+  tree_t5wg->SetBranchAddress("Mneutralino",&Mneutralino_t5wg);
   tree_t5wg->SetBranchAddress("Mass1",      &Mass1_t5wg);
   tree_t5wg->SetBranchAddress("Mass2",      &Mass2_t5wg);
   tree_t5wg->SetBranchAddress("nVertex",    &nVertex);
@@ -66,7 +65,7 @@ void analysis_TChiWG(){//main
 	}
 
 	TH2D *t5wg_h_chan_rate_nom[NBIN*2]; 
-	for(unsigned i(0); i < NBIN*2; i++){
+	for(int i(0); i < NBIN*2; i++){
 		histname.str("");
 		histname << "h_chan" << i+1 << "_rate_nom";
 		t5wg_h_chan_rate_nom[i] = new TH2D(histname.str().c_str(),histname.str().c_str(),27, 775.0, 2125.0, 420, 2.5, 2102.5);
@@ -91,7 +90,7 @@ void analysis_TChiWG(){//main
 	TH2D *t5wg_h_chan_syserr_lumi[NBIN*2];     
 	TH2D *t5wg_h_chan_syserr_isr[NBIN*2];     
 
-	for(unsigned i(0); i < NBIN*2; i++){
+	for(int i(0); i < NBIN*2; i++){
 		histname.str("");
 		histname << "h_chan" << i+1 << "_rate_jesUp";
 		t5wg_h_chan_rate_jesUp[i] = new TH2D(histname.str().c_str(),histname.str().c_str(),27, 775.0, 2125.0, 420, 2.5, 2102.5);
@@ -152,8 +151,7 @@ void analysis_TChiWG(){//main
 		
   TChain *mgtree_t5wg;
   mgtree_t5wg = new TChain("mgTree","mgTree");
-  //mgtree_t5wg->Add("/uscms_data/d3/mengleis/Sep1/resTree_T5WG.root");
-  mgtree_t5wg->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root");
+  mgtree_t5wg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_2016.root");
   float phoEt_t5wg_mg(0);
   float phoEta_t5wg_mg(0);
   float lepPt_t5wg_mg(0);
@@ -172,9 +170,9 @@ void analysis_TChiWG(){//main
 	float sigMTJERdo_t5wg_mg(0);
 	float HTJESup_t5wg_mg(0);
 	float HTJESdo_t5wg_mg(0);
-//	float gluinoMass_t5wg_mg(0);
-//  float charginoMass_t5wg_mg(0);
-//  float neutralinoMass_t5wg_mg(0);
+	float gluinoMass_t5wg_mg(0);
+  float charginoMass_t5wg_mg(0);
+  float neutralinoMass_t5wg_mg(0);
   float Mass1_t5wg_mg(0);
   float Mass2_t5wg_mg(0);
   mgtree_t5wg->SetBranchAddress("phoEt",      &phoEt_t5wg_mg);
@@ -185,9 +183,9 @@ void analysis_TChiWG(){//main
   mgtree_t5wg->SetBranchAddress("sigMET",     &sigMET_t5wg_mg);
   mgtree_t5wg->SetBranchAddress("HT",         &HT_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("nVertex",    &nVertex_t5wg_mg);
-//	mgtree_t5wg->SetBranchAddress("Mgluino",    &gluinoMass_t5wg_mg);
-//  mgtree_t5wg->SetBranchAddress("Mchargino",  &charginoMass_t5wg_mg);
-//  mgtree_t5wg->SetBranchAddress("Mneutralino",&neutralinoMass_t5wg_mg);
+	mgtree_t5wg->SetBranchAddress("Mgluino",    &gluinoMass_t5wg_mg);
+  mgtree_t5wg->SetBranchAddress("Mchargino",  &charginoMass_t5wg_mg);
+  mgtree_t5wg->SetBranchAddress("Mneutralino",&neutralinoMass_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("Mass1",      &Mass1_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("Mass2",      &Mass2_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("sigMETJESup",&sigMETJESup_t5wg_mg);
@@ -262,7 +260,7 @@ void analysis_TChiWG(){//main
 
   TChain *egtree_t5wg;
   egtree_t5wg = new TChain("egTree","egTree");
-  egtree_t5wg->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root");
+  egtree_t5wg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_2016.root");
   float phoEt_t5wg_eg(0);
   float phoEta_t5wg_eg(0);
   float lepPt_t5wg_eg(0);
@@ -369,9 +367,9 @@ void analysis_TChiWG(){//main
 		}  
 	}
 
-	for(unsigned ih(0); ih < NBIN*2; ih++){
-		for(unsigned i(1); i < t5wg_h_chan_rate_nom[ih]->GetXaxis()->GetNbins() + 1; i++){
-			for(unsigned j(1); j < t5wg_h_chan_rate_nom[ih]->GetYaxis()->GetNbins() + 1; j++){
+	for(int ih(0); ih < NBIN*2; ih++){
+		for(int i(1); i < t5wg_h_chan_rate_nom[ih]->GetXaxis()->GetNbins() + 1; i++){
+			for(int j(1); j < t5wg_h_chan_rate_nom[ih]->GetYaxis()->GetNbins() + 1; j++){
 				if(p_T5WGMASS->GetBinContent(i,j) < 1000){
 					p_T5WGselect->SetBinContent(i,j,-1);
 					p_T5WGMASS->SetBinContent(i,j,-1);
@@ -429,8 +427,8 @@ void analysis_TChiWG(){//main
 		} 
 	} 
 
-		for(unsigned i(1); i < p_T5WGMASS->GetXaxis()->GetNbins() + 1; i++){
-			for(unsigned j(1); j < p_T5WGMASS->GetYaxis()->GetNbins() + 1; j++){
+		for(int i(1); i < p_T5WGMASS->GetXaxis()->GetNbins() + 1; i++){
+			for(int j(1); j < p_T5WGMASS->GetYaxis()->GetNbins() + 1; j++){
 				float sparticleMass = p_T5WGMASS->GetXaxis()->GetBinCenter(i);
 				if( fabs(sparticleMass - 1700 ) < 10 && fabs( p_T5WGMASS->GetYaxis()->GetBinCenter(j) - 1000) < 5){
 					float noe = p_T5WGMASS->GetBinContent(i,j);
@@ -450,7 +448,7 @@ void analysis_TChiWG(){//main
 
 
 	//****************   TChiWG ***************************//
-  TFile *file_tchiwg = TFile::Open("/uscms_data/d3/mengleis/test/test_TChiWg.root");
+  TFile *file_tchiwg = TFile::Open("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_2016.root");
   TTree *tree_tchiwg = (TTree*)file_tchiwg->Get("SUSYtree");
   float Mchargino_tchiwg(0);
   float Mneutralino_tchiwg(0);
@@ -506,7 +504,7 @@ void analysis_TChiWG(){//main
 	TH1D *tchiwg_h_chan_syserr_lumi[NBIN*2];     
 	TH1D *tchiwg_h_chan_syserr_isr[NBIN*2];     
 
-	for(unsigned i(0); i < NBIN*2; i++){
+	for(int i(0); i < NBIN*2; i++){
 		histname.str("");
 		histname << "h_chan" << i+1 << "_rate_nom";
 		tchiwg_h_chan_rate_nom[i] = new TH1D(histname.str().c_str(),histname.str().c_str(),40,287.5,1287.5);
@@ -563,7 +561,8 @@ void analysis_TChiWG(){//main
 
   TChain *mgtree_tchiwg;
   mgtree_tchiwg = new TChain("mgTree","mgTree");
-  mgtree_tchiwg->Add("/uscms_data/d3/mengleis/test/test_TChiWg.root");
+  //mgtree_tchiwg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_2016.root");
+  mgtree_tchiwg->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/test_TChiWg.root");
   float phoEt_tchiwg_mg(0);
   float phoEta_tchiwg_mg(0);
   float lepPt_tchiwg_mg(0);
@@ -669,7 +668,8 @@ void analysis_TChiWG(){//main
 
   TChain *egtree_tchiwg;
   egtree_tchiwg = new TChain("egTree","egTree");
-  egtree_tchiwg->Add("/uscms_data/d3/mengleis/test/test_TChiWg.root");
+  //egtree_tchiwg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_2016.root");
+  egtree_tchiwg->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/test_TChiWg.root");
   float phoEt_tchiwg_eg(0);
   float phoEta_tchiwg_eg(0);
   float lepPt_tchiwg_eg(0);
@@ -771,8 +771,8 @@ void analysis_TChiWG(){//main
 		}  
 	}
 
-	for(unsigned ih(0); ih < NBIN*2; ih++){
-		for(unsigned i(1); i < tchiwg_h_chan_rate_nom[ih]->GetXaxis()->GetNbins() + 1; i++){
+	for(int ih(0); ih < NBIN*2; ih++){
+		for(int i(1); i < tchiwg_h_chan_rate_nom[ih]->GetXaxis()->GetNbins() + 1; i++){
 				
 			if(p_TChiWGMASS->GetBinContent(i) <= 0){
 				tchiwg_h_chan_rate_nom[ih]->SetBinContent(i, -1); 
@@ -824,7 +824,7 @@ void analysis_TChiWG(){//main
 		} 
 	} 
 
-		for(unsigned i(1); i < p_TChiWGMASS->GetXaxis()->GetNbins() + 1; i++){
+		for(int i(1); i < p_TChiWGMASS->GetXaxis()->GetNbins() + 1; i++){
 			float sparticleMass = p_TChiWGMASS->GetXaxis()->GetBinCenter(i);
 			if(p_TChiWGMASS->GetBinContent(i) > 0 && fabs(sparticleMass - 800) < 2){
 				float noe = p_TChiWGMASS->GetBinContent(i);
@@ -842,7 +842,7 @@ void analysis_TChiWG(){//main
 	outputfile_tchiwg->Close();
 
 	//**************   T6WG  ***************************//
-
+/*
   TFile *file_t6wg = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/resTree_T6WG.root");
   TTree *tree_t6wg = (TTree*)file_t6wg->Get("SUSYtree");
 	float Msquark_t6wg(0);
@@ -994,9 +994,9 @@ void analysis_TChiWG(){//main
     double NLSPMass(0);
     if(charginoMass_t6wg_mg >0)NLSPMass=charginoMass_t6wg_mg;
 		else if(neutralinoMass_t6wg_mg >0)NLSPMass=neutralinoMass_t6wg_mg;
-		if(NLSPMass <= 0)continue;
+		if(NLSPMass <= 0)continue;*/
 		/** cut flow *****/
-		if(phoEt_t6wg_mg < 35 || lepPt_t6wg_mg < 25)continue;
+	/*	if(phoEt_t6wg_mg < 35 || lepPt_t6wg_mg < 25)continue;
 		if(fabs(phoEta_t6wg_mg) > 1.4442 || fabs(lepEta_t6wg_mg) > 2.5)continue;
 
 		double scalefactor(0);
@@ -1090,9 +1090,9 @@ void analysis_TChiWG(){//main
     double NLSPMass(0);
     if(charginoMass_t6wg_eg >0)NLSPMass=charginoMass_t6wg_eg;
 		else if(neutralinoMass_t6wg_eg >0)NLSPMass=neutralinoMass_t6wg_eg;
-		if(NLSPMass <= 0)continue;
+		if(NLSPMass <= 0)continue;*/
 		/** cut flow *****/
-		if(phoEt_t6wg_eg < 35 || lepPt_t6wg_eg < 25)continue;
+	/*	if(phoEt_t6wg_eg < 35 || lepPt_t6wg_eg < 25)continue;
 		if(fabs(phoEta_t6wg_eg) > 1.4442 || fabs(lepEta_t6wg_eg) > 2.5)continue;
 		if(sigMET_t6wg_eg < 120 || sigMT_t6wg_eg < 100)continue;
 
@@ -1197,7 +1197,7 @@ void analysis_TChiWG(){//main
 	outputfile_t6wg->Write();
 	outputfile_t6wg->Close();
 
-
+*/
   xSecFile.Close();
 }
 

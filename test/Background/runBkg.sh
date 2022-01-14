@@ -2,13 +2,13 @@
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 ch=2
-anatype=0
+anatype=0 # control region 40 < MET < 70
 lmt=0
 hmt=-1
 lmet=40
 hmet=70
 iso=4
-
+# different lepton pT ranges : 0-50-70-100-1000
 rm BkgPredConfig.txt
 echo 'ichannel' $ch  >> BkgPredConfig.txt
 echo 'anatype'  $anatype >>  BkgPredConfig.txt

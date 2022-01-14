@@ -6,13 +6,13 @@ void analysis_qcdBkg(){
 	setTDRStyle();
 	bool toDeriveScale(false);
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 
   int channelType = ichannel; // eg = 1; mg =2;
 	double factorQCD(1);
 	double factorQCDUP = 1; 
-
 	if(channelType == 1){
+	// from include/analysis_commoncode.h
 		factorQCD = factor_egQCD;
 		factorQCDUP = factor_egQCD + factorerror_egQCD;
 	}
@@ -26,14 +26,14 @@ void analysis_qcdBkg(){
 		factorQCD = 1;
 		factorQCDUP = 1;
 	}
-
+	// reading scale factor from sf files
 	TFile *scaleFile;
 	if(channelType == 1)scaleFile = TFile::Open("../script/qcd_eg_scale.root");
 	else if(channelType == 2)scaleFile = TFile::Open("../script/qcd_mg_scale.root");
 	TH1D *p_scale;
 	if(channelType == 1)p_scale = (TH1D*)scaleFile->Get("transfer_factor");
 	else if(channelType == 2)p_scale = (TH1D*)scaleFile->Get("transfer_factor");
-
+	
 	//*********** histo list **********************//
 	std::ostringstream histname;
 	TH1D *p_PhoEt = new TH1D("p_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
@@ -71,8 +71,9 @@ void analysis_qcdBkg(){
 	TH1D *unweight_dPhiEleMET = new TH1D("unweight_dPhiEleMET","dPhiEleMET",32,0,3.2); 
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
-	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+  	// fake lepton is predicted from data, fakeLeptree
+	if(channelType==1)fakeEtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
+	if(channelType==2)fakeEtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -115,8 +116,9 @@ void analysis_qcdBkg(){
 		double w_qcd = 0; 
 		double w_qcd_up = 0; 
 		double w_qcd_unweight = 0;
-
+		// weights used for fake lepton
 		if(channelType == 1){
+			// don't know why the extra weight in eg channel
 			w_qcd = factorQCD*p_scale->GetBinContent(p_scale->FindBin(lepPt));
 			w_qcd_up = factorQCDUP*p_scale->GetBinContent(p_scale->FindBin(lepPt));
 			w_qcd_unweight = factorQCD;
@@ -136,8 +138,9 @@ void analysis_qcdBkg(){
 		if(highMt > 0 && sigMT > highMt)continue;
 		if(lepPt < lowPt)continue;
 		if(highPt > 0 && lepPt > highPt)continue;
-
+		// different MET, MT, lepton pT ranges
 		bool isProxy(false);
+		// lepIso = 4
 		if(channelType==1){if(fakeLepMiniIso < lepIso*0.1)isProxy=true;}
 		else if(channelType==2){if((fakeLepMiniIso > 0.2 && fakeLepMiniIso < lepIso*0.1))isProxy=true;}
 		if(fakeLepIsStandardProxy == 0)isProxy = false;
@@ -186,6 +189,7 @@ void analysis_qcdBkg(){
 		syserror += pow((normup_PhoEt->GetBinContent(ibin)-p_PhoEt->GetBinContent(ibin)),2);
 		syserror += pow((unweight_PhoEt->GetBinContent(ibin)-p_PhoEt->GetBinContent(ibin)),2);
 		p_PhoEt->SetBinError(ibin,sqrt(syserror));
+		// systematic weight
 	}	
 	for(int ibin(1); ibin < p_LepPt->GetSize(); ibin++){
 		double syserror(0);
@@ -217,6 +221,7 @@ void analysis_qcdBkg(){
 	}	
 
 	std::ostringstream outputname;
+	outputname << "/eos/uscms/store/user/tmishra/Background/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	

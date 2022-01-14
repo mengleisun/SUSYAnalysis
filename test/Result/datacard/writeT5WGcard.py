@@ -10,7 +10,8 @@ import ROOT
 br_susy = 1
 
 
-susy_in = ROOT.TFile('../signalTree_T5WG.root','read')
+#susy_in = ROOT.TFile('../signalTree_T5WG.root','read')
+susy_in = ROOT.TFile('/uscms/homes/m/mengleis/work/SUSY2016/SUSYAnalysis/test/Result/signalTree_T5WG.root','read')
 n_channels = 36
 syst_names = ['jes','jer','esf','scale','eleshape','jetshape','qcdshape','xs','lumi','isr']
 

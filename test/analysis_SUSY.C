@@ -1,3 +1,4 @@
+// g++ `root-config --cflags` ../lib/libAnaClasses.so analysis_SUSY.C -o analysis_SUSY.exe `root-config --libs`
 #include "../include/analysis_commoncode.h"
 #include "../include/analysis_cuts.h"
 
@@ -17,43 +18,43 @@ struct decayChain{
   std::vector< std::vector<mcData>::iterator > daughter;
 };
 
-void analysis_SUSY(){//main  
+void analysis_SUSY(int RunYear, const char *channel){//main
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	//gSystem->Load("../lib/libAnaClasses.so");
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/GGM_GravitinoLSP_M1-200to1500_M2-200to1500.root");
+	es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/SMS-TChiWg_mChi-1000_mLSP-1/SMS-TChiWg_mChi-1000_mLSP-1_%d.root",RunYear));
+	//es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/T5Wg_mG-1800_mLSP-800/T5Wg_mG-1800_mLSP-800_%d.root",RunYear));
+
+	//es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/Signal/TChiWG_FastSim_2018.root");
+	//es->Add("/eos/uscms/store/user/mengleis/Signal/SMS-T5WG_TuneCUETP8M1_RunIISummer16MiniAOD.root");
 	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2_scan.root");
-	es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiNG_BF50N50G_TuneCUETP8M1.root");
+	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiNG_BF50N50G_TuneCUETP8M1.root");
 	//es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/SMS-T6Wg_TuneCUETP8M1_RunIISummer16MiniAODv2_scan.root");
 
 	RunType datatype(MC); 
-	std::ostringstream outputname;
-	//outputname << "/uscms_data/d3/mengleis/test/resTree_TChiWG.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root";
+	//outputname << "/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_2018.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_test.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNg_test_debug.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_test.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_M1M3.root";
 	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T6WG.root";
-	outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNG_debug.root";
 
 	int SUSYtype(-1);
-	if(outputname.str().find("T5WG") != std::string::npos){
+	std::string model = channel;
+	if(model == "T5WG"){
 		std::cout << "T5WG Model !" << std::endl;
 		SUSYtype = 5;
 	}
-	else if(outputname.str().find("T6WG") != std::string::npos){
+	else if(model == "T6WG"){
 		std::cout << "T6WG Model !" << std::endl;
 		SUSYtype = 6;
 	}
-	else if(outputname.str().find("TChi") != std::string::npos){
+	else if(model == "TChiWG"){
 		std::cout << "TChiWG Model !" << std::endl;
 		SUSYtype = 1;
 	}
-	else if(outputname.str().find("GMSB") != std::string::npos){
+	else if(model == "GMSB"){
 		std::cout << "GMSB Model !" << std::endl;
 		SUSYtype = 2;
 	}
@@ -63,9 +64,8 @@ void analysis_SUSY(){//main
 	}
 
 	int decaybranch;
-
-	TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
-	outputfile->cd();
+        TFile *output = TFile::Open(Form("/eos/uscms/store/user/tmishra/Signal/resTree_%s_%d.root",channel,RunYear),"RECREATE");
+	output->cd();
 	TTree *tree = new TTree("SUSYtree","SUSYtree");
 	float Mass1_(0);
 	float Mass2_(0);
@@ -301,7 +301,7 @@ void analysis_SUSY(){//main
 	int nVtx(0);
 	int jetNumber(0);
 
-	const unsigned nEvts = es->GetEntries()/10; 
+	const unsigned nEvts = es->GetEntries();
 	std::cout << "total event : " << nEvts << std::endl;
 
 	for(unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
@@ -371,7 +371,7 @@ void analysis_SUSY(){//main
 		metPhi_T1UESUp = raw.pfMETPhi_T1UESUp;
 		metPhi_T1UESDo = raw.pfMETPhi_T1UESDo;
 		nVtx = raw.nVtx;
-	
+		// GGM
 		if(SUSYtype == 2){
 			int scan1 = raw.EventTag->Index("M1");
 			int scan2 = raw.EventTag->Index("M2");
@@ -382,6 +382,7 @@ void analysis_SUSY(){//main
 			Mass1_ = m1.Atoi();
 			Mass2_ = m2.Atoi();
 		}
+		// T5Wg, T6Wg
 		else if(SUSYtype == 5 || SUSYtype == 6){
 			int scan1 = raw.EventTag->First('_');
 			int scan2 = raw.EventTag->Last('_');
@@ -391,6 +392,7 @@ void analysis_SUSY(){//main
 			Mass1_ = m1.Atoi();
 			Mass2_ = m2.Atoi();
 		}
+		// TChiWg
 		else{
 			int scan1 = raw.EventTag->First('_');
 			int scan3 = raw.EventTag->Length();
@@ -411,7 +413,7 @@ void analysis_SUSY(){//main
 		finalState.clear();
 		std::vector< std::vector<mcData>::iterator > itMCList;
 		itMCList.clear();	
-		if(debugMCLevel > 0)std::cout << std::endl;
+	//	if(debugMCLevel > 0)std::cout << std::endl;
 		bool hasLepFromPho(false);	
 		for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){ 
 
@@ -422,10 +424,13 @@ void analysis_SUSY(){//main
 				}
 				if(!inList)itMCList.push_back(itMC);
 			}
-			
+			// 21-25 are gluon, gamma, Z, W Higgs
+			// 1000022 1000023 neutralino
+			// 1000021 gluino
 			if(fabs(itMC->getPID()) > 20 && fabs(itMC->getPID()) < 26 && fabs(itMC->getMomPID()) > 1000000){
 				finalState.push_back( make_pair(fabs(itMC->getPID()), fabs(itMC->getMomPID())) );
 			}
+			// photon radiate muon
 			if(fabs(itMC->getPID()) == 13 && fabs(itMC->getMomPID()) == 22)hasLepFromPho=true;
 			//Look for neutralino-decayed photon
 			if(itMC->isPhoton() && itMC->decayFromNeu()){
@@ -482,6 +487,7 @@ void analysis_SUSY(){//main
 		// Calculate HT 
 		for(std::vector<recoJet>::iterator itJet = JetCollection.begin() ; itJet != JetCollection.end(); ++itJet){
 			if(!itJet->passSignalSelection())continue;
+			// well separated jets
 			if(genPho != MCData.end())
 				if(DeltaR(itJet->getEta(), itJet->getPhi(), genPho->getEta(),genPho->getPhi()) <= AK4Cone)continue;	
 			if(genEle != MCData.end())
@@ -736,7 +742,7 @@ void analysis_SUSY(){//main
 			//		printf("%10d %8.2f %8.2f %8.2f   %10d %8.2f %8.2f %8.2f \n", itMCList[imc]->getPID(), itMCList[imc]->getPt(), itMCList[imc]->getEta(), itMCList[imc]->getPhi(), itMCList[imc]->getMomPID(), itMCList[imc]->getmomPt(), itMCList[imc]->getmomEta(), itMCList[imc]->getmomPhi());
 			//	}
 				
-				for(unsigned ione(0); ione < branchOne.size(); ione++){
+	/*			for(unsigned ione(0); ione < branchOne.size(); ione++){
 					if(ione == 0)std::cout << branchOne[ione].iter->getMomPID() << "-> ";
 					std::cout <<  branchOne[ione].iter->getPID() << " ";
 				}
@@ -786,8 +792,7 @@ void analysis_SUSY(){//main
 				if(decaybranch== 1){
 					if(hasPhotonConv)std::cout << "conve " << NrecoPho << std::endl;
 					else std::cout << "prompt " << NrecoPho << std::endl;	
-				}
-				
+				}*/
 
 	//	int iNEU(0);	
 	//	for(unsigned ic(0); ic < chains.size(); ic++){
@@ -805,5 +810,13 @@ void analysis_SUSY(){//main
 	}//loop on entries
 
 
-	outputfile->Write();
+	output->Write();
+	output->Close();
+}
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+      cout << "You have to provide two arguments!!\n";
+    analysis_SUSY(atoi(argv[1]),argv[2]);
+    return 0;
 }

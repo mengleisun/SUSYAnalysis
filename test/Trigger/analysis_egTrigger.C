@@ -31,19 +31,26 @@
 
 void analysis_egTrigger(){//main  
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("../../lib/libAnaClasses.so");
 
-	char outputname[100] = "/uscms_data/d3/mengleis/plot_egTrigger_DY.root";
+	//char outputname[100] = "/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_DY.root";
+	char outputname[100] = "/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_ReMiniAOD.root";
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/plot_egTrigger_DY.log");
+	//logfile.open("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_DY.log");
+	logfile.open("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_ReMiniAOD.log");
 
 	logfile << "analysis_egTrigger()" << std::endl;
 
-	RunType datatype(MC);
+	//RunType datatype(MC);
+	RunType datatype(SingleElectron2016);
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	TFileCollection fc("dum","","/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/DY_1.txt");
+	TFileCollection fc("dum","","SingelEle16.txt");
 	es->AddFileInfoList((TCollection*)fc.GetList());
+
+	//TFile *f = TFile::Open("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/DYToLL_2016.root");
+	//TFile *f = TFile::Open("DATA/2016/DYToLL_2016.root");
+	//TTree *es =(TTree*)f->Get("ggNtuplizer/EventTree");
 
 	TFile *outputfile = TFile::Open(outputname,"NEW");
 	outputfile->cd();
@@ -146,6 +153,7 @@ void analysis_egTrigger(){//main
 		if(!raw.passHLT())continue;
 		if(raw.nPho <1)continue;
 		if(MET>70)continue;
+		//HLT_Ele27_eta2p1_WPTight_Gsf_v
 		if(((raw.HLTEleMuX >> 1) &1) ==0)continue;
 
 		std::vector<std::vector<recoEle>::iterator> tagEleVec;
@@ -153,6 +161,7 @@ void analysis_egTrigger(){//main
 		for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
 			if(itEle->getEt() < 30 || fabs(itEle->getEta())>2.1)continue;
 			if(!itEle->passHLTSelection())continue;
+			// HLT_Ele27_eta2p1_WPTight_Gsf
 			if(!itEle->fireTrgs(11))continue;
 			if(!itEle->passSignalSelection())continue;
 			tagEleVec.push_back(itEle);

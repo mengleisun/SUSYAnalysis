@@ -27,7 +27,9 @@ bash make.sh
 voms-proxy-init --voms cms --valid 168:00 -out ~/.globus/gridproxy.cert
 
 ./FitKer.exe ${ARG1} ${ARG2} ${ARG3} ${ARG4} ${ARG5} ${ARG6} ${ARG7}
-xrdcp -f EleFakeRate*.txt root://cmseos.fnal.gov//store/user/tmishra/Fitting18/
-xrdcp -f *.png root://cmseos.fnal.gov//store/user/tmishra/Fitting18/
+xrdcp -f *.png        root://cmseos.fnal.gov//store/user/tmishra/elefakepho/DYFitting17
+xrdcp -f *.txt        root://cmseos.fnal.gov//store/user/tmishra/elefakepho/DYFitting17
+#xrdcp -f EleFake*.txt root://cmseos.fnal.gov//store/user/tmishra/elefakepho/DYResult17
+
 rm EleFakeRate*.txt  *.png
 cd ${_CONDOR_SCRATCH_DIR} && rm -rf CMSSW_10_2_22 

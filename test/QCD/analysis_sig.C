@@ -33,7 +33,7 @@
 
 void analysis_sig(){
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 	//*********** histo list **********************//
 	std::ostringstream histname;
 	TH1D *p_PhoEt = new TH1D("p_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
@@ -51,7 +51,7 @@ void analysis_sig(){
 
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
-	sigtree->Add("/uscms_data/d3/mengleis/Sep1/test_egsignal_GJet.root");
+	sigtree->Add("fakelep_egsignal_GJet.root");
 	//sigtree->Add("/uscms_data/d3/mengleis/Sep1/test_egsignal_QCDfake_2.root");
 
 	float phoEt(0);

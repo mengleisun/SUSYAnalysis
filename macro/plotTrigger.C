@@ -169,7 +169,7 @@ void plotTrigger(){//main
 		}
 	}
 /***************************************************************************  Start MC ***************************************************************************/
-	TFile *mcfile = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/plot_egTrigger_DY.root");
+	TFile *mcfile = TFile::Open("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_DY.root");
 
 	TTree *DYtree = (TTree*)mcfile->Get(treename.str().c_str());
 	float DY_tagPt(0);

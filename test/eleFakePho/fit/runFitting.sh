@@ -65,6 +65,6 @@ echo 'SaveOutput 1'  >> configFit_Bw_expo.txt
 
 cd /uscms/homes/t/tmishra/work/CMSSW_10_2_22/src
 
-tar -czvf files.tar.gz SUSYAnalysis/test/eleFakePho/fit/FitKer.C SUSYAnalysis/include/RooCMSShape.h SUSYAnalysis/include/RooDCBShape.h SUSYAnalysis/include/analysis_rawData.h SUSYAnalysis/include/analysis_photon.h SUSYAnalysis/include/analysis_muon.h SUSYAnalysis/include/analysis_ele.h SUSYAnalysis/include/analysis_tools.h SUSYAnalysis/include/analysis_mcData.h SUSYAnalysis/include/tdrstyle.C SUSYAnalysis/lib/libAnaClasses.so SUSYAnalysis/lib/libRooFitClasses.so SUSYAnalysis/test/eleFakePho/fit/make.sh SUSYAnalysis/lib/roofit_Dict_rdict.pcm SUSYAnalysis/lib/analysis_photonDict_rdict.pcm SUSYAnalysis/test/eleFakePho/fit/RunnerScript.txt SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.sh SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.py SUSYAnalysis/test/eleFakePho/fit/Run_Analyser_short.py SUSYAnalysis/include/RooUserPoly.h SUSYAnalysis/test/eleFakePho/fit/FitKer.C SUSYAnalysis/lib/RooDCBShape.o SUSYAnalysis/lib/RooUserPoly.o SUSYAnalysis/test/eleFakePho/fit/make.sh SUSYAnalysis/test/eleFakePho/fit/RooDCBShape.h SUSYAnalysis/test/eleFakePho/fit/RooUserPoly.h SUSYAnalysis/lib/* SUSYAnalysis/include/* SUSYAnalysis/src/*
+tar -czvf files.tar.gz SUSYAnalysis/test/eleFakePho/fit/make.sh SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.sh SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.py SUSYAnalysis/test/eleFakePho/fit/FitKer.C SUSYAnalysis/lib/* SUSYAnalysis/include/* SUSYAnalysis/src/*
 
 cp files.tar.gz SUSYAnalysis/test/eleFakePho/fit/

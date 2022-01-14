@@ -29,23 +29,26 @@
 
 void analysis_mgTrigger(){//main  
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("../../lib/libAnaClasses.so");
 
-	char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_ReMiniAOD.root";
+	char outputname[100] = "/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_ReMiniAOD_2016.root";
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_ReMiniAOD.log"); 
+	logfile.open("/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_ReMiniAOD_2016.log");
 
 	logfile << "analysis_mgTrigger()" << std::endl;
 
 	RunType datatype(SingleMuon2016); 
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_C.root");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_D.root");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_E.root");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_F.root");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_G.root");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_SingleMuon_FebReminiAOD_H.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016B_ver1.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016B_ver2.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016C.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016D.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016E.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016F_postVFP.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016F_preVFP.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016G.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016H.root");
 
 
 	TFile *outputfile = TFile::Open(outputname,"RECREATE");

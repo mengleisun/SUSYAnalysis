@@ -49,9 +49,12 @@ void
 plotFit(){
 
 	gStyle->SetOptStat(0);
+	// VGamma scale factor as a function of lepton pT(Figure 27 AN)
 	TGraphErrors *p_frac = new TGraphErrors(4);
+	// VGamma scale factor in full pT range
 	TGraphErrors *p_frac_total = new TGraphErrors(1);
 	TGraphErrors *p_error_total = new TGraphErrors(1);
+	// distribution of VGamma scale factor in full pT range(Figure 29 AN)
 	TH1F *p_frac_0 = new TH1F("p_frac_0","a_{V#gamma}",50,1,1.5);
 
 	std::ifstream vgammascalefile("VGamma_scalefactor_mg.txt");
@@ -62,6 +65,7 @@ plotFit(){
 	float fittingerror(0), systematicerror(0), totalerror(0);
 
 	TCanvas *cantemp = new TCanvas("cantemp","",1200,1200);
+	// four temporary histograms for four lepton pT bins, where scalefactor is derived
 	TH1D *temphist[4];
 	temphist[0] = new TH1D("temphist0","",100,0.5,2);
 	temphist[1] = new TH1D("temphist1","",100,0.5,2);
@@ -81,9 +85,10 @@ plotFit(){
 		}
 		cantemp->cd(i+1);
 		temphist[i]->Draw();
-		temphist[i]->Fit("gaus","","",0.5,2);
+		temphist[i]->Fit("gaus","","",0.5,2);a
 		yerror = temphist[i]->GetFunction("gaus")->GetParameter(2);
 		if(yerror > 0.5)yerror= temphist[i]->GetRMS()/2;
+		// set four point for VGamma scale factor
 		p_frac->SetPoint(i, xvalue, yvalue);
 		p_frac->SetPointError(i, xerror, yerror);
 	}
@@ -94,6 +99,7 @@ plotFit(){
 		if(i == 0)p_error_total->SetPoint(0, 100, vgammascale);
 		if(i == 0)norm = vgammascale;
 		if(i == 0)fittingerror = vgammascaleerror;
+		// VGamma scale in full pT range
 		p_frac_0->Fill(vgammascale);
 		if(vgammascale < lowbound)lowbound = vgammascale;
 		if(vgammascale > highbound)highbound = vgammascale;

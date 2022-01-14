@@ -1,3 +1,4 @@
+// look entries with photon(all, no pixel, id, eg and mg) cases and store photon, eg and mg trees
 #include<string>
 #include<iostream>
 #include<fstream>

@@ -8,7 +8,7 @@ void analysis_jetBkg(){
 	SetRunConfig();
 	setTDRStyle();
  
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("../../lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 
 	gRandom = new TRandom3(0);
@@ -17,7 +17,7 @@ void analysis_jetBkg(){
 	randomweight_jet[0] = 0;
 	for(unsigned ir(1); ir<NTOY; ir++)	
 		randomweight_jet[ir] = -1+ gRandom->Rndm()*2.0;
-
+	// numerator and denominator function for fake rate
 	TF1 *fitfunc_num = new TF1("fitfunc_num",jetfake_func,35,1000,4);
 	TF1 *fitfunc_den = new TF1("fitfunc_den",jetfake_func,35,1000,4);
 	double jetfake_numerror[264];
@@ -25,8 +25,8 @@ void analysis_jetBkg(){
 	
 	std::stringstream JetFakeRateFile;
   JetFakeRateFile.str();
-	//if(channelType==1)JetFakeRateFile << "../script/JetFakeRate-transferfactor-DoubleEG-EB.txt";
-	if(channelType==1)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-5.txt";
+	if(channelType==1)JetFakeRateFile << "../script/JetFakeRate-transferfactor-DoubleEG-EB.txt";
+	// fake rate as input
 	if(channelType==2)JetFakeRateFile << "../script/JetFakeRate-transferfactor-MuonEG-EB.txt";
 	std::ifstream jetfakefile(JetFakeRateFile.str().c_str());
 	std::string paratype;
@@ -112,9 +112,9 @@ void analysis_jetBkg(){
 
 	/************ jet tree **************************/ 
 		TChain *jettree = new TChain("jetTree");
-		//if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+		// Background derived from data, as it is fake, jetTree
+		if(channelType==1)jettree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
+		if(channelType==2)jettree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
 
 		float phoEt(0);
 		float phoEta(0);
@@ -161,14 +161,16 @@ void analysis_jetBkg(){
 			if(highMt > 0 && sigMT > highMt)continue;
 			if(lepPt < lowPt)continue;
 			if(highPt > 0 && lepPt > highPt)continue;
-	
+			// different MET, MT and lepton pT ranges
 			if(phoChIso > 5)continue;
 
 			double w_jet(0);
+			// weight for fake background, central value from function
 			w_jet = fitfunc_num->Eval(phoEt)/fitfunc_den->Eval(phoEt);
 
 			double jetfakeerror(0);
 			for(int ipt(0); ipt < 264; ipt++){
+				// weight for fake background, errors are stored for pt value
 				if(phoEt >= ipt+35 && phoEt < ipt+1+35)jetfakeerror = sqrt(jetfake_numerror[ipt]*jetfake_numerror[ipt] + jetfake_denerror[ipt]*jetfake_denerror[ipt]*w_jet*w_jet)/fitfunc_den->Eval(phoEt);
 			}
 			if(phoEt >= 264)jetfakeerror = sqrt(jetfake_numerror[263]*jetfake_numerror[263] + jetfake_denerror[263]*jetfake_denerror[263]*w_jet*w_jet)/fitfunc_den->Eval(300); 
@@ -216,6 +218,7 @@ void analysis_jetBkg(){
 		double syserr = calcToyError( toyvec, useGaussFit); 
 		double totalerror = sqrt(syserr*syserr + p_PhoEt->GetBinError(ibin)*p_PhoEt->GetBinError(ibin));
 		p_PhoEt->SetBinError(ibin, totalerror);
+		// total error : stat + syst error
 	}
 	for(int ibin(1); ibin < p_LepPt->GetSize(); ibin++){
 		toyvec.clear();
@@ -283,6 +286,7 @@ void analysis_jetBkg(){
 		p_Mt_TT->SetBinError(ibin, totalerror);
 	}
 	std::ostringstream outputname;
+	outputname << "/eos/uscms/store/user/tmishra/Background/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	

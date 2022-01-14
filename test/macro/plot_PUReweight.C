@@ -70,8 +70,8 @@ void plot_PUReweight(){
 	leg_PU->AddEntry(p_PU_MC_raw,"Simulation (no correction)");
 	leg_PU->AddEntry(p_PU_MC,"Simulation (corrected)");
 	leg_PU->Draw("same");
-	prelim->Draw();
-	lumitex->Draw();
+	//prelim->Draw();
+	//lumitex->Draw();
 
 	c_PU->cd();
 	TPad *PU_pad2 = new TPad("PU_pad2", "PU_pad2", 0, 0.05, 1, 0.3);

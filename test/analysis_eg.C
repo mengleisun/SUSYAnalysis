@@ -1,33 +1,34 @@
+// g++ `root-config --cflags` ../lib/libAnaClasses.so analysis_eg.C -o analysis_eg.exe `root-config --libs`
 #include "../include/analysis_commoncode.h"
 #include "../include/analysis_cuts.h"
 
-void analysis_eg(){//main 
+void analysis_eg(int RunYear, const char *Era){//main
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_JetIDImp.root";
-  //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root";
-  char outputname[100] = "/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.log"); 
+  logfile.open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_egsignal_DoubleEG_%d%s.log",RunYear,Era),ios::trunc);
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
 
-  RunType datatype(DoubleEG2016); 
+  RunType datatype;
+  if(RunYear==2016) datatype = DoubleEG2016;
+  if(RunYear==2017) datatype = DoubleEG2017;
+  if(RunYear==2018) datatype = DoubleEG2018;
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/skim-DoubleEG_FebReminiAOD.root");	
+	es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_%d%s.root",RunYear,Era));
 
-  const unsigned nEvts = es->GetEntries(); 
+  const unsigned nEvts = es->GetEntries();
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << outputname << std::endl;
+  logfile << "Output file: " << "/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_egsignal_DoubleEG_"<<RunYear<<Era<<".root" << std::endl;
 
 	int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
 
-  TFile *outputfile = TFile::Open(outputname,"RECREATE");
+  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_egsignal_DoubleEG_%d%s.root",RunYear,Era),"RECREATE");
   outputfile->cd();
 	TH1D *p_METFilter = new TH1D("p_METFilter","",12,-2,10);	
 	TH1D *p_invmass = new TH1D("p_invmass","",200,0,200);	
@@ -306,7 +307,7 @@ void analysis_eg(){//main
   int METFilter(0);
   logfile << "RunType: " << datatype << std::endl;
 
-  TFile *skimfile = TFile::Open("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/select_DoubleEG_signal.root","RECREATE");
+  TFile *skimfile = TFile::Open("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/select_DoubleEG_signal.root","RECREATE");
   TDirectory *dir_out = skimfile->mkdir("ggNtuplizer");
   dir_out->cd();
   TTree *tree_out = es->CloneTree(0);
@@ -341,7 +342,7 @@ void analysis_eg(){//main
 			if(!raw.passHLT())continue;
 			if(raw.nGoodVtx < 1)continue;
 			npassHLT+=1;
-
+			// eg combination
 			if(raw.nEle < 1 || raw.nPho <1)continue;
 
   //    int Nmedpho(0);
@@ -407,9 +408,11 @@ void analysis_eg(){//main
 					}
 
 					if(!passSigma || !passChIso){
+						// collection for jet->photon fake
 						if( (itpho->getSigma()< 0.02 && itpho->isEB()) || (itpho->getSigma()< 0.04 && itpho->isEE()) )jetPhoCollection.push_back(itpho);
 					}
 				}
+				// collection for jets->lepton fake
 				else if( (!GSFveto || !PixelVeto) )hadeleproxyPhoCollection.push_back(itpho);
 
         // ****************  standard ID ************************************//
@@ -423,6 +426,7 @@ void analysis_eg(){//main
 				}
 
 				if((!PixelVeto || !GSFveto)){
+						// collection for ele->photon fake
 						proxyPhoCollection.push_back(itpho);
 						proxyPhoFSRVeto.push_back( eleFSRVeto? 1:0);
 				}
@@ -439,6 +443,7 @@ void analysis_eg(){//main
 			for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
 
 				if(itEle->getCalibPt() < 25)continue;
+				//  collection for jets->Lep fake
 				if(itEle->isFakeProxy())fakeLepCollection.push_back(itEle);	
 				if((itEle->isEB() && itEle->getR9() < R9EBCut) || (itEle->isEE() && itEle->getR9() < R9EECut))continue;
 
@@ -467,7 +472,7 @@ void analysis_eg(){//main
 				}
 			}
 
-
+			// Filling ele + pho signalTree
 			if(hasPho && hasLep){
 				double dRlepphoton = DeltaR(signalPho->getEta(), signalPho->getPhi(), signalLep->getEta(), signalLep->getPhi()); 
 				if(dRlepphoton > 0.8){
@@ -545,7 +550,8 @@ void analysis_eg(){//main
 					}// Z mass Filter
 				}//dR filter
 			}// ele + pho candidate
-	 
+			
+			// Filling ele->photon fake tree : proxyTree
 			if(!hasPho){
 			for(unsigned ip(0); ip < proxyPhoCollection.size(); ip++){
 				for(unsigned ie(0); ie < proxyLepCollection.size(); ie++){
@@ -593,14 +599,15 @@ void analysis_eg(){//main
 								}
 								proxytree->Fill();
 
-	
-							}//MET Filter
+
+                                                       }//MET Filter
 						}// Z mass Filter
 					}//dR filter
 				}// loop on ele collection
 			} // loop on pho collection
 			}
-			
+
+			// Filling jet->photon fake tree; jetTree
 			if(!hasPho){
 				for(unsigned ip(0); ip < jetPhoCollection.size(); ip++){
 					for(unsigned ie(0); ie < proxyLepCollection.size(); ie++){
@@ -649,13 +656,13 @@ void analysis_eg(){//main
 									jetHT += itJet->getPt();	
 								}
 								jettree->Fill();
-
 							}//MET Filter
 						}// Z mass Filter
 					}//dR filter
 				}} // loop on pho collection
 			}
 
+			// Filling jet->lep fake tree ; fakeLeptree
 			if(hasPho && !hasLep){
 				std::vector<recoPhoton>::iterator fakeLepPho = signalPho;
 				for(unsigned ip(0); ip < fakeLepCollection.size(); ip++){
@@ -713,14 +720,13 @@ void analysis_eg(){//main
 									fakeLepHT += itJet->getPt();
 								}	
 								fakeLeptree->Fill();
-
 							}//MET Filter
 						}// Z mass Filter
 					}//dR filter
 				} // loop on pho collection
 			}
 
-
+		// Filling hadron tree
 		if(hasHadronPho || hadeleproxyPhoCollection.size() > 0){
 			hadron_phoEt = 0;
 			hadron_phoEta = 0;
@@ -799,6 +805,12 @@ void analysis_eg(){//main
 		}
 	
 	}//loop on  events
+  cout<< sigtree->GetEntries()<<endl;
+  cout<< tree_out->GetEntries()<<endl;
+  cout<< proxytree->GetEntries()<<endl;
+  cout<< jettree->GetEntries()<<endl;
+  cout<< fakeLeptree->GetEntries()<<endl;
+  cout<< hadrontree->GetEntries()<<endl;
 
   p_eventcount->GetXaxis()->SetBinLabel(1,"nTotal");
   p_eventcount->GetXaxis()->SetBinLabel(2,"npassHLT");
@@ -821,5 +833,10 @@ void analysis_eg(){//main
 	skimfile->Close();
 	logfile.close();
 }
-
-
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+      cout << "You have to provide two arguments!!\n";
+    analysis_eg(atoi(argv[1]),argv[2]);
+    return 0;
+}

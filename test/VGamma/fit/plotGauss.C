@@ -1,3 +1,4 @@
+// Distribution of the scale factors derived from 1000 toy MC experiments. plot 29, AN
 #include<string>
 #include<iostream>
 #include<fstream>

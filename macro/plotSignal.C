@@ -21,7 +21,7 @@
 void plotSignal(){//main  
 
   //TFile *file = TFile::Open("/uscms_data/d3/mengleis/resTree_TChiWg.root");
-  TFile *file = TFile::Open("/uscms_data/d3/mengleis/resTree_T5Wg.root");
+	  TFile *file = TFile::Open("/uscms_data/d3/mengleis/test/resTree_T5WG_repo.root");
   TTree *tree = (TTree*)file->Get("SUSYtree");
   float mcPhotonEt(0);
   float mcPhotonEta(0);
@@ -49,14 +49,14 @@ void plotSignal(){//main
   float EleNeuIso(0);
   float ElePhoIso(0);
   float EleMiniIso(0);
-	float EleRelIso(0);
+  //	float EleRelIso(0);
   float EledEtaIn(0);
   float EledPhiIn(0);
   float EleD0(0);
   float EleDz(0);
   float EleooEmooP(0);
   bool  ElePassID;
-  float Mchagino(0);
+  float Mchargino(0);
   float Mgluino(0);
   //float Mneutralino(0);
   float dRPhoEle(0);
@@ -93,14 +93,14 @@ void plotSignal(){//main
   tree->SetBranchAddress("EleNeuIso"      ,&EleNeuIso);
   tree->SetBranchAddress("ElePhoIso"      ,&ElePhoIso);
   tree->SetBranchAddress("EleMiniIso"     ,&EleMiniIso);
-  tree->SetBranchAddress("EleRelIso"      ,&EleRelIso);
+  //tree->SetBranchAddress("EleRelIso"      ,&EleRelIso);
   tree->SetBranchAddress("EledEtaIn"      ,&EledEtaIn);
   tree->SetBranchAddress("EledPhiIn"      ,&EledPhiIn);
   tree->SetBranchAddress("EleD0"          ,&EleD0);
   tree->SetBranchAddress("EleDz"          ,&EleDz);
   tree->SetBranchAddress("EleooEmooP"     ,&EleooEmooP);
   tree->SetBranchAddress("ElePassID"      ,&ElePassID);
-  tree->SetBranchAddress("Mchagino"       ,&Mchagino);
+  tree->SetBranchAddress("Mchargino"       ,&Mchargino);
   tree->SetBranchAddress("Mgluino"       ,&Mgluino);
   //tree->SetBranchAddress("Mneutralino",   &Mneutralino);
   tree->SetBranchAddress("dRPhoEle"       ,&dRPhoEle);
@@ -111,7 +111,7 @@ void plotSignal(){//main
 	setTDRStyle();    
 	std::ostringstream histname;
 
-	TFile xSecFile("susyxSec.root");
+	TFile xSecFile("susyCrossSection.root");
 	//TH1F *p_crosssection = (TH1F*)xSecFile.Get("p_charginoSec"); 
 	TH1F *p_crosssection = (TH1F*)xSecFile.Get("p_gluinoxSec"); 
 
@@ -229,18 +229,18 @@ void plotSignal(){//main
 	for(unsigned ievt(0); ievt < nEvt; ievt++){
 		tree->GetEntry(ievt);
     if (ievt%1000000==0) std::cout << " -- Processing event " << ievt << std::endl;
-		if(Mchagino >0 && Mgluino >0){
+		if(Mchargino >0 && Mgluino >0){
 
-			p_SUSYMass->Fill(Mchagino, Mgluino);
+			p_SUSYMass->Fill(Mchargino, Mgluino);
 			if(mcPhotonEt > 1)p_phoEta->Fill(mcPhotonEta);
 			//double xsweight = p_crosssection->GetBinContent(p_crosssection->FindBin(Mgluino))*0.03366*35.8*1000.0;
 			double xsweight = p_crosssection->GetBinContent(p_crosssection->FindBin(Mgluino))*35.8*1000;
-			if(sigMET > 100 && mcElePt > 25 && mcPhotonEt > 35 && MT_ > 1 && MT_ < 100)p_SUSYMt->Fill(Mchagino, Mgluino,xsweight);
+			if(sigMET > 100 && mcElePt > 25 && mcPhotonEt > 35 && MT_ > 1 && MT_ < 100)p_SUSYMt->Fill(Mchargino, Mgluino,xsweight);
 			if(sigMET > 100 && mcElePt > 25 && mcPhotonEt > 35 && ThreeBodyMass_ > 1 )p_Mt->Fill(ThreeBodyMass_);
 			for(unsigned i(0); i < 24; i++){
 				if(Mgluino > massSUSY[i] && Mgluino <= massSUSY[i+1]){
 					for(unsigned j(0); j < 24; j++){
-						if(Mchagino > massSUSY[j] && Mchagino <= massSUSY[j+1]){
+						if(Mchargino > massSUSY[j] && Mchargino <= massSUSY[j+1]){
 								
 								if(mcElePt > 1 && fabs(mcEleEta) < 1.444)p_leptonPt[i][j]->Fill(mcElePt);
 								if(mcPhotonEt > 1)p_photonEt[i][j]->Fill(mcPhotonEt);
@@ -289,7 +289,7 @@ void plotSignal(){//main
 	canEta->cd();
   p_phoEta->Scale(1.0/p_phoEta->GetEntries());
 	p_phoEta->Draw();
-	canEta->SaveAs("TChiWg_photonEta.pdf");
+	canEta->SaveAs("T5WG_photonEta.pdf");
 		
 
 	TCanvas *canMt = new TCanvas("canMt","",600,600);

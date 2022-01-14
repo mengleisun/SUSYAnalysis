@@ -62,6 +62,7 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	TString filepath = "/uscms_data/d3/mengleis/Approval/test/Background/";
 	std::ostringstream filename;
 	filename.str("");
+	// data in the control region
 	filename << filepath << "controlTree_egamma_signal_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_sig = TFile::Open(filename.str().c_str());
 	filename.str("");
@@ -91,13 +92,17 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 
 	TH1D *p_rawsig = (TH1D*)p_sig->Clone("p_rawsig");
 	TH1D *p_target = (TH1D*)p_sig->Clone("fit_target");
+
+	// Target distribution is deltaPhi shape of the data in the CR, with jet fake photon, ele fake photon, rare EWK backgrounds subtracted.
 	p_target->Add(p_rare, -1);
 	p_target->Add(p_ele, -1);
 	p_target->Add(p_jet, -1);
 	p_target->Sumw2();
+	// fake lepton template
   TH1D *p_proxy = (TH1D*)file_qcd->Get("p_dPhiEleMET");
   TH1D *p_MC;
 //	if(ih < 500){
+		// VGamma template
 		p_MC = (TH1D*)file_VG->Get("p_dPhiEleMET"); 
 //		gRandom = new TRandom3(0);
 //		gRandom->SetSeed(0);
@@ -113,22 +118,29 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	p_MC->Sumw2();
 
   RooRealVar dphi("dphi","",0,3.2);
+	// RooDataHist for target and two fitting templates
   RooDataHist* h_target = new RooDataHist("h_target","h_target",dphi,p_target);
   RooDataHist* h_proxy  = new RooDataHist("h_proxy", "h_proxy", dphi,p_proxy );
   RooDataHist* h_MC     = new RooDataHist("h_MC",    "h_MC",    dphi,p_MC);
+	// RooHistPdf for fake lepton and VGamma
   RooHistPdf*  pdf_proxy= new RooHistPdf("pdf_proxy","pdf_proxy",dphi, *h_proxy);
   RooHistPdf*  pdf_MC   = new RooHistPdf("pdf_MC",   "pdf_MC",   dphi, *h_MC);
+
   RooRealVar nFake("nFake","nFake", 0.5*p_target->Integral(1,32), 0, p_target->Integral(1,32)*2);
   RooRealVar nMC("nMC","nMC",0.5*p_target->Integral(1,32),0, p_target->Integral(1,32)*2);
   RooRealVar fakefrac("fakefrac","fakefrac",0.2,0,1.0);
   RooAddPdf model2("model2","",RooArgList(*pdf_proxy, *pdf_MC),RooArgList(nFake,nMC));
+  // combined pdf of fake lepton and VGamma
   RooAddPdf model("model","",RooArgList(*pdf_proxy, *pdf_MC),fakefrac);
 
   RooPlot* frame = dphi.frame(RooFit::Title("#Delta#phi(l,MET) (40 GeV < MET < 70 GeV)"));
   TCanvas *can=new TCanvas("can","",600,600);
   can->cd(1);
+	// fitting dPhi of two templates to data
 	model.fitTo(*h_target,RooFit::SumW2Error(kTRUE),RooFit::Save());
   RooFitResult* result = model.fitTo(*h_target,RooFit::SumW2Error(kTRUE),RooFit::Save());
+
+  // histograms of figure 28, AN
   h_target->plotOn(frame);
   model.plotOn(frame,
 		   RooFit::FillColor(kBlue));
@@ -149,14 +161,21 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	TH1D *p_combine = new TH1D("p_combine","",32,0,3.2);
 	TH1D *p_qcd  = new TH1D("p_qcd","",32,0,3.2);
 	TH1D *p_VGAMMA = new TH1D("p_VGAMMA","",32,0,3.2);
+	// normalised template histograms
 	TH1D *norm_MC = (TH1D*)p_MC->Clone("norm_MC");
 	TH1D *norm_proxy = (TH1D*)p_proxy->Clone("norm_proxy");
 	norm_MC->Scale(1.0/norm_MC->Integral(1, norm_MC->GetSize()) );
 	norm_proxy->Scale(1.0/norm_proxy->Integral(1, norm_proxy->GetSize()));
+
+	// unit normalised templates scaled by fakeFrac (from template fit) and combined
 	p_combine->Add(norm_proxy, fakefrac.getVal());
 	p_combine->Add(norm_MC, 1-fakefrac.getVal());
+
+	// p_combine should of Integral 1, It is scaled to data template
 	p_combine->Scale(p_target->Integral(1, p_target->GetSize()));
 	for(int ibin(1); ibin <= 32; ibin++)p_combine->SetBinError(ibin, fakefrac.getError()*p_combine->GetBinContent(ibin));
+
+	// unit normalised templates scaled to a fraction from fitting
 	p_qcd->Add(norm_proxy, fakefrac.getVal()*p_target->Integral(1, p_target->GetSize()));
 	p_VGAMMA->Add(norm_MC, (1-fakefrac.getVal())*p_target->Integral(1, p_target->GetSize()));
 	TH1D *fitratio = new TH1D("fitratio",";#Delta#phi(l, E_{T}^{miss});fit/data", 32,0,3.2);
@@ -244,7 +263,7 @@ Fitfractioneg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
   std::cout << "factor for fake: " << fakefrac.getVal()*p_target->Integral(1, p_target->GetSize()) << "/" << p_proxy->Integral(1, p_proxy->GetSize()) << std::endl;
   std::cout << "factor for MC: " << (1-fakefrac.getVal())*p_target->Integral(1, p_target->GetSize()) << "/" << p_MC->Integral(1, p_MC->GetSize())  << std::endl;
   std::cout << "fakefrac=" << fakefrac.getVal()<< std::endl;
-	
+	// fakescale for fake lepton and vgamma scale for vgamma
 	float fakescale = fakefrac.getVal()*p_target->Integral(1, p_target->GetSize())/p_proxy->Integral(1, p_proxy->GetSize());
 	float fakescaleerror = fakefrac.getError()*p_target->Integral(1, p_target->GetSize())/p_proxy->Integral(1, p_proxy->GetSize());
 	float vgammascale = (1-fakefrac.getVal())*p_target->Integral(1, p_target->GetSize())/p_MC->Integral(1, p_MC->GetSize());

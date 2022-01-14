@@ -1,3 +1,4 @@
+// input is VGamma/src/analysis_Mixing.C
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -31,7 +32,7 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 		return TMath::Sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
 }
 void plot_Mixing(){//main 
-
+// for pt<50, pt>50 pt > 130 samples
   double scalefactor1 = 35.87*1000*489.0/6103732;
 	double scalefactor2 = 35.87*1000*17.01/5077584.0;
 	double scalefactor3 = 35.87*1000*0.87/2354481;
@@ -53,7 +54,7 @@ void plot_Mixing(){//main
 	egamma_phoEt_3->Sumw2();
   mugamma_phoEt_total->Sumw2();
 	egamma_phoEt_total->Sumw2();
-
+  // WGToLNuG tree
   TChain *mgtree = new TChain("mgTree");
 	mgtree->Add("/uscms_data/d3/mengleis/Sep1/mixing_all_TH1D.root");
   float mg_phoEt=0;
@@ -72,7 +73,7 @@ void plot_Mixing(){//main
 		mugamma_phoEt_total->Fill(mg_phoEt, scalefactor1);	
 	}
 
-
+  // WGJets_PtG-40-130 tree
   TChain *mg40tree = new TChain("mgTree");
 	mg40tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG40_TH1D.root");
   float mg40_phoEt=0;
@@ -91,6 +92,7 @@ void plot_Mixing(){//main
 		mugamma_phoEt_total->Fill(mg40_phoEt, scalefactor2);
 	}
 
+  // WGJets_PtG-130 tree
   TChain *mg130tree = new TChain("mgTree");
 	mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
 	//mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WGToLNu130_TH1D.root");

@@ -1,3 +1,4 @@
+// eg and mg events from different Simulation, ISR weight
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -33,11 +34,13 @@
 double Normalization = 0.98;
 
 bool isHardLepton(int momID){
+		// mother particle is quarks, gluon, tau, Z, W for prompt lepton
 		if((fabs(momID) >= 0 && fabs(momID) <= 6) || momID==21 || fabs(momID) == 15 || fabs(momID) == 999 || fabs(momID) == 23 || fabs(momID) == 24)return true;
 		else return false;
 }
 		
 bool isHardPhoton(int momID){
+		// mother particle is quarks, lepton, gluon, tau, Z, W for prompt photon
 		if((fabs(momID) >= 0 && fabs(momID) <= 16) || momID==21 || fabs(momID) == 15 || fabs(momID) == 999 || fabs(momID) == 23 || fabs(momID) == 24)return true;
 		else return false;
 }
@@ -49,6 +52,7 @@ bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
       if(matched)break;
 			bool isPromptFinal(false);
       int momid = abs(itMC->getMomPID());
+	// 1-5 = quarks except top, 6 = top, 23 = Z, 24 = W, 25 = higgs, 22=photon, 15 = tau, 13=muon, 11=electron  : Different possible prompt processes
       if(abs(itMC->getPID())<=5 && (momid==6 || momid==23 || momid==24 || momid==25))isPromptFinal = true;
 			else if(abs(itMC->getPID()) == 11 && (momid<=6 || momid==23 || momid==24 || momid== 22 || momid== 15))isPromptFinal = true;
 			else if(abs(itMC->getPID()) == 13 && (momid<=6 || momid==23 || momid==24 || momid== 22 || momid== 15))isPromptFinal = true;
@@ -58,6 +62,7 @@ bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
 			if(DeltaR(jetEta, jetPhi, itMC->getEta(), itMC->getPhi()) < 0.3){
 				//std::cout << "match " << itMC->getPID() << " " << itMC->getMomPID() << " status:" << itMC->getStatus() << std::endl; 
       	matched = true;
+	// To avoid counting the decays products of the Z boson, the jets are cleaned from isolated leptons.
 			}
     } // Loop over MC particles
 		return matched;
@@ -76,16 +81,16 @@ bool passFilter(int filter){
 
 void analysis_VGamma(){//main 
 	
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/DiLepton/resTree_VGamma_TT.root";
+  char outputname[100] = "DiLepton/resTree_VGamma_TT.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/DiLepton/VG.log"); 
+  logfile.open("DiLepton/VG.log"); 
   logfile << "analysis_VGamma()" << std::endl;
 
   RunType datatype(MC);
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
+	es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/TTJets/TTJets_2016.root");
   logfile << "VG";
 	logfile << "muon MiniIso" << std::endl;
  
@@ -427,7 +432,7 @@ void analysis_VGamma(){//main
 				 else if(hasposMcTau && hasnegMcTau)llmass = (posMcTau->getP4() + negMcTau->getP4()).M();
 				 else if(hasposMcEle && hasnegMcEle)llmass = (posMcEle->getP4() + negMcEle->getP4()).M();
 				}
-
+	// dilepton found
         bool hasegPho(false);
         bool hasmgPho(false);
         std::vector<recoPhoton>::iterator egsignalPho = Photon.begin();
@@ -459,7 +464,8 @@ void analysis_VGamma(){//main
 						}
 					}
         }
-     
+	// signal lepton found
+ 	// WGToLNuG for <= 50 and WGJet40 for > 50    
 				if(hasegPho){ 
 					if(egsignalPho->getCalibEt() > 50  && mcType==MCType::WGJetInclusive)hasegPho=false;
 					if(egsignalPho->getCalibEt() <= 50 && mcType==MCType::WGJet40)hasegPho=false;
@@ -518,8 +524,10 @@ void analysis_VGamma(){//main
 					if(!itJet->passSignalSelection())continue;
 					if(!nisrMatch(itJet->getEta(), itJet->getPhi(), MCData))JetVec = JetVec + itJet->getP4();
 				}
+				//The ISR pT is deifned as the vector sum of all jets which have pT > 30 GeV and |eta| < 2.5.
 				ISRJetPt = JetVec.Pt();
 				double reweightF(1);	
+				// ISR weight from table 14 analysis note
 				if(ISRJetPt < 50)reweightF = 1.015;
 				else if(ISRJetPt >= 50 && ISRJetPt < 100)reweightF  = 1.110;
 				else if(ISRJetPt >= 100 && ISRJetPt < 150)reweightF = 0.845;

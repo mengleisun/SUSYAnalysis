@@ -26,23 +26,20 @@
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_mcData.h"
 
-void analysis_HadronMC(){//main  
+void analysis_HadronMC(int RunYear){//main
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-
-	char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/plot_hadron_GJet.root";
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/FullStatusOct/plot_hadron_GJet.log"); 
+	logfile.open(Form("/eos/uscms/store/user/tmishra/InputFilesDATA/2017/plot_hadron_GJets_%d.log",RunYear),ios::trunc);
 
 	logfile << "analysis_hadron()" << std::endl;
 
 	RunType datatype(MC); 
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
-	logfile << "root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root" << std::endl;
+	es->Add(Form("/eos/uscms/store/user/tmishra/InputFilesDATA/%d/GJets_%d.root",RunYear,RunYear));
+	if(RunYear==2016) es->Add(Form("/eos/uscms/store/user/tmishra/InputFilesDATA/%d/GJets_%d_preVFP.root",RunYear,RunYear));
 
-	TFile *outputfile = TFile::Open(outputname,"NEW");
+	TFile *outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/jetfakepho/files/plot_hadron_GJet_%d.root",RunYear),"RECREATE");
 	outputfile->cd();
 
 //************ Signal Tree **********************//
@@ -106,7 +103,7 @@ void analysis_HadronMC(){//main
   int METFilter(0);
   logfile << "RunType: " << datatype << std::endl;
 
-  const unsigned nEvts = es->GetEntries(); 
+  const unsigned nEvts = es->GetEntries();
   std::cout << "total " << nEvts << std::endl;
   logfile <<   "total " << nEvts << std::endl;
 
@@ -215,8 +212,14 @@ void analysis_HadronMC(){//main
 		}
 
 	}// loop over events
-
+	cout<<egtree->GetEntries()<<endl;
+	cout<<mgtree->GetEntries()<<endl;
+        logfile << "egTree: " << egtree->GetEntries() <<std::endl;
+        logfile << "mgTree: " << egtree->GetEntries() <<std::endl;
 	outputfile->Write();
 }
-
-
+int main(int argc, char** argv)
+{
+    analysis_HadronMC(atoi(argv[1]));
+    return 0;
+}

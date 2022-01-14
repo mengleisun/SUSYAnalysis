@@ -27,15 +27,14 @@
 #include "../include/analysis_mcData.h"
 #include "../include/analysis_tools.h"
 
-using namespace analysis;
 
 void analysis_SMMC(){//main  
-
+  gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
   TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("root://cmsxrootd.fnal.gov//store/user/msun/SM-MC/WGToLNuG_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8-MINIAODSIM.root");
+  es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/WGToLNuG/WGToLNuG_2017.root");
 
   std::ostringstream outputname;
-  outputname << "../data/SM_MC_WGToLNuG_v2.root";
+  outputname << "/eos/uscms/store/user/tmishra/MC/SM_MC_WGToLNuG_2017.root";
   TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
   outputfile->cd();
   TTree *tree = new TTree("MTtree","MTtree");
@@ -44,8 +43,8 @@ void analysis_SMMC(){//main
   tree->Branch("ThreeBodyMass",&ThreeBodyMass_);
 
  /// histo list
-  TH1F *p_unprescaleMCHLT = new TH1F("p_unprescaleMCHLT","passed HLT event; HLT; entries",32,0,32);
-  TH1F *p_prescaleMCHLT = new TH1F("p_prescaleMCHLT","passed HLT event; HLT; entries",32,0,32);
+  TH1F *p_unprescaleMCHLT = new TH1F("p_unprescaleMCHLT","passed HLT event; HLT; entries",38,0,38);
+  TH1F *p_prescaleMCHLT = new TH1F("p_prescaleMCHLT","passed HLT event; HLT; entries",38,0,38);
 
   TH1F *p_mcphotonET = new TH1F("photonET","signal #gamma (#tilde{#chi}^{0}#rightarrow#gamma) E_{T}; E_{T} (GeV)",500,0,1500);
   TH1F *p_mcphotonEta = new TH1F("p_mcphotonEta","signal #gamma (#tilde{#chi}^{0}#rightarrow#gamma) #eta; #eta;",60,-3,3);
@@ -178,8 +177,8 @@ void analysis_SMMC(){//main
   TH1F *p_threebodymass = new TH1F("p_threebodymass","p_threebodymass",1000,0,1000);
   TH1F *p_threebodymass_W = new TH1F("p_threebodymass_W","p_threebodymass_W",1000,0,1000);
   TH2F *p_threebodymass_MT = new TH2F("p_threebodymass_MT","p_threebodymass_MT",1000,0,1000,1000,0,1000);
-
-  rawData raw(es, true, false);
+  RunType datatype(MC);
+  rawData raw(es, datatype);
   std::vector<mcData>  MCData;
   std::vector<recoPhoton> Photon;
   std::vector<recoEle> Ele;
@@ -206,7 +205,7 @@ void analysis_SMMC(){//main
         METPhi = raw.pfMETPhi;      
 
         //check HLT bit
-        for(int iHLT(0); iHLT<32; iHLT++){
+        for(int iHLT(0); iHLT<38; iHLT++){
           if(((raw.HLTPho >> iHLT) &1) ==1){
             if(((raw.HLTPhoIsPrescaled >> iHLT) &1) ==0)p_unprescaleMCHLT->Fill(iHLT);
             else if(((raw.HLTPhoIsPrescaled >> iHLT) &1) ==1)p_prescaleMCHLT->Fill(iHLT);
@@ -226,17 +225,20 @@ void analysis_SMMC(){//main
 	    if(itMC->getPt() < 0.001)continue;
             if(itMC->getEta() > 5.0)continue; 
             if(fabs(itMC->getPID()) != 12 && fabs(itMC->getPID()) != 14 && fabs(itMC->getPID()) != 16){
+		// 12, 14, 16 for neutrinos
               float pt = itMC->getPt();
               float phi = itMC->getPhi();
               sum_ex += pt*cos(phi);
               sum_ey += pt*sin(phi);
             }
+		// 11 for electron, 12 for neutrino, 24 for W+, 22 for gamma
 	    if(fabs(itMC->getPID()) == 11 && fabs(itMC->getMomPID())== 24){EleLeg1=itMC;nEleLeg1+=1;}
 	    if(fabs(itMC->getPID()) == 12 && fabs(itMC->getMomPID())== 24){NvLeg=itMC; nNvLeg+=1;}
 	    //else if(itMC->getPID() == -11 && itMC->getMomPID()== 23){EleLeg2=itMC;nEleLeg2+=1;}
 	    //else if(itMC->getPID() == 22 && itMC->getEt()>10 && fabs(itMC->getMomPID())== 11 && itMC->getGMomPID()== 23){PhoLeg = itMC; nPhoLeg+=1;}
 	    else if(itMC->getPID() == 22 && itMC->getEt()>10){
               switch((int)fabs(itMC->getMomPID())){
+		// 1-6 for quarks, 21:gluon, 24:W+, 11:electron
                 case 1: PhoLeg = itMC; nPhoLeg+=1; break;
                 case 2: PhoLeg = itMC; nPhoLeg+=1; break;
                 case 3: PhoLeg = itMC; nPhoLeg+=1; break;
@@ -371,7 +373,7 @@ void analysis_SMMC(){//main
 		 p_eleEBdPhiIn_true->Fill(recoele->getdPhiIn());
 		 p_eleEBD0_true->Fill(recoele->getD0());
 		 p_eleEBDz_true->Fill(recoele->getDz());
-		 p_eleEBooEmooP_true->Fill(1/(recoele->getE())*(1-recoele->getEoverP()));
+		 p_eleEBooEmooP_true->Fill(1/(recoele->getE())*(1-recoele->getEoverPInv()));
 		 p_eleEBR9vsPt->Fill(recoele->getPt(), recoele->getR9());
 
 		 if(recoele->getPt()>25){
@@ -387,7 +389,7 @@ void analysis_SMMC(){//main
 		   p_eleEBdPhiIn_ptselect->Fill(recoele->getdPhiIn());
 		   p_eleEBD0_ptselect->Fill(recoele->getD0());
 		   p_eleEBDz_ptselect->Fill(recoele->getDz());
-		   p_eleEBooEmooP_ptselect->Fill(1/(recoele->getE())*(1-recoele->getEoverP()));
+		   p_eleEBooEmooP_ptselect->Fill(1/(recoele->getE())*(1-recoele->getEoverPInv()));
 		   if(recoele->isMedium()){
 		     p_eleEBR9_idselect->Fill(recoele->getR9());
 		     p_eleEBHoverE_idselect->Fill(recoele->getHoverE());
@@ -412,7 +414,7 @@ void analysis_SMMC(){//main
 		 p_eleEEdPhiIn_true->Fill(recoele->getdPhiIn());
 		 p_eleEED0_true->Fill(recoele->getD0());
 		 p_eleEEDz_true->Fill(recoele->getDz());
-		 p_eleEEooEmooP_true->Fill(1/(recoele->getE())*(1-recoele->getEoverP()));
+		 p_eleEEooEmooP_true->Fill(1/(recoele->getE())*(1-recoele->getEoverPInv()));
 		 p_eleEER9vsPt->Fill(recoele->getPt(), recoele->getR9());
 		 if(recoele->getPt()>25){
 		   p_eleConvVeto_ptselect->Fill(recoele->getConvVeto());
@@ -427,7 +429,7 @@ void analysis_SMMC(){//main
 		   p_eleEEdPhiIn_ptselect->Fill(recoele->getdPhiIn());
 		   p_eleEED0_ptselect->Fill(recoele->getD0());
 		   p_eleEEDz_ptselect->Fill(recoele->getDz());
-		   p_eleEEooEmooP_ptselect->Fill(1/(recoele->getE())*(1-recoele->getEoverP()));
+		   p_eleEEooEmooP_ptselect->Fill(1/(recoele->getE())*(1-recoele->getEoverPInv()));
 		   if(recoele->isMedium()){
 		     p_eleEER9_idselect->Fill(recoele->getR9());
 		     p_eleEEHoverE_idselect->Fill(recoele->getHoverE());

@@ -19,17 +19,34 @@ bool recoEle::passHLTSelection(){
     case MC: passHLT = true; break;
     case DoubleEG2015: case MuonEG2015: case SingleMuon2015: case DoubleMuon2015: case SingleElectron2015:
       passHLT = false; break;
+    // HLT_Diphoton30_18_R9Id_OR_IsoCaloId_AND_HE_R9Id_Mass90
     case DoubleEG2016:  if(fireTrgs(21) || fireTrgs(22))passHLT = true; break;
+    // HLT_Diphoton30_22_R9Id_OR_IsoCaloId_AND_HE_R9Id_Mass90_v13
+    case DoubleEG2017:  if(fireTrgs(43) || fireTrgs(44))passHLT = true; break;
+    case DoubleEG2018:  if(fireTrgs(43) || fireTrgs(44))passHLT = true; break;
+
+    case MCDoubleEG2016: if(fireTrgs(21) || fireTrgs(22))passHLT = true; break;
+    case MCDoubleEG2017: if(fireTrgs(43) || fireTrgs(44))passHLT = true; break;
+    case MCDoubleEG2018: if(fireTrgs(43) || fireTrgs(44))passHLT = true; break;
+
     case MuonEG2016: passHLT = true; break;
+    case MuonEG2017: passHLT = true; break;
+    case MuonEG2018: passHLT = true; break;
+    // HLT_Ele27_eta2p1_WPLoose_Gsf_v2, HLT_Ele27_eta2p1_WPLoose_Gsf_LooseIsoPFTau*
     case SingleElectron2016: if(fireTrgs(10))passHLT = true; break;
+    //HLT_Ele20_eta2p1_WPLoose_Gsf_v6
+    //case SingleElectron2017: if(fireTrgs(42))passHLT = true; break;
+    case SingleElectron2017: passHLT = true; break;
+    case SingleElectron2018: if(fireTrgs(42))passHLT = true; break;
     case SingleMuon2016: passHLT = true; break;
     case DoubleMuon2016: passHLT = true; break;
-    case MCDoubleEG: if(fireTrgs(21) || fireTrgs(22))passHLT = true; break; 
-    case MCMuonEG:  passHLT = true; break; 
-    case MCSingleElectron: if(fireTrgs(10))passHLT = true; break;
-    case MCSingleMuon: passHLT = true; break;
-    case MCDoubleMuon: passHLT = true; break;
-    case MCMET: passHLT = true; break;
+    case MCMuonEG2016:  passHLT = true; break;
+    case MCSingleElectron2016: if(fireTrgs(10))passHLT = true; break;
+    case MCSingleElectron2017: if(fireTrgs(42))passHLT = true; break;
+    case MCSingleElectron2018: if(fireTrgs(42))passHLT = true; break;
+    case MCSingleMuon2016: passHLT = true; break;
+    case MCDoubleMuon2016: passHLT = true; break;
+    case MCMET2016: passHLT = true; break;
     default: break;
   }
   
@@ -41,14 +58,14 @@ bool recoEle::passBasicID(){
  
   if(!isEB() && !isEE()) {passBasic=false; return passBasic; }
   if(isEB()){
-		if(getHoverE() > 0.253){passBasic=false; return passBasic;}
-		if(fabs(getEoverPInv()) > 0.134){passBasic=false; return passBasic;}
+		if(getHoverE() > getCutValueHoverE()){passBasic=false; return passBasic;}
+		if(fabs(getEoverPInv()) > 0.184){passBasic=false; return passBasic;}
 		if(getMissHits() > 1){passBasic=false; return passBasic;}
 		if(getConvVeto() == 0){passBasic=false; return passBasic;}
   }
   else if(isEE()){
-		if(getHoverE() > 0.0878){passBasic=false; return passBasic;}
-		if(fabs(getEoverPInv()) > 0.13){passBasic=false; return passBasic;}
+		if(getHoverE() > getCutValueHoverE()){passBasic=false; return passBasic;}
+		if(fabs(getEoverPInv()) > 0.0721){passBasic=false; return passBasic;}
 		if(getMissHits() > 1){passBasic=false; return passBasic;}
 		if(getConvVeto() == 0){passBasic=false; return passBasic;}
   }
@@ -60,11 +77,11 @@ bool recoEle::isMiniMedium(){
  
   if(!isEB() && !isEE()) {passMiniMedium=false; return passMiniMedium; }
   if(isEB()){
-	if(getSigma() > 0.00998) {passMiniMedium=false; return passMiniMedium; }
-	if(fabs(getdEtaIn()) > 0.00311){passMiniMedium=false; return passMiniMedium;}
-	if(fabs(getdPhiIn()) > 0.103){passMiniMedium=false; return passMiniMedium;}
-	if(getHoverE() > 0.253){passMiniMedium=false; return passMiniMedium;}
-	if(fabs(getEoverPInv()) > 0.134){passMiniMedium=false; return passMiniMedium;}
+	if(getSigma() > 0.0106) {passMiniMedium=false; return passMiniMedium; }
+	if(fabs(getdEtaIn()) > 0.0032){passMiniMedium=false; return passMiniMedium;}
+	if(fabs(getdPhiIn()) > 0.0547){passMiniMedium=false; return passMiniMedium;}
+	if(getHoverE() > getCutValueHoverE()){passMiniMedium=false; return passMiniMedium;}
+	if(fabs(getEoverPInv()) > 0.184){passMiniMedium=false; return passMiniMedium;}
 //	if(fabs(getD0()) > 0.05){passMiniMedium=false; return passMiniMedium;}
 //	if(fabs(getDz()) > 0.10){passMiniMedium=false; return passMiniMedium; }
 	if(getMissHits() > 1){passMiniMedium=false; return passMiniMedium;}
@@ -72,11 +89,11 @@ bool recoEle::isMiniMedium(){
 	if(getMiniIso() > 0.1){passMiniMedium=false; return passMiniMedium;}
   }
   else if(isEE()){
-	if(getSigma() > 0.0298) {passMiniMedium=false; return passMiniMedium; }
-	if(fabs(getdEtaIn()) > 0.00609){passMiniMedium=false; return passMiniMedium;}
-	if(fabs(getdPhiIn()) > 0.045){passMiniMedium=false; return passMiniMedium;}
-	if(getHoverE() > 0.0878){passMiniMedium=false; return passMiniMedium;}
-	if(fabs(getEoverPInv()) > 0.13){passMiniMedium=false; return passMiniMedium;}
+	if(getSigma() > 0.0387) {passMiniMedium=false; return passMiniMedium; }
+	if(fabs(getdEtaIn()) > 0.00632){passMiniMedium=false; return passMiniMedium;}
+	if(fabs(getdPhiIn()) > 0.0394){passMiniMedium=false; return passMiniMedium;}
+	if(getHoverE() > getCutValueHoverE()){passMiniMedium=false; return passMiniMedium;}
+	if(fabs(getEoverPInv()) > 0.0721){passMiniMedium=false; return passMiniMedium;}
 //	if(fabs(getD0()) > 0.10){passMiniMedium=false; return passMiniMedium;}
 //	if(fabs(getDz()) > 0.20){passMiniMedium=false; return passMiniMedium; }
 	if(getMissHits() > 1){passMiniMedium=false; return passMiniMedium;}
@@ -92,11 +109,11 @@ bool recoEle::isMiniLoose(){
  
   if(!isEB() && !isEE()) {passMiniLoose=false; return passMiniLoose; }
   if(isEB()){
-	if(getSigma() > 0.011) {passMiniLoose=false; return passMiniLoose; }
-	if(fabs(getdEtaIn()) > 0.00477){passMiniLoose=false; return passMiniLoose;}
-	if(fabs(getdPhiIn()) > 0.222){passMiniLoose=false; return passMiniLoose;}
+	if(getSigma() > 0.0112) {passMiniLoose=false; return passMiniLoose; }
+	if(fabs(getdEtaIn()) > 0.00377){passMiniLoose=false; return passMiniLoose;}
+	if(fabs(getdPhiIn()) > 0.0884){passMiniLoose=false; return passMiniLoose;}
 	if(getHoverE() > 0.298){passMiniLoose=false; return passMiniLoose;}
-	if(fabs(getEoverPInv()) > 0.241){passMiniLoose=false; return passMiniLoose;}
+	if(fabs(getEoverPInv()) > 0.193){passMiniLoose=false; return passMiniLoose;}
 //	if(fabs(getD0()) > 0.05){passMiniLoose=false; return passMiniLoose;}
 //	if(fabs(getDz()) > 0.10){passMiniLoose=false; return passMiniLoose; }
 	if(getMissHits() > 1){passMiniLoose=false; return passMiniLoose;}
@@ -104,11 +121,11 @@ bool recoEle::isMiniLoose(){
 	if(getMiniIso() > 0.2){passMiniLoose=false; return passMiniLoose;}
   }
   else if(isEE()){
-	if(getSigma() > 0.0314) {passMiniLoose=false; return passMiniLoose; }
-	if(fabs(getdEtaIn()) > 0.00868){passMiniLoose=false; return passMiniLoose;}
-	if(fabs(getdPhiIn()) > 0.213){passMiniLoose=false; return passMiniLoose;}
+	if(getSigma() > 0.0425) {passMiniLoose=false; return passMiniLoose; }
+	if(fabs(getdEtaIn()) > 0.00674){passMiniLoose=false; return passMiniLoose;}
+	if(fabs(getdPhiIn()) > 0.169){passMiniLoose=false; return passMiniLoose;}
 	if(getHoverE() > 0.101){passMiniLoose=false; return passMiniLoose;}
-	if(fabs(getEoverPInv()) > 0.14){passMiniLoose=false; return passMiniLoose;}
+	if(fabs(getEoverPInv()) > 0.111){passMiniLoose=false; return passMiniLoose;}
 //	if(fabs(getD0()) > 0.10){passMiniLoose=false; return passMiniLoose;}
 //	if(fabs(getDz()) > 0.20){passMiniLoose=false; return passMiniLoose; }
 	if(getMissHits() > 1){passMiniLoose=false; return passMiniLoose;}
@@ -123,33 +140,33 @@ bool recoEle::isFakeProxy(){
 
   if(!isEB() && !isEE()) {passFakeProxy=false; return passFakeProxy; }
   if(isEB()){
-	if(getHoverE() > 0.253){passFakeProxy=false; return passFakeProxy;}
-	if(fabs(getEoverPInv()) > 0.134){passFakeProxy=false; return passFakeProxy;}
+	if(getHoverE() > getCutValueHoverE()){passFakeProxy=false; return passFakeProxy;}
+	if(fabs(getEoverPInv()) > 0.184){passFakeProxy=false; return passFakeProxy;}
 	if(getMissHits() > 1){passFakeProxy=false; return passFakeProxy;}
 	if(!getConvVeto()){passFakeProxy=false; return passFakeProxy;}
   }
   else if(isEE()){
-	if(getHoverE() > 0.0878){passFakeProxy=false; return passFakeProxy;}
-	if(fabs(getEoverPInv()) > 0.13){passFakeProxy=false; return passFakeProxy;}
+	if(getHoverE() > getCutValueHoverE()){passFakeProxy=false; return passFakeProxy;}
+	if(fabs(getEoverPInv()) > 0.0721){passFakeProxy=false; return passFakeProxy;}
 	if(getMissHits() > 1){passFakeProxy=false; return passFakeProxy;}
 	if(!getConvVeto()){passFakeProxy=false; return passFakeProxy;}
   }
 	
   if(isEB()){
-  	if(getSigma() > 0.00998 || fabs(getdEtaIn()) > 0.00311 || fabs(getdPhiIn()) > 0.103 || getMiniIso() > 0.1)passFakeProxy=true; 
+	if(getSigma() > 0.0106 || fabs(getdEtaIn()) > 0.0032 || fabs(getdPhiIn()) > 0.0547 || getMiniIso() > 0.1)passFakeProxy=true;
   	else passFakeProxy=false;
   }
   else if(isEE()){
-  	if(getSigma() > 0.0298 || fabs(getdEtaIn()) > 0.00609 || fabs(getdPhiIn()) > 0.045 || getMiniIso() > 0.1)passFakeProxy=true;
+	if(getSigma() > 0.0387 || fabs(getdEtaIn()) > 0.00632 || fabs(getdPhiIn()) > 0.0394 || getMiniIso() > 0.1)passFakeProxy=true;
   	else passFakeProxy=false;
   }
 
 //Upper bound:  Veto
   if(isEB()){
-  	if(getSigma() > 0.0115 || fabs(getdEtaIn()) > 0.00749 || fabs(getdPhiIn()) > 0.228)passFakeProxy=false; 
+	if(getSigma() > 0.0126 || fabs(getdEtaIn()) > 0.00463 || fabs(getdPhiIn()) > 0.148)passFakeProxy=false;
   }
   else if(isEE()){
-  	if(getSigma() > 0.037  || fabs(getdEtaIn()) > 0.00895 || fabs(getdPhiIn()) > 0.213)passFakeProxy=false;
+	if(getSigma() > 0.0457  || fabs(getdEtaIn()) > 0.00814 || fabs(getdPhiIn()) > 0.19)passFakeProxy=false;
   }
 	return passFakeProxy;
 }
@@ -160,24 +177,24 @@ bool recoEle::isLooseFakeProxy(){
 
   if(!isEB() && !isEE()) {passFakeProxy=false; return passFakeProxy; }
   if(isEB()){
-	if(getHoverE() > 0.253){passFakeProxy=false; return passFakeProxy;}
-	if(fabs(getEoverPInv()) > 0.134){passFakeProxy=false; return passFakeProxy;}
+	if(getHoverE() > getCutValueHoverE()){passFakeProxy=false; return passFakeProxy;}
+	if(fabs(getEoverPInv()) > 0.184){passFakeProxy=false; return passFakeProxy;}
 	if(getMissHits() > 1){passFakeProxy=false; return passFakeProxy;}
 	if(!getConvVeto()){passFakeProxy=false; return passFakeProxy;}
   }
   else if(isEE()){
-	if(getHoverE() > 0.0878){passFakeProxy=false; return passFakeProxy;}
-	if(fabs(getEoverPInv()) > 0.13){passFakeProxy=false; return passFakeProxy;}
+	if(getHoverE() > getCutValueHoverE()){passFakeProxy=false; return passFakeProxy;}
+	if(fabs(getEoverPInv()) > 0.0721){passFakeProxy=false; return passFakeProxy;}
 	if(getMissHits() > 1){passFakeProxy=false; return passFakeProxy;}
 	if(!getConvVeto()){passFakeProxy=false; return passFakeProxy;}
   }
 	
   if(isEB()){
-  	if(getSigma() > 0.00998 || fabs(getdEtaIn()) > 0.00311 || fabs(getdPhiIn()) > 0.103 || getMiniIso() > 0.1)passFakeProxy=true; 
+	if(getSigma() > 0.0106 || fabs(getdEtaIn()) > 0.0032 || fabs(getdPhiIn()) > 0.0547 || getMiniIso() > 0.1)passFakeProxy=true;
   	else passFakeProxy=false;
   }
   else if(isEE()){
-  	if(getSigma() > 0.0298 || fabs(getdEtaIn()) > 0.00609 || fabs(getdPhiIn()) > 0.045 || getMiniIso() > 0.1)passFakeProxy=true;
+	if(getSigma() > 0.0387 || fabs(getdEtaIn()) > 0.00632 || fabs(getdPhiIn()) > 0.0394 || getMiniIso() > 0.1)passFakeProxy=true;
   	else passFakeProxy=false;
   }
 

@@ -29,3 +29,6 @@ https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedPhotonIdentificationRun2
 
 https://twiki.cern.ch/twiki/bin/view/CMS/EgammaPOG
 
+https://twiki.cern.ch/twiki/bin/view/CMS/EgammaRunIIRecommendations#Fall17v2
+https://twiki.cern.ch/twiki/bin/view/CMS/L1PrefiringWeightRecipe
+

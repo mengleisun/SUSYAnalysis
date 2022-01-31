@@ -250,7 +250,7 @@ void analysis_VGBkg(){
 		if(mcType == 4 && llmass < 30)continue;
 		if(mcType == 5 && llmass > 30)continue;
 
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
 		// check all weights used
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight*factorMC;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup*ISRWeight*factorMC;

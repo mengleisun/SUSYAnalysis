@@ -32,12 +32,10 @@ bool recoEle::passHLTSelection(){
     case MuonEG2016: passHLT = true; break;
     case MuonEG2017: passHLT = true; break;
     case MuonEG2018: passHLT = true; break;
-    // HLT_Ele27_eta2p1_WPLoose_Gsf_v2, HLT_Ele27_eta2p1_WPLoose_Gsf_LooseIsoPFTau*
-    case SingleElectron2016: if(fireTrgs(10))passHLT = true; break;
-    //HLT_Ele20_eta2p1_WPLoose_Gsf_v6
-    //case SingleElectron2017: if(fireTrgs(42))passHLT = true; break;
-    case SingleElectron2017: passHLT = true; break;
-    case SingleElectron2018: if(fireTrgs(42))passHLT = true; break;
+   
+    case SingleElectron2016: if(fireTrgs(12))passHLT = true; break; // HLT_Ele27_WPTight_Gsf
+    case SingleElectron2017: if(fireTrgs(46))passHLT = true; break; // HLT_Ele35_WPTight_Gsf
+    case SingleElectron2018: if(fireTrgs(13))passHLT = true; break; // HLT_Ele32_WPTight_Gsf
     case SingleMuon2016: passHLT = true; break;
     case DoubleMuon2016: passHLT = true; break;
     case MCMuonEG2016:  passHLT = true; break;

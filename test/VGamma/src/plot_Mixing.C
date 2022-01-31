@@ -32,7 +32,7 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 		return TMath::Sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
 }
 void plot_Mixing(){//main 
-
+  gROOT->SetBatch(kTRUE);
   double scalefactor1 = 35.87*1000*489.0/6103732;
 	double scalefactor2 = 35.87*1000*17.01/5077584.0;
 	double scalefactor3 = 35.87*1000*0.87/2354481;
@@ -59,7 +59,7 @@ void plot_Mixing(){//main
   TH1D *mugamma_dR_3 = new TH1D("mugamma_dR_3","",32,0,3.2); 
 
   TChain *mgtree = new TChain("mgTree");
-	mgtree->Add("/uscms_data/d3/mengleis/Sep1/mixing_all_TH1D.root");
+	mgtree->Add("/eos/uscms/store/user/tmishra/egMC/mixing_WGToLNuG_2016_TH1D.root");
   float mg_phoEt=0;
   float mg_phoEta=0;
   float mg_phoPhi=0;
@@ -88,7 +88,7 @@ void plot_Mixing(){//main
 
 
   TChain *mg40tree = new TChain("mgTree");
-	mg40tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG40_TH1D.root");
+	mg40tree->Add("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet40_2016_TH1D.root");
   float mg40_phoEt=0;
   float mg40_phoEta=0;
   float mg40_phoPhi=0;
@@ -115,8 +115,7 @@ void plot_Mixing(){//main
 	}
 
   TChain *mg130tree = new TChain("mgTree");
-	mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
-	//mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WGToLNu130_TH1D.root");
+	mg130tree->Add("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet130_2016_TH1D.root");
   float mg130_phoEt=0;
   float mg130_phoEta=0;
   float mg130_phoPhi=0;
@@ -143,7 +142,7 @@ void plot_Mixing(){//main
 	}
 
   TChain *egtree = new TChain("egTree");
-	egtree->Add("/uscms_data/d3/mengleis/Sep1/mixing_all_TH1D.root");
+	egtree->Add("/eos/uscms/store/user/tmishra/egMC/mixing_WGToLNuG_2016_TH1D.root");
   float eg_phoEt=0;
   float eg_phoEta=0;
   float eg_phoPhi=0;
@@ -160,7 +159,7 @@ void plot_Mixing(){//main
 
 
   TChain *eg40tree = new TChain("egTree");
-	eg40tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG40_TH1D.root");
+	eg40tree->Add("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet40_2016_TH1D.root");
   float eg40_phoEt=0;
   float eg40_phoEta=0;
   float eg40_phoPhi=0;
@@ -176,7 +175,7 @@ void plot_Mixing(){//main
 	}
 
   TChain *eg130tree = new TChain("egTree");
-	eg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
+	eg130tree->Add("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet130_2016_TH1D.root");
   float eg130_phoEt=0;
   float eg130_phoEta=0;
   float eg130_phoPhi=0;
@@ -209,6 +208,8 @@ void plot_Mixing(){//main
 	std::cout << "ratio4_130=" <<ratio4_130 <<std::endl;
 
   TLatex* latex = new TLatex();
+	latex->SetTextAlign(13);
+	latex->SetTextSize(0.035);
 	std::ostringstream textname;
 
 	
@@ -238,7 +239,7 @@ void plot_Mixing(){//main
   textname.str("");
   textname << "WG130 =" << ratio1_130; 
   latex->DrawLatex(200,0.001*egamma_phoEt_1->GetMaximum(), textname.str().c_str() );
-	can1->SaveAs("ZGMixingScale_eg.pdf");
+	can1->SaveAs("/eos/uscms/store/user/tmishra/VGamma/ZGMixingScale_eg.pdf");
 
 	TCanvas *can2 = new TCanvas("can2","",600,600);
   can2->cd();
@@ -260,7 +261,7 @@ void plot_Mixing(){//main
   textname.str("");
   textname << "WG130 =" << ratio2_130; 
   latex->DrawLatex(200,0.001*mugamma_phoEt_1->GetMaximum(), textname.str().c_str() );
-	can2->SaveAs("ZGMixingScale_mg.pdf");
+	can2->SaveAs("/eos/uscms/store/user/tmishra/VGamma/ZGMixingScale_mg.pdf");
 
 
 	TCanvas *can3 = new TCanvas("can3","",600,600);
@@ -271,6 +272,7 @@ void plot_Mixing(){//main
 	mugamma_lepPt_3->SetLineColor(kRed);
 	mugamma_lepPt_3->Scale(ratio2_130);
 	mugamma_lepPt_3->Draw("same");
+	can3->SaveAs("/eos/uscms/store/user/tmishra/VGamma/lepPt_mg.pdf");
 
 	TCanvas *can4 = new TCanvas("can4","",600,600);
   can4->cd();
@@ -280,6 +282,7 @@ void plot_Mixing(){//main
 	mugamma_sigMET_3->SetLineColor(kRed);
 	mugamma_sigMET_3->Scale(ratio2_130);
 	mugamma_sigMET_3->Draw("same");
+	can4->SaveAs("/eos/uscms/store/user/tmishra/VGamma/MET_mg.pdf");
 
 	TCanvas *can5 = new TCanvas("can5","",600,600);
   can5->cd();
@@ -289,6 +292,7 @@ void plot_Mixing(){//main
 	mugamma_dR_3->SetLineColor(kRed);
 	mugamma_dR_3->Scale(ratio2_130);
 	mugamma_dR_3->Draw("same");
+	can5->SaveAs("/eos/uscms/store/user/tmishra/VGamma/MET_mg.pdf");
 }
 
 

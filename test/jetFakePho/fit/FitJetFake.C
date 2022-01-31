@@ -48,6 +48,7 @@
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_fakes.h"
 
@@ -57,7 +58,7 @@ bool doIterate = true;
 float METLOWCUT = 0;
 float METHIGHCUT = 70;
 
-int  RunYear = 2016;
+int  RunYear = 2017;
 int
 FitJetFake(float lowercut, float uppercut, int detType, float loweta, float higheta){
 
@@ -99,8 +100,8 @@ FitJetFake(float lowercut, float uppercut, int detType, float loweta, float high
         // ------------------------------------------------------------------------------------------------------------
 
 	myfilename << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-" << outputType << outputDet << ".txt";
-	Hist1Dname << "/eos/uscms/store/user/tmishra/jetfakepho/Plots"<<RunYear<<"/frac-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".pdf";
-	Hist2Dname << "/eos/uscms/store/user/tmishra/jetfakepho/Plots"<<RunYear<<"/can2D-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".pdf";
+	Hist1Dname << "/eos/uscms/store/user/tmishra/jetfakepho/Plots"<<RunYear<<"/frac-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".png";
+	Hist2Dname << "/eos/uscms/store/user/tmishra/jetfakepho/Plots"<<RunYear<<"/can2D-" << lowername << "-" << uppername << "-" << outputType << outputDet << ".png";
 	myfile.open(myfilename.str().c_str(), std::ios_base::app | std::ios_base::out);
 
 	ofstream logfile;
@@ -399,8 +400,7 @@ FitJetFake(float lowercut, float uppercut, int detType, float loweta, float high
 		// pTmiss < 70 GeV CR
 
 		double LumiWeight = 1;
-		if(eventType == 3 || eventType == 4)LumiWeight = 35.8*crosssection*1000/ntotalevent;
-		//if(eventType == 3 || eventType == 4)LumiWeight = 41.525897*crosssection*1000/ntotalevent;
+		if(eventType == 3 || eventType == 4)	LumiWeight = getEvtWeight(RunYear,crosssection,ntotalevent);
 
                 // counting electron fake photon, storing totalden, totalnum, nden, nnum
 

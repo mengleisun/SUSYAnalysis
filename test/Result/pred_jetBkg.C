@@ -1,5 +1,5 @@
 #include "../../include/analysis_commoncode.h"
-
+int RunYear = 2018;
 #define NTOY 1000
 bool useGaussFit=false;
 
@@ -25,7 +25,7 @@ void pred_jetBkg(){
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 
 	gRandom = new TRandom3(0);
@@ -44,10 +44,8 @@ void pred_jetBkg(){
 	
 	std::stringstream JetFakeRateFile;
   JetFakeRateFile.str();
-	//if(channelType==1)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-15.txt";
-	//if(channelType==2)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-15.txt";
-	if(channelType==1)JetFakeRateFile << "../script/JetFakeRate-transferfactor-DoubleEG-EB.txt";
-	if(channelType==2)JetFakeRateFile << "../script/JetFakeRate-transferfactor-MuonEG-EB.txt";
+	if(channelType==1)JetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-DoubleEG-EB.txt";
+	if(channelType==2)JetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-MuonEG-EB.txt";
 	std::ifstream jetfakefile(JetFakeRateFile.str().c_str());
 	std::string paratype;
 	float paravalue;	
@@ -75,8 +73,8 @@ void pred_jetBkg(){
 
 	std::stringstream AltJetFakeRateFile;
   AltJetFakeRateFile.str();
-	if(channelType==1)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-5.txt";
-	if(channelType==2)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-129.txt";
+	if(channelType==1)AltJetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-DoubleEG-EB.txt";
+	if(channelType==2)AltJetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-MuonEG-EB.txt";
 	std::ifstream Altjetfakefile(AltJetFakeRateFile.str().c_str());
 	for(int i(0); i < 4; i++){
 		Altjetfakefile >> paratype >> paravalue;
@@ -203,10 +201,8 @@ void pred_jetBkg(){
 
 	/************ jet tree **************************/ 
 		TChain *jettree = new TChain("jetTree");
-		//if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-		//if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
-		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root");
-		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
+		if(channelType==1)jettree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d.root",RunYear));
+                if(channelType==2)jettree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d.root",RunYear));
 
   	int   run(0);
   	Long64_t  event(0);
@@ -437,6 +433,7 @@ void pred_jetBkg(){
 	}
 		
 	std::ostringstream outputname;
+	outputname << "/eos/uscms/store/user/tmishra/Result/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	

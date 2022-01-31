@@ -26,14 +26,14 @@
 #include "../include/analysis_photon.h"
 #include "../include/analysis_muon.h"
 #include "../include/analysis_ele.h"
+#include "../include/analysis_jet.h"
 #include "../include/analysis_mcData.h"
 #include "../include/analysis_tools.h"
-#include "../include/analysis_jet.h"
 
 void analysis_mg(int RunYear, const char *Era){//main
 
   ofstream logfile;
-  logfile.open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_mgsignal_MuonEG_%d%s.log",RunYear,Era),ios::trunc);
+  logfile.open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_mgsignal_MuonEG_%d%s.log",RunYear,Era),ios::trunc);
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
@@ -49,11 +49,11 @@ void analysis_mg(int RunYear, const char *Era){//main
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << "/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_mgsignal_MuonEG_"<<RunYear<<Era<<".root" << std::endl;
+  logfile << "Output file: " << "/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_mgsignal_MuonEG_"<<RunYear<<Era<<".root" << std::endl;
 
 	int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
 
-  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_mgsignal_MuonEG_%d%s.root",RunYear,Era),"RECREATE");
+  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_mgsignal_MuonEG_%d%s.root",RunYear,Era),"RECREATE");
   outputfile->cd();
 
 	TH1D *p_METFilter = new TH1D("p_METFilter","",12,-2,10);	

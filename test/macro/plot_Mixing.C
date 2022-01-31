@@ -22,6 +22,7 @@
 #include "TProfile.h"
 #include "TLorentzVector.h"
 #include "TProfile2D.h"
+int RunYear = 2017;
 
 float DeltaR(float eta1,float phi1,float eta2,float phi2)
 {
@@ -31,12 +32,26 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 	deltaPhi = TMath::TwoPi() - deltaPhi;
 		return TMath::Sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
 }
+
 void plot_Mixing(){//main 
 // for pt<50, pt>50 pt > 130 samples
-  double scalefactor1 = 35.87*1000*489.0/6103732;
-	double scalefactor2 = 35.87*1000*17.01/5077584.0;
-	double scalefactor3 = 35.87*1000*0.87/2354481;
-
+  double scalefactor1,scalefactor2,scalefactor3;
+  if(RunYear==2016){
+  	scalefactor1 = 36.47*1000*412.7/18193471;
+	scalefactor2 = 36.47*1000*19.75/2989420;
+	scalefactor3 = 36.47*1000*0.8099/2834237;
+   }
+  if(RunYear==2017){
+  	scalefactor1 = 27.13*1000*412.7/10283062;
+	scalefactor2 = 27.13*1000*19.75/3598774;
+	scalefactor3 = 27.13*1000*0.8099/3639621;
+   }
+   if(RunYear==2018){
+  	scalefactor1 = 59.96*1000*412.7/9850083;
+	scalefactor2 = 59.96*1000*19.75/4764595;
+	scalefactor3 = 59.96*1000*0.8099/4708995;
+   }
+    gROOT->SetBatch(kTRUE);
   TH1D *mugamma_phoEt_1 = new TH1D("mugamma_phoEt_1","",165,35,200); 
   TH1D *mugamma_phoEt_2 = new TH1D("mugamma_phoEt_2","",165,35,200); 
   TH1D *mugamma_phoEt_3 = new TH1D("mugamma_phoEt_3","",165,35,200); 
@@ -56,7 +71,7 @@ void plot_Mixing(){//main
 	egamma_phoEt_total->Sumw2();
   // WGToLNuG tree
   TChain *mgtree = new TChain("mgTree");
-	mgtree->Add("/uscms_data/d3/mengleis/Sep1/mixing_all_TH1D.root");
+	mgtree->Add(Form("/eos/uscms/store/user/tmishra/egMC/mixing_WGToLNuG_%d_TH1D.root",RunYear));
   float mg_phoEt=0;
   float mg_phoEta=0;
   float mg_phoPhi=0;
@@ -75,7 +90,7 @@ void plot_Mixing(){//main
 
   // WGJets_PtG-40-130 tree
   TChain *mg40tree = new TChain("mgTree");
-	mg40tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG40_TH1D.root");
+	mg40tree->Add(Form("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet40_%d_TH1D.root",RunYear));
   float mg40_phoEt=0;
   float mg40_phoEta=0;
   float mg40_phoPhi=0;
@@ -94,8 +109,7 @@ void plot_Mixing(){//main
 
   // WGJets_PtG-130 tree
   TChain *mg130tree = new TChain("mgTree");
-	mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
-	//mg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WGToLNu130_TH1D.root");
+	mg130tree->Add(Form("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet130_%d_TH1D.root",RunYear));
   float mg130_phoEt=0;
   float mg130_phoEta=0;
   float mg130_phoPhi=0;
@@ -112,7 +126,7 @@ void plot_Mixing(){//main
 	}
 
   TChain *egtree = new TChain("egTree");
-	egtree->Add("/uscms_data/d3/mengleis/Sep1/mixing_all_TH1D.root");
+	egtree->Add(Form("/eos/uscms/store/user/tmishra/egMC/mixing_WGToLNuG_%d_TH1D.root",RunYear));
   float eg_phoEt=0;
   float eg_phoEta=0;
   float eg_phoPhi=0;
@@ -120,6 +134,7 @@ void plot_Mixing(){//main
   egtree->SetBranchAddress("phoEt",    &eg_phoEt);
   egtree->SetBranchAddress("phoEta",   &eg_phoEta);
   egtree->SetBranchAddress("phoPhi",   &eg_phoPhi);
+  cout<<egtree->GetEntries()<<endl;
 
 	for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
 		egtree->GetEntry(ievt);
@@ -131,7 +146,7 @@ void plot_Mixing(){//main
 
 
   TChain *eg40tree = new TChain("egTree");
-	eg40tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG40_TH1D.root");
+	eg40tree->Add(Form("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet40_%d_TH1D.root",RunYear));
   float eg40_phoEt=0;
   float eg40_phoEta=0;
   float eg40_phoPhi=0;
@@ -139,7 +154,7 @@ void plot_Mixing(){//main
   eg40tree->SetBranchAddress("phoEt",    &eg40_phoEt);
   eg40tree->SetBranchAddress("phoEta",   &eg40_phoEta);
   eg40tree->SetBranchAddress("phoPhi",   &eg40_phoPhi);
-
+  cout<<eg40tree->GetEntries()<<endl;
 	for(unsigned ievt(0); ievt < eg40tree->GetEntries(); ievt++){
 		eg40tree->GetEntry(ievt);
 		if(eg40_phoEt <= 50)continue;
@@ -149,7 +164,7 @@ void plot_Mixing(){//main
 	}
 
   TChain *eg130tree = new TChain("egTree");
-	eg130tree->Add("/uscms_data/d3/mengleis/Sep1/mixing_WG130_TH1D.root");
+	eg130tree->Add(Form("/eos/uscms/store/user/tmishra/egMC/mixing_WGJet130_%d_TH1D.root",RunYear));
   float eg130_phoEt=0;
   float eg130_phoEta=0;
   float eg130_phoPhi=0;
@@ -157,6 +172,7 @@ void plot_Mixing(){//main
   eg130tree->SetBranchAddress("phoEt",    &eg130_phoEt);
   eg130tree->SetBranchAddress("phoEta",   &eg130_phoEta);
   eg130tree->SetBranchAddress("phoPhi",   &eg130_phoPhi);
+  cout<<eg130tree->GetEntries()<<endl;
 
 	for(unsigned ievt(0); ievt < eg130tree->GetEntries(); ievt++){
 		eg130tree->GetEntry(ievt);
@@ -201,7 +217,5 @@ void plot_Mixing(){//main
 	leg->AddEntry(egamma_phoEt_2,"WGJets_MonoPhoton_PtG-40to130");
 	leg->AddEntry(egamma_phoEt_3,"WGJets_MonoPhoton_PtG-130");
 	leg->Draw("same");
-	can1->SaveAs("WGMixing.pdf");
+	can1->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/WGMixing_%d.pdf",RunYear));
 }
-
-

@@ -6,7 +6,7 @@ void pred_rareBkg(){
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 	esfScaleFactor  objectESF;
 
   int channelType = ichannel; // eg = 1; mg =2;
@@ -248,7 +248,7 @@ void pred_rareBkg(){
 			scalefactorup = scalefactor + s_error; 
 		}
 
-		double XS_weight = 35.87*1000*crosssection/ntotalevent;
+		double XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		double weight = PUweight*XS_weight*scalefactor;
 		double weight_scaleup = PUweight*XS_weight*scalefactorup;
 		/** cut flow *****/

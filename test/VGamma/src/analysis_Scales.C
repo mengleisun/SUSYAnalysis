@@ -264,9 +264,11 @@ void analysis_VGamma(){//main
         METFilter = raw.metFilters;
         nVtx = raw.nVtx;
         jetNumber = raw.nJet;
-				
-				PUweight = getPUESF(nVtx);
-	
+				 
+				if(RunYear==2016)PUweight = getPUESF16(nVtx);
+                        	if(RunYear==2017)PUweight = getPUESF17(nVtx);
+                        	if(RunYear==2018)PUweight = getPUESF18(nVtx);
+
         if(raw.nPho <1)continue;
 
         bool hasegPho(false);

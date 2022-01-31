@@ -1,3 +1,4 @@
+// g++ `root-config --cflags` analysis_mgTrigger.C -o analysis_mgTrigger.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -27,31 +28,43 @@
 #include "../../include/analysis_ele.h"
 #include "../../include/analysis_tools.h"
 
+int RunYear = 2016;
 void analysis_mgTrigger(){//main  
 
 	gSystem->Load("../../lib/libAnaClasses.so");
 
-	char outputname[100] = "/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_ReMiniAOD_2016.root";
 	ofstream logfile;
-	logfile.open("/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_ReMiniAOD_2016.log");
+	logfile.open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_ReMiniAOD_%d.log",RunYear));
 
 	logfile << "analysis_mgTrigger()" << std::endl;
 
-	RunType datatype(SingleMuon2016); 
-
+	RunType datatype;
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016B_ver1.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016B_ver2.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016C.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016D.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016E.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016F_postVFP.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016F_preVFP.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016G.root");
-	es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon_2016H.root");
+	
+	if (RunYear==2016){
+		datatype = SingleMuon2016;
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon/SingleMuon_2016B.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon/SingleMuon_2016C.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon/SingleMuon_2016D.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon/SingleMuon_2016E.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon/SingleMuon_2016F.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon/SingleMuon_2016G.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/SingleMuon/SingleMuon_2016H.root"); }
+	if (RunYear==2017){
+		datatype = SingleMuon2017;
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2017/SingleMuon/SingleMuon_2017B.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2017/SingleMuon/SingleMuon_2017C.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2017/SingleMuon/SingleMuon_2017D.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2017/SingleMuon/SingleMuon_2017E.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2017/SingleMuon/SingleMuon_2017F.root");}
+	if (RunYear==2018){
+		datatype = SingleMuon2018;
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2018/SingleMuon/SingleMuon_2018A.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2018/SingleMuon/SingleMuon_2018B.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2018/SingleMuon/SingleMuon_2018C.root");
+		es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2018/SingleMuon/SingleMuon_2018D.root");}
 
-
-	TFile *outputfile = TFile::Open(outputname,"RECREATE");
+	TFile *outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_ReMiniAOD_%d.root",RunYear),"RECREATE");
 	outputfile->cd();
 
 	TTree *Ztree = new TTree("ZTree","ZTree");
@@ -318,5 +331,3 @@ void analysis_mgTrigger(){//main
 
 outputfile->Write();
 }
-
-

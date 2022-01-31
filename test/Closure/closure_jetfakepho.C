@@ -151,7 +151,7 @@ void closure_jetfakepho(int ichannel){
 	for (unsigned ievt(0); ievt<sigtree->GetEntries(); ++ievt){//loop on entries
 		sigtree->GetEntry(ievt);
 
-		double weight = 35.8*1000*crosssection/ntotalevent;
+		double weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		/** cut flow *****/
 		if(phoEt < 35 || lepPt < 25)continue;
 		if(fabs(phoEta) > 1.4442 || fabs(lepEta) > 2.5)continue;
@@ -281,7 +281,7 @@ void closure_jetfakepho(int ichannel){
 	for (unsigned ievt(0); ievt<proxytree->GetEntries(); ++ievt){//loop on entries
 		proxytree->GetEntry(ievt);
 
-		double weight = 35.8*1000*proxycrosssection/proxyntotalevent;
+		double weight = getEvtWeight(RunYear,proxycrosssection,proxyntotalevent);
 
 		if(proxyphoEt > MAXET)proxyphoEt = MAXET;
 		if(proxysigMET > MAXMET)proxysigMET = MAXMET;
@@ -378,7 +378,7 @@ void closure_jetfakepho(int ichannel){
 	for (unsigned ievt(0); ievt<raretree->GetEntries(); ++ievt){//loop on entries
 		raretree->GetEntry(ievt);
 
-		double weight = 35.8*1000*rarecrosssection/rarentotalevent;
+		double weight = getEvtWeight(RunYear,rarecrosssection,rarentotalevent);
 
 		if(rarephoEt > MAXET)rarephoEt = MAXET;
 		if(raresigMET > MAXMET)raresigMET = MAXMET;

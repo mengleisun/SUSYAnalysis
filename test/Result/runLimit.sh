@@ -48,12 +48,12 @@ HTbin2=400
 		echo 'lowPt'    $lpt >> SigConfig.txt
 		echo 'highPt'   $hpt >> SigConfig.txt
 		echo 'lepIso'   $iso    >> SigConfig.txt
-		root -q pred_VGBkg.C++   > VG_eg.log
-		root -q pred_eleBkg.C++  > ele_eg.log
-		root -q pred_jetBkg.C++  > jet_eg.log
-		root -q pred_qcdBkg.C++  > qcd_eg.log
-		root -q pred_rareBkg.C++ > rare_eg.log
-		root -q pred_sig.C++
+		root -l pred_VGBkg.C++   > VG_eg.log
+		root -l pred_eleBkg.C++  > ele_eg.log
+		root -l pred_jetBkg.C++  > jet_eg.log
+		root -l pred_qcdBkg.C++  > qcd_eg.log
+		root -l pred_rareBkg.C++ > rare_eg.log
+		root -l pred_sig.C++
 
 		ch=2
 		anatype=3
@@ -74,12 +74,12 @@ HTbin2=400
 		echo 'lowPt'    $lpt >> SigConfig.txt
 		echo 'highPt'   $hpt >> SigConfig.txt
 		echo 'lepIso'   $iso    >> SigConfig.txt
-		root -q pred_VGBkg.C++  > VG_mg.log
-		root -q pred_eleBkg.C++ > ele_mg.log
-		root -q pred_jetBkg.C++ > jet_mg.log
-		root -q pred_qcdBkg.C++ > qcd_mg.log
-		root -q pred_rareBkg.C++ > rare_mg.log
-		root -q pred_sig.C++
+		root -l pred_VGBkg.C++  > VG_mg.log
+		root -l pred_eleBkg.C++ > ele_mg.log
+		root -l pred_jetBkg.C++ > jet_mg.log
+		root -l pred_qcdBkg.C++ > qcd_mg.log
+		root -l pred_rareBkg.C++ > rare_mg.log
+		root -l pred_sig.C++
 
 		if [ "$HTbin1" -lt "$HTbin2" ]; then
 			root -b -q "plot_eventct.C+(18)"

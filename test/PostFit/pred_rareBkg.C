@@ -102,7 +102,7 @@ void pred_rareBkg(){
 		mctree->GetEntry(ievt);
 
 		double scalefactor = getWeight(ichannel, bgtype, phoEt, nVertex, phoEta, lepPt, lepEta); 
-		double XS_weight = 35.87*1000*crosssection/ntotalevent;
+		double XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		double weight = PUweight*XS_weight*scalefactor;
 
 		/** cut flow *****/

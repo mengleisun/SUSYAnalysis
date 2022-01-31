@@ -65,6 +65,6 @@ echo 'SaveOutput 1'  >> configFit_Bw_expo.txt
 
 cd /uscms/homes/t/tmishra/work/CMSSW_10_2_22/src
 
-tar -czvf files.tar.gz SUSYAnalysis/test/eleFakePho/fit/make.sh SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.sh SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.py SUSYAnalysis/test/eleFakePho/fit/FitKer.C SUSYAnalysis/lib/* SUSYAnalysis/include/* SUSYAnalysis/src/*
+tar -czvf files.tar.gz SUSYAnalysis/test/eleFakePho/fit/make.sh SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.sh SUSYAnalysis/test/eleFakePho/fit/command_HTcondor.py SUSYAnalysis/test/eleFakePho/fit/FitKer.C SUSYAnalysis/lib/* SUSYAnalysis/include/*.h SUSYAnalysis/src/*.cc SUSYAnalysis/include/tdrstyle.C
 
 cp files.tar.gz SUSYAnalysis/test/eleFakePho/fit/

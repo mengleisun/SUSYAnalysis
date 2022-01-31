@@ -29,6 +29,7 @@
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_jet.h"
 
+RunYear =2016;
 
 void analysis_ISRMC(){//main  
 
@@ -190,7 +191,9 @@ void analysis_ISRMC(){//main
 			METPhi_T1UESUp = raw.pfMETPhi_T1UESUp;
 			METPhi_T1UESDo = raw.pfMETPhi_T1UESDo;
 			nVtx = raw.nVtx;
-			PUweight = getPUESF(nVtx);
+			if(RunYear==2016)PUweight = getPUESF16(nVtx);
+			if(RunYear==2017)PUweight = getPUESF17(nVtx);
+			if(RunYear==2018)PUweight = getPUESF18(nVtx);
 
 			nTotal+=1;
 			if(!raw.passHLT())continue;

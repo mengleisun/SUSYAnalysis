@@ -1,12 +1,13 @@
 #include "../../include/analysis_commoncode.h"
 #include "TProfile2D.h"
+int RunYear =2016;
 void pred_VGBkg(){
 	
 	bool toDeriveScale(false);
 	SetSignalConfig();
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 	
 	esfScaleFactor  objectESF;
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
@@ -281,7 +282,7 @@ void pred_VGBkg(){
 		if(mcType == 4 && llmass < 30)continue;
 		if(mcType == 5 && llmass > 30)continue;
 
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight*factorMC;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup*ISRWeight*factorMC;

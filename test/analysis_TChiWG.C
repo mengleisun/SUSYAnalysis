@@ -28,17 +28,21 @@
 #include "../include/analysis_jet.h"
 #include "../include/analysis_tools.h"
 
+int RunYear = 2016;
 void analysis_TChiWG(){//main  
 
   gSystem->Load("../lib/libAnaClasses.so");
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SMS-TChiWg_mChi-1000_mLSP-1/SMS-TChiWg_mChi-1000_mLSP-1_2016.root");
+  //es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SMS-TChiWg_mChi-1000_mLSP-1/SMS-TChiWg_mChi-1000_mLSP-1_2016.root"); // working
+  //es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/TChiWG_FastSim/TChiWG_FastSim_%d.root",RunYear)); // not working
+  //es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/TChiWG_FastSim/TChiWG_FastSim_2018.root"); // not working
+  es->Add("/eos/uscms/store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root"); // working
+  //es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/ggtree_mc_t5wg_fullTree.root"); // working
+
 
   RunType datatype(MC); 
-  std::ostringstream outputname;
-  outputname << "/eos/uscms/store/group/lpcsusyhad/Tribeni/test_TChiWg.root";
-  TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
+  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/signal_trees/resTree_TChiWG_%d.root",RunYear),"RECREATE");
   outputfile->cd();
   TTree *tree = new TTree("SUSYtree","SUSYtree");
   float mcPhotonEt(0);
@@ -290,7 +294,7 @@ void analysis_TChiWG(){//main
 			PhoChIso=0;
 			PhoNeuIso=0;
 			PhoPhoIso=0;
-			PhoPassID;
+			PhoPassID=0;
 			mcElePt=0;
 			mcEleEta=0;
 			mcElePhi=0;
@@ -309,7 +313,7 @@ void analysis_TChiWG(){//main
 			EleD0=0;
 			EleDz=0;
 			EleooEmooP=0;
-			ElePassID;
+			ElePassID=0;
 			Mchagino=0;
 			Mneutralino=0;
 			dRPhoEle=0;
@@ -324,7 +328,8 @@ void analysis_TChiWG(){//main
       Photon.clear();
       Muon.clear();
       Ele.clear();
-			JetCollection.clear();
+      JetCollection.clear();
+
       if(datatype == MC)for(int iMC(0); iMC < raw.nMC; iMC++){MCData.push_back(mcData(raw, iMC));}
       for(int iPho(0); iPho < raw.nPho; iPho++){Photon.push_back(recoPhoton(raw, iPho));}
       for(int iMu(0); iMu < raw.nMu; iMu++){Muon.push_back(recoMuon(raw, iMu));}
@@ -350,7 +355,6 @@ void analysis_TChiWG(){//main
       std::vector<mcData>::iterator signalNeu;
       std::vector<recoPhoton>::iterator recopho;
       std::vector<recoEle>::iterator recoele;
-
       for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){ 
 
           if(hasSignalPho && hasSignalEle && hasSignalNeu && charginoMass>0 && neutralinoMass>0)break; //if photon, electron and SUSY particle have been found, skip the loop

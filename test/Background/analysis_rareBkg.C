@@ -190,7 +190,7 @@ void analysis_rareBkg(){
 			double s_error = sqrt(pow(s_mu_error,2) + pow(s_pho_error,2) + pow(s_trg_error,2));
 			scalefactorup = scalefactor + s_error; 
 		}
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
 		float weight = PUweight*XS_weight*scalefactor;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup;
 		/** cut flow *****/

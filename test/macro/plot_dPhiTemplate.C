@@ -28,22 +28,22 @@
 #include "../../include/analysis_photon.h"
 #include "../../include/analysis_muon.h"
 #include "../../include/analysis_ele.h"
+#include "../../include/analysis_jet.h"
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_fakes.h"
 #include "../../include/tdrstyle.C"
 
 #define NTOY 1000
-
-
-void plot_dPhiTemplate(int ichannel){
+int channelType = 1; // eg = 1; mg =2;
+int RunYear = 2018;
+void plot_dPhiTemplate(){
 
 	//setTDRStyle();   
 	gStyle->SetLegendBorderSize(0);
 	gStyle->SetLegendFillColor(0);
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-  int channelType = ichannel; // eg = 1; mg =2;
-
+  	gSystem->Load("../../lib/libAnaClasses.so");
+        gROOT->SetBatch(kTRUE);
 	// Signal Tree //
 	//*********** hist o list **********************//
 	TH1D *p_MET_WG = new TH1D("p_MET_WG","; p_{T}^{miss} (GeV);",40,0,200);
@@ -51,13 +51,15 @@ void plot_dPhiTemplate(int ichannel){
 	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET",";|#Delta#phi(l,p_{T}^{miss})|;",32,0,3.2); 
 	//************ Signal Tree **********************//
 	TChain *mctree;
- 	if(ichannel == 1)mctree = new TChain("egTree","egTree");
-  else if(ichannel == 2)mctree = new TChain("mgTree","mgTree");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG_Pt50.root");
-  mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG_Pt35.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG_Pt130.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_ZG.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_DY.root");
+ 	if(channelType == 1)mctree = new TChain("egTree","egTree");
+  	else if(channelType == 2)mctree = new TChain("mgTree","mgTree");
+	
+	//mctree->Add(Form("/eos/uscms/store/user/tmishra/VGamma/resTree_VGamma_WGToLNuG_%d.root",RunYear));
+	mctree->Add(Form("/eos/uscms/store/user/tmishra/VGamma/resTree_VGamma_WGJet40_%d.root",RunYear));
+	mctree->Add(Form("/eos/uscms/store/user/tmishra/VGamma/resTree_VGamma_WGJet130_%d.root",RunYear));
+	mctree->Add(Form("/eos/uscms/store/user/tmishra/VGamma/resTree_VGamma_ZGToLLG_%d.root",RunYear));
+	mctree->Add(Form("/eos/uscms/store/user/tmishra/VGamma/resTree_VGamma_DYJetsToLL_%d.root",RunYear));
+	
 	float crosssection(0);
 	float ntotalevent(0);
 	int   mcType(0);
@@ -106,8 +108,8 @@ void plot_dPhiTemplate(int ichannel){
 
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("fakeLepTree");
-	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+	if(channelType==1)proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d_NEW.root",RunYear));
+	if(channelType==2)proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d_NEW.root",RunYear));
 
 	float proxyphoEt(0);
 	float proxyphoEta(0);
@@ -173,10 +175,12 @@ void plot_dPhiTemplate(int ichannel){
 	TLegend *leg =  new TLegend(0.5,0.7,0.85,0.85);
 	leg->SetFillStyle(0);
 	leg->AddEntry(p_dPhiEleMET,"W#gamma+Z#gamma template");
-	leg->AddEntry(pred_dPhiEleMET,"jet-fake-muon template");
+	if(channelType==1) leg->AddEntry(pred_dPhiEleMET,"jet-fake-electron template");
+	if(channelType==2) leg->AddEntry(pred_dPhiEleMET,"jet-fake-muon template");
 	leg->Draw("same");
 	p_dPhiEleMET->Draw("P same");
-	c_dphi->SaveAs("dphiTemplate_mg.pdf");
+	if(channelType==1) c_dphi->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_egChannel_%d.pdf",RunYear));
+	if(channelType==2) c_dphi->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_mgChannel_%d.pdf",RunYear));
 
 // ******** MET ************************//
 	gStyle->SetOptStat(0);
@@ -195,7 +199,8 @@ void plot_dPhiTemplate(int ichannel){
 	leg_met->AddEntry(p_MET_ZG,"Z#gamma");
 	leg_met->AddEntry(p_MET_WG,"W#gamma");
 	leg_met->Draw("same");
-	c_met->SaveAs("dphiTemplate_MET.pdf");
+	if(channelType==1) c_met->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_MET_egChannel_%d.pdf",RunYear));
+	if(channelType==2) c_met->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_MET_mgChannel_%d.pdf",RunYear));
 }
 
 

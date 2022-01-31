@@ -1,4 +1,6 @@
 // All kinds of mg trees are saved
+//  g++ `root-config --cflags` ../../../lib/libAnaClasses.so analysis_mgMC.C -o analysis_mgMC.exe `root-config --libs`
+
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -27,44 +29,92 @@
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
-#include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_jet.h"
+#include "../../../include/analysis_tools.h"
 
-void analysis_mgMC(){//main  
+void analysis_mgMC(int RunYear, const char *Sample){//main  
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WZ.root";
   ofstream logfile;
   logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WZ.log"); 
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
 	
-  RunType datatype(MCMuonEG2016);
-	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
+  RunType datatype;
+  if(RunYear==2016) datatype = MCMuonEG2016;
+  if(RunYear==2017) datatype = MCMuonEG2017;
+  if(RunYear==2018) datatype = MCMuonEG2018;
+
+  bool  isMC(false);
+  if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
+  if(datatype == MC || datatype == MCDoubleEG2017 || datatype == MCMuonEG2017||  datatype == MCSingleElectron2017 || datatype == MCSingleMuon2017||  datatype == MCDoubleMuon2017 || datatype == MCMET2017)isMC=true;
+  if(datatype == MC || datatype == MCDoubleEG2018 || datatype == MCMuonEG2018||  datatype == MCSingleElectron2018 || datatype == MCSingleMuon2018||  datatype == MCDoubleMuon2018 || datatype == MCMET2018)isMC=true;
+  
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	//es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_nlo.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_madgraphMLM_RunIISummer16MiniAODv2-TrancheIV_v6.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WW_TuneCUETP8M1_13TeV-pythia8.root");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WZ_TuneCUETP8M1_13TeV-pythia8.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WJetsToLNu_RunIISummer16MiniAODv2-TrancheIV_v6-ext2-v1.root");
-//	logfile << "root://cmseos.fnal.gov//store/user/msun/MCSummer16/WW_TuneCUETP8M1_13TeV-pythia8.root" << std::endl;
+  char* inputfile = new char[300];
+  sprintf(inputfile,"/eos/uscms/store/group/lpcsusyhad/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+  es->Add(inputfile);
 
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << outputname << std::endl;
 
-	int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
+  int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
 
-  TFile *outputfile = TFile::Open(outputname,"RECREATE");
+  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_%s_%d.root",Sample,RunYear),"RECREATE");
   outputfile->cd();
 
-  int mcType = MCType::WZ;
+  int mcType;
+  if(strstr(inputfile, "WGToLNuG") != NULL){
+                std::cout << "WGToLNuG sample !" << std::endl;
+                mcType = MCType::WGJetInclusive;
+  }
+  else if(strstr(inputfile, "WGJet40") != NULL){
+                std::cout << "WGJet40 sample !" << std::endl;
+                mcType = MCType::WGJet40;
+  }
+  else if(strstr(inputfile, "WGJet130") != NULL){
+                std::cout << "WGJet130 sample !" << std::endl;
+                mcType = MCType::WGJet130;
+  }
+  else if(strstr(inputfile, "ZGToLLG") != NULL){
+                std::cout << "ZGInclusive sample !" << std::endl;
+                mcType = MCType::ZGInclusive;
+  }
+  else if(strstr(inputfile, "DYJetsToLL") != NULL){
+                std::cout << "DYJetsToLL sample !" << std::endl;
+                mcType = MCType::DYLL50;
+  }
+  else if(strstr(inputfile, "TTGJets") != NULL){
+                std::cout << "TTGJets sample !" << std::endl;
+                mcType = MCType::TTG;
+  }
+  else if(strstr(inputfile, "WWG") != NULL){
+                std::cout << "WWG sample !" << std::endl;
+                mcType = MCType::WWG;
+  }
+  else if(strstr(inputfile, "WZG") != NULL){
+                std::cout << "WZG sample !" << std::endl;
+                mcType = MCType::WZG;
+  }
+  else if(strstr(inputfile, "TTJets") != NULL){
+                std::cout << "TTJets sample !" << std::endl;
+                mcType = MCType::TT;
+  }
+  else if(strstr(inputfile, "WW") != NULL){
+                std::cout << "WW sample !" << std::endl;
+                mcType = MCType::WW;
+  }
+  else if(strstr(inputfile, "WZ") != NULL){
+                std::cout << "WZ sample !" << std::endl;
+                mcType = MCType::WZ;
+  }
+  else {
+                std::cout << "not specific MC !" << std::endl;
+                mcType = MCType::NOMC;
+  }
+
   float crosssection = MC_XS[mcType];
   float ntotalevent = es->GetEntries();
 
@@ -756,5 +806,11 @@ p_eventcount->Fill("passZ",npassZ);
 outputfile->Write();
 logfile.close();
 }
-
+int main(int argc, char** argv)
+{
+    if(argc < 2)
+      cout << "You have to provide two arguments!!\n";
+    analysis_mgMC(atoi(argv[1]),argv[2]);
+    return 0;
+}
 

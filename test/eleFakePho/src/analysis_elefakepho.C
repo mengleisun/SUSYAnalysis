@@ -26,6 +26,7 @@
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_mcData.h"
 #include "../../../src/analysis_rawData.cc"
@@ -35,15 +36,15 @@
 void analysis_elefakepho(int RunYear, const char *Era){//main
 
   ofstream logfile;
-  logfile.open(Form("/eos/uscms/store/user/tmishra/elefakepho/logs/plot_elefakepho_DYTnP_dR05_DY_%d_probe35.log",RunYear),ios::trunc);
+  logfile.open(Form("/eos/uscms/store/user/tmishra/elefakepho/logs/plot_elefakepho_DYTnP_dR05_DY_%d.log",RunYear),ios::trunc);
 
   logfile << "analysis_elefakepho()" << std::endl;
 
   RunType datatype(MC);                              // Run Type
-  TFile *f = TFile::Open(Form("/eos/uscms/store/user/tmishra/InputFilesDATA/%d/DYJetsToLL_%d.root",RunYear,RunYear));
+  TFile *f = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DYJetsToLL/DYJetsToLL_%d.root",RunYear));
   TTree *es =(TTree*)f->Get("ggNtuplizer/EventTree");
 
-  TFile *output = TFile::Open(Form("/eos/uscms/store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_%d_probe35.root",RunYear),"RECREATE");
+  TFile *output = TFile::Open(Form("/eos/uscms/store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_%d.root",RunYear),"RECREATE");
   output->cd();
 
   int   tracks(0);
@@ -182,11 +183,10 @@ void analysis_elefakepho(int RunYear, const char *Era){//main
         ElectronCollection.clear();
         for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
 	   // common trigger threshold starts from 35 GeV
-           //if(itEle->getCalibEt() < 30 || fabs(itEle->getEta())>2.1)continue;                              // Tag electron selection
-           if(itEle->getCalibEt() < 35 || fabs(itEle->getEta())>2.1)continue;                              // Tag electron selection
+           if(itEle->getCalibEt() < 38 || fabs(itEle->getEta())>2.1)continue;                              // Tag electron selection
            //if(!itEle->passHLTSelection())continue;
 					 if(RunYear==2016 && !itEle->fireTrgs(12))continue;  //HLT_Ele27_WPTight_Gsf_v
-					 if(RunYear==2017 && !itEle->fireTrgs(12))continue;  //HLT_Ele35_WPTight_Gsf_v
+					 if(RunYear==2017 && !itEle->fireTrgs(46))continue;  //HLT_Ele35_WPTight_Gsf_v
 					 if(RunYear==2018 && !itEle->fireTrgs(13))continue;  //HLT_Ele32_WPTight_Gsf_v
 	   if(itEle->passSignalSelection())ElectronCollection.push_back(itEle); // Tag electron selection
 		// pt > 30 GeV, medium ID, eta < 2.1 electron

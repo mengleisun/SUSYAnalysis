@@ -1,14 +1,17 @@
+// g++ `root-config --cflags` ../../lib/libAnaClasses.so analysis_TChiWG.C -o analysis_TChiWG.exe `root-config --libs`
+#include "analysis_PU.C"
 #include "../analysis_commoncode.h"
 #include "TProfile2D.h"
-#include "analysis_PU.C"
+#include "RooMultiVarGaussian.h"
 
+int RunYear=2016;
 void analysis_TChiWG(){//main  
 
 	SetSignalConfig();
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	esfScaleFactor  objectESF;
-
-  gSystem->Load("../../lib/libAnaClasses.so");
+	gROOT->SetBatch(kTRUE);
+  	gSystem->Load("../../lib/libAnaClasses.so");
 
 	TFile xSecFile("../cross/susyCrossSection.root");
 	TH1D *p_crosssection_tchiwg = (TH1D*)xSecFile.Get("p_charginoSec");
@@ -16,14 +19,15 @@ void analysis_TChiWG(){//main
 	TH1D *p_crosssection_t6wg   = (TH1D*)xSecFile.Get("p_squarkxSec");
 
 	TChain *datachain = new TChain("signalTree");
-	datachain->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
+	datachain->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d_NEW.root",RunYear));
 	TH1D *p_PU_data = new TH1D("p_PU_data",";N_{vtx};",100,0,100); 
   datachain->Draw("nVertex >> p_PU_data");
 	p_PU_data->Scale(1.0/p_PU_data->Integral(1,101));
 
 	std::ostringstream histname;
 	//**************   T5WG  ***************************//
-  TFile *file_t5wg = TFile::Open("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_2016.root");
+  //TFile *file_t5wg = TFile::Open(Form("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_%d.root",RunYear));
+  TFile *file_t5wg = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG.root");
   TTree *tree_t5wg = (TTree*)file_t5wg->Get("SUSYtree");
 //	float Mgluino_t5wg(0);
   float Mchargino_t5wg(0);
@@ -32,13 +36,13 @@ void analysis_TChiWG(){//main
 	float Mass2_t5wg(0);
 	int   nVertex(0);
 //	tree_t5wg->SetBranchAddress("MsGsQ",      &Mgluino_t5wg);  
-  tree_t5wg->SetBranchAddress("Mchargino",  &Mchargino_t5wg);
-  tree_t5wg->SetBranchAddress("Mneutralino",&Mneutralino_t5wg);
+//  tree_t5wg->SetBranchAddress("Mchargino",  &Mchargino_t5wg);
+//  tree_t5wg->SetBranchAddress("Mneutralino",&Mneutralino_t5wg);
   tree_t5wg->SetBranchAddress("Mass1",      &Mass1_t5wg);
   tree_t5wg->SetBranchAddress("Mass2",      &Mass2_t5wg);
   tree_t5wg->SetBranchAddress("nVertex",    &nVertex);
 
-	TFile *outputfile_t5wg = TFile::Open("signalTree_T5WG.root","RECREATE");
+	TFile *outputfile_t5wg = TFile::Open(Form("/eos/uscms/store/user/tmishra/Signal/signalTree_T5WG_%d.root",RunYear),"RECREATE");
 	outputfile_t5wg->cd();
 
 	TH2D *p_T5WGMASS         = new TH2D("SUSYMass","",27, 775.0, 2125.0, 420, 2.5, 2102.5);
@@ -151,7 +155,8 @@ void analysis_TChiWG(){//main
 		
   TChain *mgtree_t5wg;
   mgtree_t5wg = new TChain("mgTree","mgTree");
-  mgtree_t5wg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_2016.root");
+  //mgtree_t5wg->Add(Form("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_%d.root",RunYear));
+  mgtree_t5wg->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG.root");
   float phoEt_t5wg_mg(0);
   float phoEta_t5wg_mg(0);
   float lepPt_t5wg_mg(0);
@@ -183,9 +188,9 @@ void analysis_TChiWG(){//main
   mgtree_t5wg->SetBranchAddress("sigMET",     &sigMET_t5wg_mg);
   mgtree_t5wg->SetBranchAddress("HT",         &HT_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("nVertex",    &nVertex_t5wg_mg);
-	mgtree_t5wg->SetBranchAddress("Mgluino",    &gluinoMass_t5wg_mg);
-  mgtree_t5wg->SetBranchAddress("Mchargino",  &charginoMass_t5wg_mg);
-  mgtree_t5wg->SetBranchAddress("Mneutralino",&neutralinoMass_t5wg_mg);
+//	mgtree_t5wg->SetBranchAddress("Mgluino",    &gluinoMass_t5wg_mg);
+ // mgtree_t5wg->SetBranchAddress("Mchargino",  &charginoMass_t5wg_mg);
+//  mgtree_t5wg->SetBranchAddress("Mneutralino",&neutralinoMass_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("Mass1",      &Mass1_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("Mass2",      &Mass2_t5wg_mg);
 	mgtree_t5wg->SetBranchAddress("sigMETJESup",&sigMETJESup_t5wg_mg);
@@ -260,7 +265,8 @@ void analysis_TChiWG(){//main
 
   TChain *egtree_t5wg;
   egtree_t5wg = new TChain("egTree","egTree");
-  egtree_t5wg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_2016.root");
+  egtree_t5wg->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG.root");
+  //egtree_t5wg->Add(Form("/eos/uscms/store/user/tmishra/Signal/resTree_T5WG_%d.root",RunYear));
   float phoEt_t5wg_eg(0);
   float phoEta_t5wg_eg(0);
   float lepPt_t5wg_eg(0);
@@ -448,7 +454,7 @@ void analysis_TChiWG(){//main
 
 
 	//****************   TChiWG ***************************//
-  TFile *file_tchiwg = TFile::Open("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_2016.root");
+/*TFile *file_tchiwg = TFile::Open(Form("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_%d.root",RunYear));
   TTree *tree_tchiwg = (TTree*)file_tchiwg->Get("SUSYtree");
   float Mchargino_tchiwg(0);
   float Mneutralino_tchiwg(0);
@@ -457,7 +463,7 @@ void analysis_TChiWG(){//main
   tree_tchiwg->SetBranchAddress("Mneutralino",&Mneutralino_tchiwg);
 	tree_tchiwg->SetBranchAddress("nVertex",    &nVertex_tchiwg);
 
-	TFile *outputfile_tchiwg = TFile::Open("signalTree_TChiWG.root","RECREATE");
+	TFile *outputfile_tchiwg = TFile::Open(Form("/eos/uscms/store/user/tmishra/Signal/signalTree_TChiWG_%d.root",RunYear),"RECREATE");
 	outputfile_tchiwg->cd();
 
 	TH1D *p_TChiWGMASS = new TH1D("p_TChiWGMASS","",40,287.5,1287.5);
@@ -561,8 +567,7 @@ void analysis_TChiWG(){//main
 
   TChain *mgtree_tchiwg;
   mgtree_tchiwg = new TChain("mgTree","mgTree");
-  //mgtree_tchiwg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_2016.root");
-  mgtree_tchiwg->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/test_TChiWg.root");
+  mgtree_tchiwg->Add(Form("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_%d.root",RunYear));
   float phoEt_tchiwg_mg(0);
   float phoEta_tchiwg_mg(0);
   float lepPt_tchiwg_mg(0);
@@ -609,7 +614,7 @@ void analysis_TChiWG(){//main
 	for(unsigned ievt(0); ievt < mgtree_tchiwg->GetEntries(); ievt++){
 		mgtree_tchiwg->GetEntry(ievt);
 
-		/** cut flow *****/
+		// cut flow 
 		if(phoEt_tchiwg_mg < 35 || lepPt_tchiwg_mg < 25)continue;
 		if(fabs(phoEta_tchiwg_mg) > 1.4442 || fabs(lepEta_tchiwg_mg) > 2.5)continue;
 
@@ -668,8 +673,7 @@ void analysis_TChiWG(){//main
 
   TChain *egtree_tchiwg;
   egtree_tchiwg = new TChain("egTree","egTree");
-  //egtree_tchiwg->Add("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_2016.root");
-  egtree_tchiwg->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/test_TChiWg.root");
+  egtree_tchiwg->Add(Form("/eos/uscms/store/user/tmishra/Signal/resTree_TChiWG_%d.root",RunYear));
   float phoEt_tchiwg_eg(0);
   float phoEta_tchiwg_eg(0);
   float lepPt_tchiwg_eg(0);
@@ -716,7 +720,7 @@ void analysis_TChiWG(){//main
 	for(unsigned ievt(0); ievt < egtree_tchiwg->GetEntries(); ievt++){
 		egtree_tchiwg->GetEntry(ievt);
 
-		/** cut flow *****/
+		// cut flow 
 		if(phoEt_tchiwg_eg < 35 || lepPt_tchiwg_eg < 25)continue;
 		if(fabs(phoEta_tchiwg_eg) > 1.4442 || fabs(lepEta_tchiwg_eg) > 2.5)continue;
 		if(sigMET_tchiwg_eg < 120 || sigMT_tchiwg_eg < 100)continue;
@@ -840,7 +844,7 @@ void analysis_TChiWG(){//main
 
 	outputfile_tchiwg->Write();
 	outputfile_tchiwg->Close();
-
+*/
 	//**************   T6WG  ***************************//
 /*
   TFile *file_t6wg = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/resTree_T6WG.root");
@@ -1200,5 +1204,3 @@ void analysis_TChiWG(){//main
 */
   xSecFile.Close();
 }
-
-

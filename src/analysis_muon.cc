@@ -30,6 +30,10 @@ bool recoMuon::passHLTSelection(){
     case MuonEG2016: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
     case MuonEG2017: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
     case MuonEG2018: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
+ 
+    case MCMuonEG2016: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
+    case MCMuonEG2017: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
+    case MCMuonEG2018: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
     case SingleElectron2016: passHLT = true; break;
     case SingleElectron2017: passHLT = true; break;
     case SingleElectron2018: passHLT = true; break;
@@ -39,7 +43,6 @@ bool recoMuon::passHLTSelection(){
     case SingleMuon2018: if(fireSingleTrg(30))passHLT = true; break;
     case DoubleMuon2016: passHLT = true; break;
     case MCDoubleEG2016: passHLT = true; break;
-    case MCMuonEG2016: if(fireSingleTrg(2) || fireSingleTrg(21) || fireSingleTrg(22))passHLT = true; break;
     case MCSingleElectron2016:passHLT = true; break;
     case MCSingleMuon2016: if(fireSingleTrg(1) || fireSingleTrg(19))passHLT = true; break;
     case MCDoubleMuon2016: passHLT = true; break;

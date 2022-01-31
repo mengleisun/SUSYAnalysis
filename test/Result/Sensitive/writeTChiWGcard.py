@@ -23,7 +23,7 @@ for inputchan in range(1, n_channels + 1):
           continue
       mass1 = h_SUSYmass.GetXaxis().GetBinCenter(xbin)
   
-      file_out = open('/uscms_data/d3/mengleis/work/CMSSW_7_4_7/src/HiggsAnalysis/CombinedLimit/DataCard/Sensitive/cards/counting_tchiwg_' + str(int(mass1)) + '_' + str(inputchan) +  '.txt', 'w')
+      file_out = open('/eos/uscms/store/user/tmishra/CombinedLimit/Sensitive/cards/counting_tchiwg_' + str(int(mass1)) + '_' + str(inputchan) +  '.txt', 'w')
       avg_jes = 0
       avg_jer = 0
       avg_esf = 0

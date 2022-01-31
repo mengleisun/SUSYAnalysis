@@ -1,4 +1,4 @@
-// Run using g++ `root-config --cflags` analysis_elefakepho.C -o analysis_elefakepho.exe `root-config --libs`
+// Run using g++ `root-config --cflags` Data_analysis_elefakepho.C -o Data_analysis_elefakepho.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -38,7 +38,7 @@ bool apply_L1=false;
 void Data_analysis_elefakepho(int RunYear, const char *Era){//main
 
   ofstream logfile;
-  logfile.open(Form("/eos/uscms/store/user/tmishra/elefakepho/logs/plot_elefakepho_DataTnP_dR05_Data_%d%s_probe35.log",RunYear,Era),ios::trunc);
+  logfile.open(Form("/eos/uscms/store/user/tmishra/elefakepho/logs/plot_elefakepho_DataTnP_dR05_Data_%d%s.log",RunYear,Era),ios::trunc);
 
   logfile << "analysis_elefakepho()" << std::endl;
 
@@ -47,19 +47,21 @@ void Data_analysis_elefakepho(int RunYear, const char *Era){//main
   if(RunYear==2017) datatype = SingleElectron2017;
   if(RunYear==2018) datatype = SingleElectron2018;
   TFile *f; 
+
   if(RunYear==2016 || RunYear==2017){
   	f = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_%d%s.root",RunYear,Era));
-	cout<<"Applying L1 prefiring prob.? "<<apply_L1<<endl;
-  }
+	apply_L1=true;}
+
   if(RunYear==2018){
   	f = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_%d%s.root",RunYear,Era));
-	apply_HEMveto=true;
-	cout<<"Applying HEM veto? "<<apply_HEMveto<<endl;
-  }
+	apply_HEMveto=true; }
+	
+   cout<<"Applying L1 prefiring prob.? "<<apply_L1<<endl;
+   cout<<"Applying HEM veto? "<<apply_HEMveto<<endl;
 
   TTree *es =(TTree*)f->Get("ggNtuplizer/EventTree");
 
-  TFile *output = TFile::Open(Form("/eos/uscms/store/user/tmishra/elefakepho/files/plot_elefakepho_DataTnP_dR05_%d%s_probe35.root",RunYear,Era),"RECREATE");
+  TFile *output = TFile::Open(Form("/eos/uscms/store/user/tmishra/elefakepho/files/plot_elefakepho_DataTnP_dR05_%d%s.root",RunYear,Era),"RECREATE");
   output->cd();
 
   int   tracks(0);
@@ -152,8 +154,7 @@ void Data_analysis_elefakepho(int RunYear, const char *Era){//main
   rantree->Branch("mcGMomPID",		     &mcGMomPID_random);
   rantree->Branch("mcType",			     &mcType);
 
-  //const unsigned nEvts = es->GetEntries();
-  const unsigned nEvts = 1000000;
+  const unsigned nEvts = es->GetEntries();
   std::cout << "Total event: " << nEvts << std::endl;
   logfile << "Total event: " << nEvts << std::endl;
   logfile << "Output file: " << "/eos/uscms/store/user/tmishra/elefakepho/files/plot_elefakepho_DataTnP_dR05_"<<RunYear<<Era<<".root"<< std::endl;
@@ -195,7 +196,7 @@ void Data_analysis_elefakepho(int RunYear, const char *Era){//main
         tracks = ntrks;
         nVertex = nvtx;
         
-	if(!passHEMVeto(0,raw)) continue; 
+	if(RunYear==2018 && !passHEMVeto(0,raw)) continue; 
         passHEM++;
 
         if(MET > 70.0)continue;
@@ -206,10 +207,10 @@ void Data_analysis_elefakepho(int RunYear, const char *Era){//main
         std::vector<std::vector<recoEle>::iterator> ElectronCollection;
         ElectronCollection.clear();
         for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
-           if(itEle->getCalibEt() < 35 || fabs(itEle->getEta())>2.1)continue;                              // Tag electron selection
+           if(itEle->getCalibEt() < 38 || fabs(itEle->getEta())>2.1)continue;                              // Tag electron selection
            //if(!itEle->passHLTSelection())continue;
 					 if(RunYear==2016 && !itEle->fireTrgs(12))continue;  //HLT_Ele27_WPTight_Gsf_v
-					 if(RunYear==2017 && !itEle->fireTrgs(12))continue;  //HLT_Ele27_WPTight_Gsf_v
+					 if(RunYear==2017 && !itEle->fireTrgs(46))continue;  //HLT_Ele27_WPTight_Gsf_v
 					 if(RunYear==2018 && !itEle->fireTrgs(13))continue;  //HLT_Ele32_WPTight_Gsf_v
            if(itEle->passSignalSelection())ElectronCollection.push_back(itEle); // Tag electron selection
 		// pt > 30 GeV, medium ID, eta < 2.1 electron
@@ -351,7 +352,7 @@ logfile << "FakeRateRandomTree events: " << rantree->GetEntries() <<"; "<<percen
 logfile << "FakeRateTree events: " << etree->GetEntries() <<"; "<<percent2<<"\%"<<std::endl;
 cout<< "FakeRateRandomTree events: " << rantree->GetEntries() <<"; "<<percent1<<"\%"<<std::endl;
 cout<< "FakeRateTree events: " << etree->GetEntries() <<"; "<<percent2<<"\%"<<std::endl;
-cout<< "pass HEM cut:  " << passHEM<<endl;
+if(RunYear==2018) cout<< "pass HEM cut:  " << passHEM<<endl;
 output->Write();
 output->Close();
 logfile.close();

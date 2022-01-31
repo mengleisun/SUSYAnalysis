@@ -1,5 +1,5 @@
 #include "../analysis_commoncode.h"
-
+int RunYear = 2018;
 #define NTOY 1000
 bool useGaussFit=true;
 
@@ -25,9 +25,9 @@ void analysis_jetBkg(){
 	
 	std::stringstream JetFakeRateFile;
   JetFakeRateFile.str();
-	if(channelType==1)JetFakeRateFile << "../script/JetFakeRate-transferfactor-DoubleEG-EB.txt";
+	if(channelType==1)JetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-DoubleEG-EB.txt";
 	// fake rate as input
-	if(channelType==2)JetFakeRateFile << "../script/JetFakeRate-transferfactor-MuonEG-EB.txt";
+	if(channelType==2)JetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-MuonEG-EB.txt";
 	std::ifstream jetfakefile(JetFakeRateFile.str().c_str());
 	std::string paratype;
 	float paravalue;	
@@ -113,8 +113,8 @@ void analysis_jetBkg(){
 	/************ jet tree **************************/ 
 		TChain *jettree = new TChain("jetTree");
 		// Background derived from data, as it is fake, jetTree
-		if(channelType==1)jettree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
-		if(channelType==2)jettree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
+		if(channelType==1)jettree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d.root",RunYear));
+		if(channelType==2)jettree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d.root",RunYear));
 
 		float phoEt(0);
 		float phoEta(0);
@@ -293,7 +293,7 @@ void analysis_jetBkg(){
 		case 2: outputname << "validTree_"; break;
 		case 3: outputname << "signalTree_"; break;
 	}
-	if(channelType==1)outputname << "egamma_jetbkg";
+	if(channelType==1)outputname << "eg_jetbkg";
 	else if(channelType==2)outputname << "mg_jetbkg";
 	if(anatype ==0)outputname << "_met" << lowMET <<"_" << highMET << "_pt" << lowPt << "_" << highPt;
 	outputname << ".root";

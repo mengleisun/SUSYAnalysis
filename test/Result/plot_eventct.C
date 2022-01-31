@@ -32,7 +32,7 @@ void plot_eventct(int NBIN){//main
 	gStyle->SetOptStat(0);
 	setTDRStyle();
 	gStyle->SetErrorX(0);
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 	
 	TFile *egfile_ele = TFile::Open("vetoDiPhoData/signalTree_egamma_eleBkg.root");
 	TFile *egfile_jet = TFile::Open("vetoDiPhoData/signalTree_egamma_jetbkg.root");

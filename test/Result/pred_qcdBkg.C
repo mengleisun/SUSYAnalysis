@@ -25,7 +25,7 @@ void pred_qcdBkg(){
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 
   int channelType = ichannel; // eg = 1; mg =2;
 	double factorQCD(1);

@@ -104,7 +104,7 @@ void pred_VGBkg(){
 		if(mcType == 5 && llmass > 30)continue;
 	
 		double scalefactor = getWeight(ichannel, bgtype, phoEt, nVertex, phoEta, lepPt, lepEta); 
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight;
 
 		/** cut flow *****/

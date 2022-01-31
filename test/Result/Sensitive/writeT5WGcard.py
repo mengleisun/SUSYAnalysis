@@ -30,7 +30,7 @@ for inputchan in range(1, n_channels + 1):
           if(h_SUSYmass.GetBinContent(i,j) <= 0):
               continue
           file_out = open(
-              '/uscms_data/d3/mengleis/work/CMSSW_7_4_7/src/HiggsAnalysis/CombinedLimit/Sensitive/cards/counting_t5Wg_'
+              '/eos/uscms/store/user/tmishra/CombinedLimit/Sensitive/cards/counting_t5Wg_'
               + str(int(h_SUSYmass.GetXaxis().GetBinCenter(i))) + '_'
               + str(int(h_SUSYmass.GetYaxis().GetBinCenter(j))) + '_' + str(inputchan) + '.txt', 'w'
               )
@@ -68,8 +68,8 @@ for inputchan in range(1, n_channels + 1):
                       e_jes = h_rates['h_chan' + str(k) + '_syserr_jes'].GetBinContent(i, j)
                       e_jer = h_rates['h_chan' + str(k) + '_syserr_jer'].GetBinContent(i, j)
                       e_esf = h_rates['h_chan' + str(k) + '_syserr_esf'].GetBinContent(i, j)
-                      n_xs  = h_rates['h_normalization'].GetBinContent(i, j)
-                      e_xs  = h_rates['h_normalization'].GetBinError(i, j)
+                      #n_xs  = h_rates['h_normalization'].GetBinContent(i, j)
+                      #e_xs  = h_rates['h_normalization'].GetBinError(i, j)
                       unc_stat = 1.0
                       unc_jes = 1.0 
                       unc_jer = 1.0
@@ -80,7 +80,7 @@ for inputchan in range(1, n_channels + 1):
                           unc_jes = 1.0 +  e_jes/n_nom
                           unc_jer = 1.0 +  e_jer/n_nom 
                           unc_esf = 1.0 +  e_esf/n_nom
-                          unc_xs  = 1.0 +  e_xs
+                          #unc_xs  = 1.0 +  e_xs
                       else:
                           unc_stat = 2.0
                           unc_jes = 1.0 + avg_jes 

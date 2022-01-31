@@ -47,16 +47,17 @@
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_mcData.h"
 #include "../../../include/tdrstyle.C"
 //#include "../include/RooCBExGaussShape.h"
 #define NTOY 10000
 using namespace RooFit ;
-int RunYear = 2017;
+int RunYear = 2018;
 bool doEB = true;
-//const char*processName ="DY";
-const char*processName ="Data";
+const char*processName ="DY";
+//const char*processName ="Data";
 
 enum BinType{
   byPt = 0,
@@ -134,12 +135,7 @@ void FitKer(int fitFunc, int inputbintype, int inputfittype, float lowercut, flo
 
 //************** Process Z->ee Tree ********************************************************//   
   TChain *etree = new TChain("FakeRateTree");
-  if(RunYear==2016)
-  	etree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_%sTnP_dR05_2016_probe35.root",processName));
-  if(RunYear==2017)
-  	etree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_%sTnP_dR05_2017_probe35.root",processName));
-  if(RunYear==2018)
-  	etree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_%sTnP_dR05_2018_probe35.root",processName));
+  etree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_%sTnP_dR05_%d_new.root",processName,RunYear));
   float invmass=0; 
   float probePt=0; 
   float probeEta=0;
@@ -180,12 +176,8 @@ void FitKer(int fitFunc, int inputbintype, int inputfittype, float lowercut, flo
   newbgtree->Branch("invmass", &invmass_fordataset);
 
   TChain *bgtree = new TChain("BGTree");
-  if(RunYear==2016)
-	bgtree->Add("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_bgtemplate_FullEcal_2016_probe35.root");
-  if(RunYear==2017)
-	bgtree->Add("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_bgtemplate_FullEcal_2017_probe35.root");
-  if(RunYear==2018)
-	bgtree->Add("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_bgtemplate_FullEcal_2018_probe35.root");
+  bgtree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_bgtemplate_FullEcal_%d_new.root",RunYear));
+  
   float invmass_bg=0; 
   float probePt_bg=0; 
   float probeEta_bg=0; 
@@ -225,12 +217,7 @@ void FitKer(int fitFunc, int inputbintype, int inputfittype, float lowercut, flo
 
 	if(useDY){
 		TChain *DYtree = new TChain("FakeRateTree");
-                if(RunYear==2016)
-			DYtree->Add("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_2016_probe35.root");
-                if(RunYear==2017)
-			DYtree->Add("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_2017_probe35.root");
-                if(RunYear==2018)
-			DYtree->Add("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_2018_probe35.root");
+		DYtree->Add(Form("root://cmseos.fnal.gov//store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_%d_new.root",RunYear));
 
 		float DY_invmass=0; 
 		float DY_tagPt=0; 
@@ -293,7 +280,10 @@ void FitKer(int fitFunc, int inputbintype, int inputfittype, float lowercut, flo
 	//		int probebin_y=h_phoscale->GetYaxis()->FindBin(fabs(DY_probePt));
 	//		double eventweight = h_elescale->GetBinContent(h_elescale->GetBin(tagbin_x, tagbin_y))*h_eleiso->GetBinContent(h_eleiso->GetBin(tagbin_x, tagbin_y))*h_phoscale->GetBinContent(h_phoscale->GetBin(probebin_x, probebin_y));
 			if(keyvariable >= lowercut && keyvariable < uppercut){
-				double mcPUweight = getPUESF(DY_nVertex);
+				double mcPUweight;
+				if(RunYear==2016) mcPUweight = getPUESF16(DY_nVertex);
+				if(RunYear==2017) mcPUweight = getPUESF17(DY_nVertex);
+				if(RunYear==2018) mcPUweight = getPUESF18(DY_nVertex);
 				DY_PU->Fill(DY_nVertex, mcPUweight);
 				if(isZee){invmass_DYsignal = DY_invmass; h_DYinvmass->Fill(DY_invmass, mcPUweight); }
 			//  if(inputfittype == 0 && DY_vetovalue== false){invmass_DYsignal = DY_invmass; h_DYinvmass->Fill(DY_invmass, eventweight); }

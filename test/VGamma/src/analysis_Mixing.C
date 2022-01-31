@@ -1,4 +1,5 @@
 // look entries with photon(all, no pixel, id, eg and mg) cases and store photon, eg and mg trees
+// g++ `root-config --cflags` ../../../lib/libAnaClasses.so analysis_Mixing.C -o analysis_Mixing.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -21,14 +22,14 @@
 #include "TProfile.h"
 #include "TLorentzVector.h"
 #include "TProfile2D.h"
-
+#include "TCut.h"
 #include "../../../include/analysis_rawData.h"
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
-#include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_jet.h"
+#include "../../../include/analysis_tools.h"
 
 bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
 
@@ -52,31 +53,16 @@ bool nisrMatch(float jetEta, float jetPhi, std::vector<mcData>& genParticles){
 } 
 		
 
-void analysis_Mixing(){//main 
+void analysis_Mixing(int RunYear, const char *Sample){//main 
 	
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-
-  //char outputname[100] = "/uscms_data/d3/mengleis/Sep1/mixing_WGToLNu130_TH1D.root";
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/test.root";
-
   RunType datatype(MC); 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/ZGTo2LG_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
-//	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WGJets_MonoPhoton_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1ANDext1.root");
-//WGJets_MonoPhoton_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root
-//WGJets_MonoPhoton_PtG-40to130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root
-//WGToLNuG_PtG-130_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root
-//WGToLNuG_PtG-500_RunIISummer16MiniAODv2-TrancheIV_v6.root
-//WGToLNuG_RunIISummer16MiniAODv2-TrancheIV_v6-ext1.root
-//WGToLNuG_RunIISummer16MiniAODv2-TrancheIV_v6-ext2-v1.root
-//WGToLNuG_RunIISummer16MiniAODv2-TrancheIV_v6-ext3.root
-//WGToLNuG_madgraphMLM_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root
-//WJetsToLNu_RunIISummer16MiniAODv2-TrancheIV_v6-ext2-v1.root
-//
- 
-  const unsigned nEvts = es->GetEntries(); 
+	char* inputfile = new char[300];
+        sprintf(inputfile,"/eos/uscms/store/group/lpcsusyhad/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+        es->Add(inputfile);
 
-  TFile *outputfile = TFile::Open(outputname,"RECREATE");
+  const unsigned nEvts = es->GetEntries(); 
+  TFile* outputfile = new TFile(Form("/eos/uscms/store/user/tmishra/egMC/mixing_%s_%d_TH1D.root",Sample,RunYear),"RECREATE");
   outputfile->cd();
 
 	TH1D *all_phoEt = new TH1D("all_phoEt","",400,0,400);
@@ -91,7 +77,24 @@ void analysis_Mixing(){//main
 	double egamma_totalEvent(0), egamma_reweight(0);
 	double mugamma_totalEvent(0), mugamma_reweight(0);
 
-  int mcType = MCType::WGJet130;
+  int mcType;
+  if(strstr(inputfile, "WGToLNuG") != NULL){
+                std::cout << "WGToLNuG sample !" << std::endl;
+                mcType = MCType::WGJetInclusive;
+  }
+  else if(strstr(inputfile, "WGJet40") != NULL){
+                std::cout << "WGJet40 sample !" << std::endl;
+                mcType = MCType::WGJet40;
+  }
+  else if(strstr(inputfile, "WGJet130") != NULL){
+                std::cout << "WGJet130 sample !" << std::endl;
+                mcType = MCType::WGJet130;
+  }
+  else if(strstr(inputfile, "ZGToLLG") != NULL){
+                std::cout << "ZGInclusive sample !" << std::endl;
+                mcType = MCType::ZGInclusive;
+  }
+
   if(datatype == MC && mcType == MCType::NOMC){std::cout << "wrong MC type" << std::endl; throw;} 
 
   float crosssection = MC_XS[mcType];
@@ -302,6 +305,24 @@ void analysis_Mixing(){//main
 	int theoryCut(0);
 	int highEta(0);
   std::cout << "Total evetns : " << nEvts << std::endl;
+  
+  TCut Pass_egPho_2016 = "RunYear==2016 && (itpho->fireDoubleTrg(1) || itpho->fireDoubleTrg(2))";
+  TCut Pass_egPho_2017 = "RunYear==2017 && (itpho->fireDoubleTrg(33) || itpho->fireDoubleTrg(34))";
+  TCut Pass_egPho_2018 = "RunYear==2018 && (itpho->fireDoubleTrg(33) || itpho->fireDoubleTrg(34))";
+  
+  TCut Pass_mgPho_2016 = "RunYear==2016 && (itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30))";
+  // need to check
+  TCut Pass_mgPho_2017 = "RunYear==2017 && (itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30))";
+  TCut Pass_mgPho_2018 = "RunYear==2018 && (itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30))";
+
+  TCut Pass_egEle_2016 = "RunYear==2016 && (itEle->fireTrgs(21) || itEle->fireTrgs(22))";
+  TCut Pass_egEle_2017 = "RunYear==2017 && (itEle->fireTrgs(43) || itEle->fireTrgs(44))";
+  TCut Pass_egEle_2018 = "RunYear==2018 && (itEle->fireTrgs(43) || itEle->fireTrgs(44))";
+
+  TCut Pass_mgMu_2016 = "RunYear==2016 && (itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22))";
+  TCut Pass_mgMu_2017 = "RunYear==2017 && (itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22))";
+  TCut Pass_mgMu_2018 = "RunYear==2018 && (itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22))";
+
 
     for (unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
   
@@ -330,8 +351,9 @@ void analysis_Mixing(){//main
 				METPhi_T1UESDo = raw.pfMETPhi_T1UESDo;
         METFilter = raw.metFilters;
         nVtx = raw.nVtx;
-				
-				PUweight = getPUESF(nVtx);
+				if(RunYear==2016)PUweight = getPUESF16(nVtx);
+                        	if(RunYear==2017)PUweight = getPUESF17(nVtx);
+                        	if(RunYear==2018)PUweight = getPUESF18(nVtx);
 	
 				double ISRJetPt = 0;
 				TLorentzVector JetVec(0,0,0,0);	
@@ -439,14 +461,14 @@ void analysis_Mixing(){//main
 						leadingphoton = itpho;
 					}
 					if(GSFveto && PixelVeto && FSRVeto){
-						if((itpho->fireDoubleTrg(5) || itpho->fireDoubleTrg(6))){
+						if(Pass_egPho_2016 || Pass_egPho_2017 || Pass_egPho_2018){
 					 		if(!hasegPho){
 								hasegPho=true;
 					 			egsignalPho = itpho;
 								egamma_phoEt->Fill(itpho->getCalibEt());
 							}
 						}
-						if(itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30)){
+						if(Pass_mgPho_2016 || Pass_mgPho_2017 || Pass_mgPho_2018){
 					 		if(!hasmgPho){
 								hasmgPho=true;
 					 			mgsignalPho = itpho;
@@ -474,7 +496,7 @@ void analysis_Mixing(){//main
           for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
             if(hasEle)break;
 						if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))continue;
-						if(itEle->fireTrgs(21) || itEle->fireTrgs(22)){
+						if(Pass_egEle_2016 || Pass_egEle_2017 || Pass_egEle_2018){
 							if(itEle->passSignalSelection()){
 								hasEle=true; 
 								signalEle = itEle;
@@ -488,7 +510,7 @@ void analysis_Mixing(){//main
         if(hasmgPho){
 					for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
 					if(hasMu)break;
-						if(itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22)){
+						if(Pass_mgMu_2016 || Pass_mgMu_2017 || Pass_mgMu_2018){
 							if(itMu->passSignalSelection()){
 								hasMu=true; 
 								signalMu = itMu;
@@ -674,4 +696,11 @@ outputfile->Close();
 	std::cout << "mugamma_totalEvent" << mugamma_totalEvent << " mugamma_reweight " << mugamma_reweight << " ratio " << mugamma_totalEvent/mugamma_reweight << std::endl;
 }
 
+int main(int argc, char** argv)
+{
+    if(argc < 2)
+      cout << "You have to provide two arguments!!\n";
+    analysis_Mixing(atoi(argv[1]),argv[2]);
+    return 0;
+}
 

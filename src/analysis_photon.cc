@@ -144,11 +144,19 @@ bool recoPhoton::passHLTSelection(){
     case DoubleEG2015: case MuonEG2015: case SingleElectron2015: case SingleMuon2015: case DoubleMuon2015:
       passHLT = false; break;
     // HLT_Diphoton30_18_R9Id_OR_IsoCaloId_AND_HE_R9Id_Mass90
-    case DoubleEG2016: if(fireDoubleTrg(1) || fireDoubleTrg(2))passHLT = true; break;
+    //case DoubleEG2016: if(fireDoubleTrg(1) || fireDoubleTrg(2))passHLT = true; break;
     // HLT_Diphoton30_22_R9Id_OR_IsoCaloId_AND_HE_R9Id_Mass90
-    case DoubleEG2017: if(fireDoubleTrg(33) || fireDoubleTrg(34))passHLT = true; break;
-    case DoubleEG2018: if(fireDoubleTrg(33) || fireDoubleTrg(34))passHLT = true; break;
+    //case DoubleEG2017: if(fireDoubleTrg(33) || fireDoubleTrg(34))passHLT = true; break;
+    //case DoubleEG2018: if(fireDoubleTrg(33) || fireDoubleTrg(34))passHLT = true; break;
 
+	// 5,6 corresponds to leading EG object
+    case DoubleEG2016: if(fireDoubleTrg(5) || fireDoubleTrg(6))passHLT = true; break; // 5, 6 are filters for Seeded leg
+    case DoubleEG2017: if(fireDoubleTrg(5) || fireDoubleTrg(6))passHLT = true; break;
+    case DoubleEG2018: if(fireDoubleTrg(5) || fireDoubleTrg(6))passHLT = true; break;
+    
+    case MCDoubleEG2016: if(fireDoubleTrg(5) || fireDoubleTrg(6))passHLT = true; break; // 5, 6 are filters for Seeded leg
+    case MCDoubleEG2017: if(fireDoubleTrg(5) || fireDoubleTrg(6))passHLT = true; break;
+    case MCDoubleEG2018: if(fireDoubleTrg(5) || fireDoubleTrg(6))passHLT = true; break;
     // hltMu17Photon30CaloIdLL1ISOHEFilter || hltMu17Photon30CaloIdLL1ISOORHEFilter || hltEG70HEFilter (seeded leg of DoublePho70)
     case MuonEG2016: if(fireDoubleTrg(28)|| fireDoubleTrg(29) || fireDoubleTrg(30))passHLT = true; break;
     case SingleElectron2016: passHLT = true; break;
@@ -157,10 +165,9 @@ bool recoPhoton::passHLTSelection(){
     case SingleMuon2016: passHLT = true; break;
     case DoubleMuon2016: passHLT = true; break;
 		case MET2016:  passHLT = true; break;
-    case MCDoubleEG2016: if(fireDoubleTrg(1) || fireDoubleTrg(2))passHLT = true; break;
-    case MCDoubleEG2017: if(fireDoubleTrg(33) || fireDoubleTrg(34))passHLT = true; break;
-    case MCDoubleEG2018: if(fireDoubleTrg(33) || fireDoubleTrg(34))passHLT = true; break;
     case MCMuonEG2016:   if(fireDoubleTrg(28)|| fireDoubleTrg(29) || fireDoubleTrg(30))passHLT = true; break;
+    case MCMuonEG2017:   if(fireDoubleTrg(28)|| fireDoubleTrg(29) || fireDoubleTrg(30))passHLT = true; break;
+    case MCMuonEG2018:   if(fireDoubleTrg(28)|| fireDoubleTrg(29) || fireDoubleTrg(30))passHLT = true; break;
     case MCSingleElectron2016: passHLT = true; break;
     case MCSingleMuon2016: passHLT = true; break;
     case MCDoubleMuon2016: passHLT = true; break;

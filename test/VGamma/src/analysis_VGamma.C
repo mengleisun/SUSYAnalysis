@@ -1,4 +1,5 @@
 // eg and mg events from different Simulation, ISR weight
+// g++ `root-config --cflags` ../../../lib/libAnaClasses.so analysis_VGamma.C -o analysis_VGamma.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -22,14 +23,15 @@
 #include "TLorentzVector.h"
 #include "TProfile2D.h"
 #include "TFileCollection.h"
+#include "TCut.h"
 
 #include "../../../include/analysis_rawData.h"
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
-#include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_jet.h"
+#include "../../../include/analysis_tools.h"
 
 double Normalization = 0.98;
 
@@ -79,40 +81,102 @@ bool passFilter(int filter){
   return passfilter;
 }
 
-void analysis_VGamma(){//main 
+void analysis_VGamma(int RunYear, const char *Sample){//main 
 	
-  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "DiLepton/resTree_VGamma_TT.root";
   ofstream logfile;
-  logfile.open("DiLepton/VG.log"); 
+  logfile.open(Form("/eos/uscms/store/user/tmishra/VGamma/resTree_VGamma_%s_%d.log",Sample,RunYear)); 
   logfile << "analysis_VGamma()" << std::endl;
 
   RunType datatype(MC);
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/TTJets/TTJets_2016.root");
-  logfile << "VG";
+	char* inputfile = new char[300];
+	sprintf(inputfile,"/eos/uscms/store/group/lpcsusyhad/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+	es->Add(inputfile);
+  logfile << Sample;
 	logfile << "muon MiniIso" << std::endl;
  
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << outputname << std::endl;
 
-  TFile *outputfile = TFile::Open(outputname,"RECREATE");
+  TCut Pass_egPho, Pass_mgPho, Pass_egEle, Pass_mgMu, Pass_MuonEG, Pass_DoubleEG;
+  if(RunYear==2016){
+		 Pass_DoubleEG = "(((raw.HLTPho >> 14)&1)==1)"; 
+		 Pass_MuonEG = "(((raw.HLTEleMuX >> 8)&1)!=0 || ((raw.HLTEleMuX >> 51)&1)!=0)";
+		 Pass_egPho = "(itpho->fireDoubleTrg(1) || itpho->fireDoubleTrg(2))";
+		 Pass_mgPho = "(itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30))";
+		 Pass_egEle = "(itEle->fireTrgs(21) || itEle->fireTrgs(22))";
+		 Pass_mgMu = "(itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22))"; }
+
+  if(RunYear==2017){
+		 Pass_DoubleEG = "(((raw.HLTPho >> 14)&1)==1)"; 
+		 Pass_MuonEG = "(((raw.HLTEleMuX >> 8)&1)!=0 || ((raw.HLTEleMuX >> 57)&1)!=0)";
+		 Pass_egPho = "(itpho->fireDoubleTrg(33) || itpho->fireDoubleTrg(34))";
+		 Pass_mgPho = "(itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30))";
+		 Pass_egEle = "(itEle->fireTrgs(43) || itEle->fireTrgs(44))";
+		 Pass_mgMu = "(itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22))"; }
+
+  if(RunYear==2018){
+		 Pass_DoubleEG = "(((raw.HLTPho >> 14)&1)==1)"; 
+		 Pass_MuonEG = "(((raw.HLTEleMuX >> 8)&1)!=0 || ((raw.HLTEleMuX >> 57)&1)!=0)";
+		 Pass_egPho = "(itpho->fireDoubleTrg(33) || itpho->fireDoubleTrg(34))";
+		 Pass_mgPho = "(itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30))";
+		 Pass_egEle = "(itEle->fireTrgs(43) || itEle->fireTrgs(44))";
+		 Pass_mgMu = "(itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22))"; }
+
+  TFile* outputfile = new TFile(Form("/eos/uscms/store/user/tmishra/VGamma/resTree_VGamma_%s_%d.root",Sample,RunYear),"RECREATE");
   outputfile->cd();
 
-	//int mcType = MCType::generalMC;
-  //int mcType = MCType::WGJet40;
-  //int mcType = MCType::WGJet130;
-  //int mcType = MCType::ZGInclusive;
-  //int mcType = MCType::WGJetInclusive;
-  //int mcType = MCType::TTG;
-  //int mcType = MCType::DYLL50;
-  int mcType = MCType::TT;
-  //int mcType = MCType::WWG;
-  //int mcType = MCType::WW;
-  //int mcType = MCType::WZG;
-  //int mcType = MCType::WZ;
+  int mcType;
+  if(strstr(inputfile, "WGToLNuG") != NULL){
+                std::cout << "WGToLNuG sample !" << std::endl;
+                mcType = MCType::WGJetInclusive;
+  }
+  else if(strstr(inputfile, "WGJet40") != NULL){
+                std::cout << "WGJet40 sample !" << std::endl;
+                mcType = MCType::WGJet40;
+  }
+  else if(strstr(inputfile, "WGJet130") != NULL){
+                std::cout << "WGJet130 sample !" << std::endl;
+                mcType = MCType::WGJet130;
+  }
+  else if(strstr(inputfile, "ZGToLLG") != NULL){
+                std::cout << "ZGInclusive sample !" << std::endl;
+                mcType = MCType::ZGInclusive;
+  }
+  else if(strstr(inputfile, "DYJetsToLL") != NULL){
+                std::cout << "DYJetsToLL sample !" << std::endl;
+                mcType = MCType::DYLL50;
+  }
+  else if(strstr(inputfile, "TTGJets") != NULL){
+                std::cout << "TTGJets sample !" << std::endl;
+                mcType = MCType::TTG;
+  }
+  else if(strstr(inputfile, "WWG") != NULL){
+                std::cout << "WWG sample !" << std::endl;
+                mcType = MCType::WWG;
+  }
+  else if(strstr(inputfile, "WZG") != NULL){
+                std::cout << "WZG sample !" << std::endl;
+                mcType = MCType::WZG;
+  }
+  else if(strstr(inputfile, "TTJets") != NULL){
+                std::cout << "TTJets sample !" << std::endl;
+                mcType = MCType::TT;
+  }
+  else if(strstr(inputfile, "WW") != NULL){
+                std::cout << "WW sample !" << std::endl;
+                mcType = MCType::WW;
+  }
+  else if(strstr(inputfile, "WZ") != NULL){
+                std::cout << "WZ sample !" << std::endl;
+                mcType = MCType::WZ;
+  }
+  else {
+                std::cout << "not specific MC !" << std::endl;
+                mcType = MCType::NOMC;
+  }
+
   if(datatype == MC && mcType == MCType::NOMC){std::cout << "wrong MC type" << std::endl; throw;} 
   logfile << "mcType" << mcType << std::endl;
 
@@ -367,7 +431,9 @@ void analysis_VGamma(){//main
         METFilter = raw.metFilters;
         nVtx = raw.nVtx;
 				
-				PUweight = getPUESF(nVtx);
+				if(RunYear==2016) PUweight = getPUESF16(nVtx);
+				if(RunYear==2017) PUweight = getPUESF17(nVtx);
+				if(RunYear==2018) PUweight = getPUESF18(nVtx);
 	
         if(raw.nPho <1)continue;
 
@@ -450,13 +516,13 @@ void analysis_VGamma(){//main
 					for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
 						if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getPt()>2.0)FSRVeto=false;
 					if(GSFveto && PixelVeto && FSRVeto){
-						if((itpho->fireDoubleTrg(5) || itpho->fireDoubleTrg(6))){
+						if(Pass_egPho){
 					 		if(!hasegPho){
 								hasegPho=true;
 					 			egsignalPho = itpho;
 							}
 						}
-						if(itpho->fireDoubleTrg(28) || itpho->fireDoubleTrg(29) || itpho->fireDoubleTrg(30)){
+						if(Pass_mgPho){
 					 		if(!hasmgPho){
 								hasmgPho=true;
 					 			mgsignalPho = itpho;
@@ -481,7 +547,7 @@ void analysis_VGamma(){//main
           if(hasEle)break;
 					if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))continue;
 //					if((itEle->isEB() && (itEle->getD0() > 0.05 || itEle->getDz() > 0.10)) || (itEle->isEE() && ( itEle->getD0() > 0.10 || itEle->getDz() > 0.20)) )continue;
-					if(itEle->fireTrgs(21) || itEle->fireTrgs(22)){
+					if(Pass_egEle){
 						if(itEle->passSignalSelection()){
 							hasEle=true; 
 							signalEle = itEle;
@@ -494,7 +560,7 @@ void analysis_VGamma(){//main
         if(hasmgPho){
 					for(std::vector<recoMuon>::iterator itMu = Muon.begin(); itMu != Muon.end(); itMu++){
 					if(hasMu)break;
-						if(itMu->fireSingleTrg(2) || itMu->fireSingleTrg(21) || itMu->fireSingleTrg(22)){
+						if(Pass_mgMu){
 							if(itMu->passSignalSelection()){
 								hasMu=true; 
 								signalMu = itMu;
@@ -537,7 +603,7 @@ void analysis_VGamma(){//main
 				else if(ISRJetPt >= 300)reweightF =  0.642; 
 				ISRWeight = reweightF*Normalization;	
 ///*************************   eg filters *****************************//
-        if(hasegPho && hasEle && (((raw.HLTPho >> 14)&1)==1)){
+        if(hasegPho && hasEle && Pass_DoubleEG){
           double dReg = DeltaR(egsignalPho->getEta(), egsignalPho->getPhi(), signalEle->getEta(), signalEle->getPhi()); 
           if(dReg>0.8){
             	if(((egsignalPho->getP4()+signalEle->getP4()).M() - 91.188) > 10.0){
@@ -630,7 +696,7 @@ void analysis_VGamma(){//main
        
 //**********************  mg filter **************************************//         
  
-       if(hasmgPho && hasMu && (((raw.HLTEleMuX >> 8)&1)!=0 || ((raw.HLTEleMuX >> 41)&1)!=0) && !hasDoubleEG){
+       if(hasmgPho && hasMu && Pass_MuonEG && !hasDoubleEG){
 					double dRmg = DeltaR(mgsignalPho->getEta(), mgsignalPho->getPhi(), signalMu->getEta(), signalMu->getPhi());
 					if(dRmg>0.8){
 						if(passFilter(METFilter)){ 
@@ -724,12 +790,19 @@ void analysis_VGamma(){//main
        }//Candidate Filter
  
 	}//loop on  events
-
-
+cout<<"Entries in egtree "<<egtree->GetEntries()<<"  "<<100.*egtree->GetEntries()/es->GetEntries()<<endl;
+cout<<"Entries in mgtree "<<mgtree->GetEntries()<<"  "<<100.*mgtree->GetEntries()/es->GetEntries()<<endl;
+if(egtree->GetEntries()==0 || mgtree->GetEntries()==0) cout<<RunYear<<"  "<<Sample<<" Ahh Entries is ZERO... please check"<<endl;
 outputfile->Write();
 outputfile->Close();
 logfile.close();
 
 }
 
-
+int main(int argc, char** argv)
+{
+    if(argc < 2)
+      cout << "You have to provide two arguments!!\n";
+    analysis_VGamma(atoi(argv[1]),argv[2]);
+    return 0;
+}

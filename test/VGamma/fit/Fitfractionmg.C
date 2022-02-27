@@ -42,6 +42,7 @@
 
 #include "../../../include/analysis_rawData.h"
 #include "../../../include/analysis_photon.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
@@ -57,9 +58,9 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
   RooAbsReal::defaultIntegratorConfig()->getConfigSection("RooIntegrator1D").setRealValue("maxSteps",50000); 
 	std::ostringstream histname;
 	ofstream myfile;
-	myfile.open("VGamma_scalefactor_mg_test.txt", std::ios_base::app | std::ios_base::out);
+	myfile.open("VGamma_scalefactor_mg.txt", std::ios_base::app | std::ios_base::out);
 
-	TString filepath = "/uscms_data/d3/mengleis/Approval/test/Background/";
+	TString filepath = "/eos/uscms/store/user/tmishra/Background/";
 	std::ostringstream filename;
 	filename.str("");
 	// // data in the control region
@@ -142,19 +143,19 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
   RooFitResult* result = model.fitTo(*h_target,RooFit::SumW2Error(kTRUE),RooFit::Save());
   h_target->plotOn(frame);
   model.plotOn(frame,
-		   RooFit::FillColor(kBlue-4));
+		   RooFit::FillColor(kAzure-9));
   model.plotOn(frame, RooFit::Components(*pdf_proxy),
                RooFit::LineStyle(kDashed),
                RooFit::LineColor(kRed),
                RooFit::Normalization(1.0));
   model.plotOn(frame, RooFit::Components(*pdf_MC),
                RooFit::LineStyle(kDashed),
-               RooFit::LineColor(kGreen),
+               RooFit::LineColor(kViolet),
                RooFit::Normalization(1.0));
   frame->Draw();
 	std::ostringstream figurename;
   figurename.str("");
-  figurename << "fit_lepPt_mg_met" << metlow << "_" << methigh << "_pt" <<  leplow << "_" << lephigh <<  "_iso" << isocut << ".pdf";
+  figurename << "/eos/uscms/store/user/tmishra/VGamma/fit_lepPt_mg_met" << metlow << "_" << methigh << "_pt" <<  leplow << "_" << lephigh <<  "_iso" << isocut << ".png";
   can->SaveAs(figurename.str().c_str());
 
 	TH1D *p_combine = new TH1D("p_combine","",32,0,3.2);
@@ -175,7 +176,7 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	// unit normalised templates scaled to a fraction from fitting
 	p_qcd->Add(norm_proxy, fakefrac.getVal()*p_target->Integral(1, p_target->GetSize()));
 	p_VGAMMA->Add(norm_MC, (1-fakefrac.getVal())*p_target->Integral(1, p_target->GetSize()));
-	TH1D *fitratio = new TH1D("fitratio",";#Delta#phi(l, E_{T}^{miss});fit/data", 32,0,3.2);
+	TH1D *fitratio = new TH1D("fitratio",";#Delta#phi(l, E_{T}^{miss}) (radians);Fit/Data", 32,0,3.2);
 	TGraphErrors *fitratio_error = new TGraphErrors(32);
 	TGraphErrors *p_combine_error = new TGraphErrors(32);
   double staterror = fakefrac.getError()/fakefrac.getVal();
@@ -193,15 +194,15 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	setTopPad(canpt_pad1); 
 	canpt_pad1->Draw();          
 	canpt_pad1->cd();  
-	p_target->GetYaxis()->SetTitle("Events / (0.1)");
+	p_target->GetYaxis()->SetTitle("Events / 0.1 radians");
 	p_target->SetTitle(""); 
 	p_target->SetMaximum(1.5*p_target->GetBinContent(p_target->GetMaximumBin()));
 	p_target->SetMinimum(1);
 	p_target->SetMarkerStyle(20);
 	p_target->Draw("EP");
-	p_combine->SetLineColor(kBlue);
+	p_combine->SetLineColor(kAzure-9);
 	p_combine->SetLineWidth(0);
-	p_combine->SetFillColorAlpha(kBlue,0.2);
+	p_combine->SetFillColor(kAzure-9);
 	p_combine->Draw("hist same");
 	p_combine_error->SetFillColor(kBlack);
 	p_combine_error->SetFillStyle(3345);
@@ -210,12 +211,12 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	p_qcd->SetLineColor(kRed);
 	p_qcd->SetLineWidth(3);
 	p_qcd->Draw("hist same");
-	p_VGAMMA->SetLineColor(kGreen);
+	p_VGAMMA->SetLineColor(kGreen+2);
 	p_VGAMMA->SetLineStyle(2);
-	p_VGAMMA->SetLineWidth(3);
+	p_VGAMMA->SetLineWidth(5);
 	p_VGAMMA->Draw("hist same");
 	
-	TLegend *leg=new TLegend(0.5,0.6,0.85,0.9);
+	TLegend *leg=new TLegend(0.45,0.65,0.9,0.9);
 	leg->SetNColumns(2);
 	leg->SetFillStyle(0);
 	leg->SetBorderSize(0);
@@ -228,20 +229,27 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	leg->AddEntry(p_target, "Data", "ep");
 	leg->AddEntry(p_combine,"Total fit");
 	leg->AddEntry(p_VGAMMA, "V#gamma","l");
-	leg->AddEntry(p_qcd, "Misid. #mu proxy","l");
+	leg->AddEntry(p_qcd, "Misid. #mu","l");
 	leg->AddEntry(p_combine_error, "Fit uncertainty");
 	leg->Draw("same");
  	gPad->RedrawAxis();
   CMS_lumi( canpt_pad1, 11 );
+
+  TLatex chantex;
+  chantex.SetNDC();
+  chantex.SetTextFont(42);
+  chantex.SetTextSize(0.07);
+  chantex.DrawLatex(0.2,0.7," #mu#gamma");
+ 	gPad->RedrawAxis();
 
 	canres->cd();   
 	TPad *canpt_pad2 = new TPad("canpt_pad2", "pad2", 0, 0, 1, 0.35);
 	canpt_pad2->SetBottomMargin(0.3);
 	canpt_pad2->Draw();
 	canpt_pad2->cd(); 	
-	TH1D *dummy_ptratio = new TH1D("dummy_ptratio",";|#Delta#phi(#mu, p_{T}^{miss})|;#frac{fit}{data}",32,0,3.2);
-	dummy_ptratio->SetMaximum(1.5);
-	dummy_ptratio->SetMinimum(0.5);
+	TH1D *dummy_ptratio = new TH1D("dummy_ptratio",";|#Delta#phi(#mu, #vec{p}_{T}^{ miss})| (radians);#frac{Fit}{Data}",32,0,3.2);
+	dummy_ptratio->SetMaximum(1.3);
+	dummy_ptratio->SetMinimum(0.7);
 	dummy_ptratio->GetYaxis()->SetNdivisions(504);
 	dummy_ptratio->Draw();
   TLine *flatratio = new TLine(0,1,3.2,1);
@@ -252,13 +260,13 @@ Fitfractionmg(int ih,int metlow, int methigh, int leplow, int lephigh, int isocu
 	fitratio_error->SetFillStyle(3345);
 	fitratio_error->Draw("E2 same");	
 
-	if(ih == 0)canres->SaveAs("fit_dPhi_mg.pdf");	
-	else{
-		std::ostringstream savename;
-		savename.str("");
-		savename << "fit_dPhi_mg_sys" << ih << ".pdf";
-		canres->SaveAs(savename.str().c_str());
-	}
+	if(ih == 0)canres->SaveAs("/eos/uscms/store/user/tmishra/VGamma/fit_dPhi_mg.png");	
+	//else{
+	//	std::ostringstream savename;
+	//	savename.str("");
+	//	savename << "/eos/uscms/store/user/tmishra/VGamma/fit_dPhi_mg_sys" << ih << ".png";
+	//	canres->SaveAs(savename.str().c_str());
+	//}
 
   double nMCtotal(0);
   for(unsigned i(1); i<=32; i++)nMCtotal+= p_MC->GetBinContent(i);

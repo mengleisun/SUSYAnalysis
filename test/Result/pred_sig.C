@@ -1,3 +1,4 @@
+// Observed events (data)
 #include "../../include/analysis_commoncode.h"
 
 void pred_sig(){
@@ -6,12 +7,14 @@ void pred_sig(){
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
-  gSystem->Load("../../lib/libAnaClasses.so");
-  int channelType = ichannel; // eg = 1; mg =2;
+  	gSystem->Load("../../lib/libAnaClasses.so");
+  	int channelType = ichannel; // eg = 1; mg =2;
 	//*********** histo list **********************//
 	TH1D *p_PhoEt = new TH1D("p_PhoEt",";p_{T}^{#gamma} (GeV);",nSigEtBins,sigEtBins);
 	TH1D *p_LepPt = new TH1D("p_LepPt","p_LepPt",nSigPtBins,sigPtBins);
 	TH1D *p_MET = new TH1D("p_MET","; p_{T}^{miss} (GeV);",nSigMETBins, sigMETBins);
+	TH1D *p_MET_low = new TH1D("p_MET_low","; p_{T}^{miss} (GeV);",nSigMETBins, sigMETBins);
+        TH1D *p_MET_high = new TH1D("p_MET_high","; p_{T}^{miss} (GeV);",nSigMETBins, sigMETBins);
 	TH1D *p_Mt = new TH1D("p_Mt","; M_{T} (GeV);",nSigMtBins,sigMtBins);
 	TH1D *p_HT = new TH1D("p_HT","HT; H_{T} (GeV);",nSigHTBins, sigHTBins); 
 	TH1D *p_dPhiEleMET = new TH1D("p_dPhiEleMET","dPhiEleMET",32,0,3.2); 
@@ -23,14 +26,12 @@ void pred_sig(){
 
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
-	//if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	//if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
 
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG.root");
-  if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG.root");
 
-  int   run(0);
-  Long64_t  event(0);
+  	int   run(0);
+  	Long64_t  event(0);
 	int   lumis(0);
 	float phoEt(0);
 	float phoEta(0);
@@ -47,8 +48,8 @@ void pred_sig(){
 	float dRPhoLep(0);
 	float nJet(0);
 	int   nBJet(0);	
-  sigtree->SetBranchAddress("run",       &run);
-  sigtree->SetBranchAddress("event",     &event);
+ 	sigtree->SetBranchAddress("run",       &run);
+  	sigtree->SetBranchAddress("event",     &event);
 	sigtree->SetBranchAddress("lumis",     &lumis);
 	sigtree->SetBranchAddress("phoEt",     &phoEt);
 	sigtree->SetBranchAddress("phoEta",    &phoEta);
@@ -77,6 +78,8 @@ void pred_sig(){
 		if(highPt > 0 && lepPt > highPt)continue;
 
 		p_MET->Fill(sigMET);
+		if(phoEt < 200)p_MET_low->Fill(sigMET);
+                else if(phoEt >= 200)p_MET_high->Fill(sigMET);
 
 		if(sigMET < lowMET)continue;
 		if(highMET > 0 && sigMET > highMET)continue;
@@ -96,7 +99,7 @@ void pred_sig(){
 	}        
 
 	std::ostringstream outputname;
-
+  	outputname << "/uscms_data/d3/tmishra/Output/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	
@@ -115,13 +118,16 @@ void pred_sig(){
 	p_LepPt->Write();
 	p_LepEta->Write();
 	p_MET->Write();
+	p_MET_low->Write();
+        p_MET_high->Write();
 	p_Mt->Write();
 	p_HT->Write();
 	p_dPhiEleMET->Write();
 	p_PU->Write();
 	p_eventcount->Write();
 	p_nJet->Write();
-	for(unsigned ibin(1); ibin <= 18; ibin++)std::cout << "bin " << ibin << " " << p_eventcount->GetBinContent(ibin) << std::endl;
+	for(int ibin(1); ibin <= NBIN; ibin++)std::cout << "bin " << ibin << " " << p_eventcount->GetBinContent(ibin) << std::endl;
+	for(int ibin(1); ibin <= NBIN; ibin++)std::cout << p_eventcount->GetBinContent(ibin) << "\t";
 	outputfile->Write();
 	outputfile->Close();
 }

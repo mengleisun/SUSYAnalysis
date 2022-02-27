@@ -10,6 +10,7 @@ susy_in = ROOT.TFile('../signalTree_TChiWG.root','read')
 h_SUSYmass = susy_in.Get('h_chan1_rate_nom')
 h_rates = {}
 for ich in range(1,n_channels+1):
+    h_rates['h_chan' + str(ich) + '_syserr_pdf'] = susy_in.Get('h_chan' + str(ich) + '_syserr_pdf')
     h_rates['h_chan' + str(ich) + '_rate_nom'] = susy_in.Get('h_chan' + str(ich) + '_rate_nom')
     for sys in syst_names:
         h_rates['h_chan' + str(ich) + '_syserr_' + sys] = susy_in.Get('h_chan' + str(ich) + '_syserr_' + sys)
@@ -18,15 +19,32 @@ h_rates['tchiwg_h_syserr_PU'] = susy_in.Get('tchiwg_h_syserr_PU')
 file_template = open('./counting_exp_XXX_YYY.txt', 'r')
 lines = [line for line in file_template.readlines()]
 
+scaleunc = ROOT.TH2D("scaleunc","scaleunc;M_{#chi} (GeV);bin number",40,300,1300,36,0,36)
+
 low_p = 2 
 high_p = 0
+
+low_pdf = 2
+high_pdf = 0
 
 for xbin in range(1, h_SUSYmass.GetXaxis().GetNbins() + 1):
     if(h_SUSYmass.GetBinContent( xbin) <= 0):
         continue
     mass1 = h_SUSYmass.GetXaxis().GetBinCenter(xbin)
 
-    for br in range(0,51):
+    for ibin in range (1,37):
+        if(h_rates['h_chan' + str(ibin) + '_rate_nom'].GetBinContent(xbin) < 0.001 or h_rates['h_chan' + str(ibin) + '_rate_nom'].GetBinError(xbin)/h_rates['h_chan' + str(ibin) + '_rate_nom'].GetBinContent(xbin) >= 0.5):
+           continue
+        if(h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin)>=0):
+           scaleunc.SetBinContent(xbin, ibin, h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin))
+        if(h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin) < low_pdf and h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin) > 0):
+            low_pdf = h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin)
+        if(h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin) > high_pdf):
+            high_pdf = h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin)
+        if(h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin) > 0.1):
+            print ibin, mass1, h_rates['h_chan' + str(ibin) + '_syserr_pdf'].GetBinContent(xbin)
+
+    for br in range(0,2):
      
         bf = br*0.02 
         brweight = 2*bf*(1-bf)
@@ -106,5 +124,12 @@ for xbin in range(1, h_SUSYmass.GetXaxis().GetNbins() + 1):
             file_out.write(l)
     
         file_out.close()
+ROOT.gStyle.SetOptStat(0)
+canvas = ROOT.TCanvas("can","can",600,600)
+canvas.SetRightMargin(0.2)
+canvas.cd()
+scaleunc.Draw("colz")
+canvas.SaveAs("scaleunc.pdf")
 
 print low_p, high_p
+print low_pdf,high_pdf

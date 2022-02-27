@@ -8,7 +8,8 @@ br_cha = 1-br_neu
 br_susy = 2*br_neu*br_cha
 br_susy = br_susy/0.5
 
-susy_in = ROOT.TFile('../signalTree_T5WG.root','read')
+susy_in = ROOT.TFile('/uscms_data/d3/tmishra/Jan/signalTree_T5WG.root','read')
+#susy_in = ROOT.TFile('/uscms/homes/m/mengleis/work/SUSY2016/SUSYAnalysis/test/Result/signalTree_T5WG.root','read')
 n_channels = 36
 syst_names = ['jes','jer','esf','scale','eleshape','jetshape','qcdshape','xs','lumi','isr']
 
@@ -30,7 +31,8 @@ for inputchan in range(1, n_channels + 1):
           if(h_SUSYmass.GetBinContent(i,j) <= 0):
               continue
           file_out = open(
-              '/eos/uscms/store/user/tmishra/CombinedLimit/Sensitive/cards/counting_t5Wg_'
+              #'/eos/uscms/store/user/tmishra/CombinedLimit/Sensitive/cards/counting_t5Wg_'
+              'counting_t5Wg_'
               + str(int(h_SUSYmass.GetXaxis().GetBinCenter(i))) + '_'
               + str(int(h_SUSYmass.GetYaxis().GetBinCenter(j))) + '_' + str(inputchan) + '.txt', 'w'
               )

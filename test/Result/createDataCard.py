@@ -1,16 +1,21 @@
+####    script to produce a format for datacard, bin wise entries for each background is stored in SignalSystematic.root
+####    lnN stands for Log-normal recommended choice for multiplicative corrections (efficiencies, cross sections, ...).
+####    gmN stands for Gamma, and is the recommended choice for the statistical uncertainty on a background coming from the number of events in a control region 
 import re
 import os
 import ROOT
 import argparse
+from os import system
 
-limdir = './combinecard/'
+limdir = './'
 
-n_channels = 36
+n_channels = 22
 n_processes= 6
+# 4 bkgrounds, 1 susy process
 pro_names = ['SUSY','elefakepho', 'jetfakepho', 'qcdfakelep','VGamma','rare']
-syst_names = ['jes','jer','esf','scale','e_to_pho_syst','j_to_pho_syst','fakelep_shape','xs','lumi','isr']
+syst_names = ['jes','esf','scale','e_to_pho_syst','j_to_pho_syst','fakelep_shape','xs','lumi','isr']
 
-file_in = ROOT.TFile('./SignalSystematic.root', 'read')
+file_in = ROOT.TFile('SignalSystematic.root', 'read')
 h_rates = {}
 for hname in pro_names:
     h_rates['h_' + hname + '_norm'] = file_in.Get('h_' + hname + '_norm')
@@ -23,25 +28,33 @@ h_rates['h_jetfakepho_transferfactor'] = file_in.Get('h_jetfakepho_transferfacto
 h_rates['h_qcdfakelep_controlsample'] = file_in.Get('h_qcdfakelep_controlsample')
 h_rates['h_qcdfakelep_transferfactor'] = file_in.Get('h_qcdfakelep_transferfactor')
 
-logfile_out= open( 't5wg.log','w')
-file_out = open( limdir+'counting_exp_XXX_YYY.txt', 'w')
+logfile_out = open( 't5wg.log','w')
+file_out = open( limdir+'counting_exp_XXX_YYY_{}.txt'.format(n_channels), 'w')
 
-file_out.write("imax 36 number of channels\n")
+#file_out.write("imax 36 number of channels\n")
+file_out.write('imax {:2d} number of channels\n'.format(n_channels))
 file_out.write("jmax 5  number of backgrounds\n")
 file_out.write("kmax *  number of nuisance parameters\n")
 file_out.write("------------\n")
-#file_out.write("bin             lg_1  lg_2  lg_3  lg_4  lg_5  lg_6  lg_7  lg_8  lg_9  lg_10  lg_11  lg_12  lg_13  lg_14  lg_15  lg_16  lg_17  lg_18  lg_19  lg_20  lg_21  lg_22  lg_23  lg_24  lg_25  lg_26  lg_27  lg_28  lg_29  lg_30  lg_31  lg_32  lg_33  lg_34  lg_35  lg_36   \n")
-file_out.write("bin             1  2  3  4  5  6  7  8  9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36   \n")
-#file_out.write("observation    309  494  85  32  64  45  1  1  5  12  23  20  4  12  7  1  1  0  153  276  67   32   46   32   1  1  4  10  21  14  6  9  4  0  1  3  \n")
-## COmbine ##
-file_out.write("observation    309  501  86  33  65  45  1  1  5  12  24  20  4  13  7  1  1  0  154  276  67   32   46   32   1  1  4  10  22  15  7  9  4  0  1  3  \n")
+
+file_out.write('{:16s}'.format('bin'))
+for i in range(1,n_channels+1):
+        file_out.write('{:>8s} '.format('lg_'+ str(i)))
+file_out.write('\n')
+
+#### from file pred_sig.C
+if n_channels == 22 :
+	file_out.write("observation    321 517 105 36 76 52 1 2 3 1 2 163 297 81 38 55 36 1 1 6 1 1  \n")
+
+if n_channels == 36 :
+	file_out.write("observation    309  494  85  32  64  45  1  1  5  12  23  20  4  12  7  1  1  0  153  276  67   32   46   32   1  1  4  10  21  14  6  9  4  0  1  3  \n")
 
 file_out.write("------------\n")
 
 file_out.write('{:26s}'.format('bin'))
 for i in range(1,n_channels+1):
     for j in range(0,n_processes):
-        file_out.write('{:12d} '.format(i))
+	file_out.write('{:>12s} '.format('lg_'+ str(i)))
 file_out.write('\n')
 
 file_out.write('{:26s}'.format('process'))
@@ -66,6 +79,7 @@ for ich in range(1,n_channels+1):
         if(p == 'SUSY'):
             file_out.write('{:>12s} '.format('NSC'+str(ich)))
         else:
+	    # contribution from each backgrounds bin wise
             evtrate = h_rates['h_' + p + '_norm'].GetBinContent(ich)
             bkg_rate += evtrate
             file_out.write('{:12.3f} '.format(evtrate))
@@ -86,12 +100,13 @@ for syst in syst_names:
     for ich in range(1,n_channels+1):
         for p in pro_names:
             if(p == 'SUSY'):
+		# Just a string is saved for SUSY
                 if(syst == 'jes'):
                     file_out.write('{:>12s} '.format('JESS'+ str(ich)))
-                elif(syst == 'jer'):
-                    file_out.write('{:>12s} '.format('JERS'+ str(ich)))
                 elif(syst == 'esf'):
                     file_out.write('{:>12s} '.format('ESF'+ str(ich)))
+#                elif(syst == 'isr'):
+#                    file_out.write('{:>12s} '.format('ISR'+ str(ich)))
                 elif(syst == 'lumi'):
                     file_out.write('{:12.3f} '.format(1.026))
                 else: 
@@ -99,6 +114,7 @@ for syst in syst_names:
             else:
                 syserr = 0
                 if(h_rates['h_' + p + '_norm'].GetBinContent(ich)==0):
+		    # errors from transfer factors taken for bkgs, when central value is zero
                     if(p == 'elefakepho' and syst == 'e_to_pho_syst'):
                         syserr = h_rates['h_elefakepho_transferfactor'].GetBinError( ich) + 1
                         file_out.write('{:12.3f} '.format(syserr))
@@ -111,6 +127,7 @@ for syst in syst_names:
                     else:
                         file_out.write('{:>12s} '.format('-'))
                 else:
+		    # when bkg events in bins is non zero
                     syserr = h_rates['h_' + p + '_syserr_' + syst].GetBinContent(ich)/h_rates['h_' + p + '_norm'].GetBinContent(ich)
                     if(syserr < 0):
                          file_out.write('{:>12s} '.format('-'))
@@ -122,7 +139,6 @@ for syst in syst_names:
                          file_out.write('{:12.3f} '.format(syserr))
     file_out.write('\n')
 
-
 file_out.write('{:15s} {:3s} {:6s}'.format('PU','lnN',''))
 for ich in range(1,n_channels+1):
     for p in pro_names:
@@ -131,6 +147,24 @@ for ich in range(1,n_channels+1):
         else:
             file_out.write('{:>12s} '.format('-'))
 file_out.write('\n')
+
+# Add it later
+#file_out.write('{:15s} {:3s} {:6s}'.format('PDFSCALE','lnN',''))
+#for ich in range(1,n_channels+1):
+#    for p in pro_names:
+#        if(p == 'SUSY'):
+#            file_out.write('{:>12s} '.format('PDFSCALES'+str(ich)))
+#        else:
+#            file_out.write('{:>12s} '.format('-'))
+#file_out.write('\n')
+#file_out.write('{:15s} {:3s} {:6s}'.format('FASTMET','lnN',''))
+#for ich in range(1,n_channels+1):
+#    for p in pro_names:
+#        if(p == 'SUSY'):
+#            file_out.write('{:>12s} '.format('FASTMETS'+str(ich)))
+#        else:
+#            file_out.write('{:>12s} '.format('-'))
+#file_out.write('\n')
 
 for ich in range(1,n_channels+1):
     file_out.write('{:15s} {:3s} {:6s}'.format('SUSY_stat'+str(ich),'lnN',''))
@@ -144,6 +178,7 @@ for ich in range(1,n_channels+1):
 for ich in range(1,n_channels+1):
     nevt = h_rates['h_elefakepho_controlsample'].GetBinContent(ich)
     fakerate = h_rates['h_elefakepho_transferfactor'].GetBinContent(ich)
+    # number of events in control sample and fake rate
     file_out.write('{:15s} {:3s} {:6d}'.format('e_to_pho_stat'+str(ich),'gmN',int(nevt)))
     for k in range(1,n_channels+1):
         if( k == ich):
@@ -155,6 +190,7 @@ for ich in range(1,n_channels+1):
 for ich in range(1,n_channels+1):
     nevt = h_rates['h_jetfakepho_controlsample'].GetBinContent(ich)
     fakerate = h_rates['h_jetfakepho_transferfactor'].GetBinContent(ich)
+    # number of events in control sample and fake rate
     file_out.write('{:15s} {:3s} {:6d}'.format('j_to_pho_stat'+str(ich),'gmN',int(nevt)))
     for k in range(1,n_channels+1):
         if( k == ich):
@@ -166,6 +202,7 @@ for ich in range(1,n_channels+1):
 for ich in range(1,n_channels+1):
     nevt = h_rates['h_qcdfakelep_controlsample'].GetBinContent(ich)
     fakerate = h_rates['h_qcdfakelep_transferfactor'].GetBinContent(ich)
+    # number of events in control sample and fake rate
     file_out.write('{:15s} {:3s} {:6d}'.format('j_to_lep_stat'+str(ich),'gmN',int(nevt)))
     for k in range(1,n_channels+1):
         if( k == ich):
@@ -178,6 +215,7 @@ for ich in range(1,n_channels+1):
 for ich in range(1,n_channels+1):
     file_out.write('{:15s} {:3s} {:6s}'.format('rare_stat'+str(ich),'lnN',''))
     staterror= 1.0 + h_rates['h_rare_norm'].GetBinError(ich)/h_rates['h_rare_norm'].GetBinContent(ich)
+    # stat error for rare bkgs
     for k in range(1,n_channels+1):
         if( k == ich):
             file_out.write('{:>12s} {:>12s} {:>12s} {:>12s} {:>12s} {:12.3f} '.format('-', '-', '-', '-', '-',staterror))
@@ -188,6 +226,7 @@ for ich in range(1,n_channels+1):
 for ich in range(1,n_channels+1):
     file_out.write('{:15s} {:3s} {:6s}'.format('VG_stat'+str(ich),'lnN',''))
     staterror= 1.0 + h_rates['h_VGamma_norm'].GetBinError(ich)/h_rates['h_VGamma_norm'].GetBinContent(ich)
+    # stat error for VG bkgs
     for k in range(1,n_channels+1):
         if( k == ich):
             file_out.write('{:>12s} {:>12s} {:>12s} {:>12s} {:12.3f} {:>12s} '.format('-', '-', '-', '-',staterror, '-'))

@@ -58,7 +58,7 @@ void analysis_Mixing(int RunYear, const char *Sample){//main
   RunType datatype(MC); 
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	char* inputfile = new char[300];
-        sprintf(inputfile,"/eos/uscms/store/group/lpcsusyhad/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+        sprintf(inputfile,"/eos/uscms/store/user/tmishra/%s/%s_%d.root",Sample,Sample,RunYear);
         es->Add(inputfile);
 
   const unsigned nEvts = es->GetEntries(); 

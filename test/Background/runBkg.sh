@@ -1,7 +1,7 @@
 #!/bin/bash
 dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-ch=2
+ch=1
 anatype=0 # control region 40 < MET < 70
 lmt=0
 hmt=-1
@@ -19,12 +19,12 @@ echo 'highMET'  $hmet >>BkgPredConfig.txt
 echo 'lowPt'    0 >> BkgPredConfig.txt
 echo 'highPt'   50 >> BkgPredConfig.txt
 echo 'lepIso'   $iso    >> BkgPredConfig.txt
-root -q analysis_VGBkg.C++
-root -q analysis_eleBkg.C++
-root -q analysis_jetBkg.C++
-root -q analysis_qcdBkg.C++
-root -q analysis_rareBkg.C++
-root -q analysis_sig.C++
+#root -l -q analysis_VGBkg.C++
+#root -l -q analysis_eleBkg.C++
+root -l -q analysis_jetBkg.C++
+#root -l -q analysis_qcdBkg.C++
+#root -l -q analysis_rareBkg.C++
+#root -l -q analysis_sig.C++
 
 
 rm BkgPredConfig.txt
@@ -37,12 +37,12 @@ echo 'highMET'  $hmet >>BkgPredConfig.txt
 echo 'lowPt'    50 >> BkgPredConfig.txt
 echo 'highPt'   70 >> BkgPredConfig.txt
 echo 'lepIso'   $iso    >> BkgPredConfig.txt
-root -q analysis_VGBkg.C++
-root -q analysis_eleBkg.C++
-root -q analysis_jetBkg.C++
-root -q analysis_qcdBkg.C++
-root -q analysis_rareBkg.C++
-root -q analysis_sig.C++
+#root -l -q analysis_VGBkg.C++
+#root -l -q analysis_eleBkg.C++
+root -l -q analysis_jetBkg.C++
+#root -l -q analysis_qcdBkg.C++
+#root -l -q analysis_rareBkg.C++
+#root -l -q analysis_sig.C++
 
 rm BkgPredConfig.txt
 echo 'ichannel' $ch  >> BkgPredConfig.txt
@@ -54,12 +54,12 @@ echo 'highMET'  $hmet >>BkgPredConfig.txt
 echo 'lowPt'    70 >> BkgPredConfig.txt
 echo 'highPt'   100 >> BkgPredConfig.txt
 echo 'lepIso'   $iso    >> BkgPredConfig.txt
-root -q analysis_VGBkg.C++
-root -q analysis_eleBkg.C++
-root -q analysis_jetBkg.C++
-root -q analysis_qcdBkg.C++
-root -q analysis_rareBkg.C++
-root -q analysis_sig.C++
+#root -l -q analysis_VGBkg.C++
+#root -l -q analysis_eleBkg.C++
+root -l -q analysis_jetBkg.C++
+#root -l -q analysis_qcdBkg.C++
+#root -l -q analysis_rareBkg.C++
+#root -l -q analysis_sig.C++
 
 rm BkgPredConfig.txt
 echo 'ichannel' $ch  >> BkgPredConfig.txt
@@ -71,12 +71,12 @@ echo 'highMET'  $hmet >>BkgPredConfig.txt
 echo 'lowPt'    100 >> BkgPredConfig.txt
 echo 'highPt'   1000 >> BkgPredConfig.txt
 echo 'lepIso'   $iso    >> BkgPredConfig.txt
-root -q analysis_VGBkg.C++
-root -q analysis_eleBkg.C++
-root -q analysis_jetBkg.C++
-root -q analysis_qcdBkg.C++
-root -q analysis_rareBkg.C++
-root -q analysis_sig.C++
+#root -l -q analysis_VGBkg.C++
+#root -l -q analysis_eleBkg.C++
+root -l -q analysis_jetBkg.C++
+#root -l -q analysis_qcdBkg.C++
+#root -l -q analysis_rareBkg.C++
+#root -l -q analysis_sig.C++
 
 rm BkgPredConfig.txt
 echo 'ichannel' $ch  >> BkgPredConfig.txt
@@ -88,9 +88,9 @@ echo 'highMET'  $hmet >>BkgPredConfig.txt
 echo 'lowPt'    0 >> BkgPredConfig.txt
 echo 'highPt'   1000 >> BkgPredConfig.txt
 echo 'lepIso'   $iso    >> BkgPredConfig.txt
-root -q analysis_VGBkg.C++
-root -q analysis_eleBkg.C++
-root -q analysis_jetBkg.C++
-root -q analysis_qcdBkg.C++
-root -q analysis_rareBkg.C++
-root -q analysis_sig.C++
+#root -l -q analysis_VGBkg.C++
+#root -l -q analysis_eleBkg.C++
+root -l -q analysis_jetBkg.C++
+#root -l -q analysis_qcdBkg.C++
+#root -l -q analysis_rareBkg.C++
+#root -l -q analysis_sig.C++

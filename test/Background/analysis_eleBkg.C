@@ -1,7 +1,7 @@
-#include "../include/analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 #define NTOY 1000
-bool useGaussFit=true;
+bool useGaussFit, channelType=true;
 
 void analysis_eleBkg(){
 
@@ -9,7 +9,7 @@ void analysis_eleBkg(){
 	setTDRStyle();
 
   gSystem->Load("../../lib/libAnaClasses.so");
-  int channelType = 1; // eg = 1; mg =2;
+  int channelType = ichannel; // eg = 1; mg =2;
   /**********************************/
 	/*	double normfactor = par[0]; 	*/  
   /*	double slope = par[1];				*/
@@ -124,9 +124,11 @@ void analysis_eleBkg(){
 	//************ Proxy Tree **********************//
 	// background estimated from data, with proxyTree
 	TChain *proxytree = new TChain("proxyTree");
-	if(channelType==1)proxytree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
-	if(channelType==2)proxytree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
+	//if(channelType==1)proxytree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
+	//if(channelType==2)proxytree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
 
+	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
+	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
 	float phoEt(0);
 	float phoEta(0);
 	float phoPhi(0);
@@ -215,7 +217,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_PhoEt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_PhoEt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); // systematic error from Toy study
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); // systematic error from Toy study
 		double totalerror = sqrt(syserr*syserr + p_PhoEt->GetBinError(ibin)*p_PhoEt->GetBinError(ibin)); // stat + syst error
 		p_PhoEt->SetBinError(ibin, totalerror);
 	}
@@ -223,7 +225,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_LepPt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_LepPt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_LepPt->GetBinError(ibin)*p_LepPt->GetBinError(ibin));
 		p_LepPt->SetBinError(ibin, totalerror);
 	}
@@ -231,7 +233,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_MET->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_MET[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_MET->GetBinError(ibin)*p_MET->GetBinError(ibin));
 		p_MET->SetBinError(ibin, totalerror);
 	}
@@ -239,7 +241,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_Mt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_Mt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_Mt->GetBinError(ibin)*p_Mt->GetBinError(ibin));
 		p_Mt->SetBinError(ibin, totalerror);
 	}
@@ -247,7 +249,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_HT->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_HT[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_HT->GetBinError(ibin)*p_HT->GetBinError(ibin));
 		p_HT->SetBinError(ibin, totalerror);
 	}
@@ -256,7 +258,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_PhoEt_TT->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_PhoEt_TT[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_PhoEt_TT->GetBinError(ibin)*p_PhoEt_TT->GetBinError(ibin));
 		p_PhoEt_TT->SetBinError(ibin, totalerror);
 	}
@@ -264,7 +266,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_MET_TT->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_MET_TT[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_MET_TT->GetBinError(ibin)*p_MET_TT->GetBinError(ibin));
 		p_MET_TT->SetBinError(ibin, totalerror);
 	}
@@ -272,7 +274,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_HT_TT->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_HT_TT[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_HT_TT->GetBinError(ibin)*p_HT_TT->GetBinError(ibin));
 		p_HT_TT->SetBinError(ibin, totalerror);
 	}
@@ -280,7 +282,7 @@ void analysis_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_Mt_TT->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_Mt_TT[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_Mt_TT->GetBinError(ibin)*p_Mt_TT->GetBinError(ibin));
 		p_Mt_TT->SetBinError(ibin, totalerror);
 	}

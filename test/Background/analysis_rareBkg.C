@@ -1,4 +1,4 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void analysis_rareBkg(){
 
@@ -10,8 +10,8 @@ void analysis_rareBkg(){
 
   int channelType = ichannel; // eg = 1; mg =2;
 	//*********** histo list **********************//
-	outputname << "/eos/uscms/store/user/tmishra/Background/";
 	std::ostringstream outputname;
+	outputname << "/eos/uscms/store/user/tmishra/Background/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	
@@ -190,7 +190,8 @@ void analysis_rareBkg(){
 			double s_error = sqrt(pow(s_mu_error,2) + pow(s_pho_error,2) + pow(s_trg_error,2));
 			scalefactorup = scalefactor + s_error; 
 		}
-		float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
+		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		//float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
 		float weight = PUweight*XS_weight*scalefactor;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup;
 		/** cut flow *****/
@@ -353,7 +354,7 @@ void analysis_rareBkg(){
 		syserror += pow((p_HT_TT->GetBinContent(ibin)*0.5),2);
 		p_HT_TT->SetBinError(ibin,sqrt(syserror));
 	}	
-	p_PhoEt->Sumw2();
+	//p_PhoEt->Sumw2();
 	outputfile->Write();
 	outputfile->Close();
 

@@ -1,7 +1,7 @@
 #include "../../include/analysis_commoncode.h"
 
 #define NTOY 1000
-bool useGaussFit=false;
+bool useGaussFit, channelType=false;
 bool dopostfit=true;
 
 void pred_eleBkg(){
@@ -82,19 +82,19 @@ void pred_eleBkg(){
 	  toy_predict_highEt[i] = 0;	
 	}
 
-	TH1D *h_elefakepho_norm;
-	TH1D *h_elefakepho_controlsample;
-	TH1D *h_elefakepho_transferfactor;
-	TH1D *h_elefakepho_syserr_jes;
-	TH1D *h_elefakepho_syserr_jer;
-	TH1D *h_elefakepho_syserr_esf;
-	TH1D *h_elefakepho_syserr_scale;
-	TH1D *h_elefakepho_syserr_e_to_pho;
-	TH1D *h_elefakepho_syserr_j_to_pho;
-	TH1D *h_elefakepho_syserr_j_to_lep;
-	TH1D *h_elefakepho_syserr_xs;
-	TH1D *h_elefakepho_syserr_lumi;
-	TH1D *h_elefakepho_syserr_isr;
+	TH1D *h_elefakepho_norm = 0;
+	TH1D *h_elefakepho_controlsample = 0;
+	TH1D *h_elefakepho_transferfactor = 0;
+	TH1D *h_elefakepho_syserr_jes = 0;
+	TH1D *h_elefakepho_syserr_jer = 0;
+	TH1D *h_elefakepho_syserr_esf = 0;
+	TH1D *h_elefakepho_syserr_scale = 0;
+	TH1D *h_elefakepho_syserr_e_to_pho = 0;
+	TH1D *h_elefakepho_syserr_j_to_pho = 0;
+	TH1D *h_elefakepho_syserr_j_to_lep = 0;
+	TH1D *h_elefakepho_syserr_xs = 0;
+	TH1D *h_elefakepho_syserr_lumi = 0;
+	TH1D *h_elefakepho_syserr_isr = 0;
 	if(channelType==1){
 		h_elefakepho_norm            = new TH1D("eg_elefakepho_norm","eventcount",NBIN,0,NBIN);
 		h_elefakepho_controlsample   = new TH1D("eg_elefakepho_controlsample","",NBIN,0,NBIN);
@@ -263,7 +263,7 @@ void pred_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_PhoEt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_PhoEt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_PhoEt->GetBinError(ibin)*p_PhoEt->GetBinError(ibin));
 		p_PhoEt->SetBinError(ibin, totalerror);
 	}
@@ -271,7 +271,7 @@ void pred_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_LepPt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_LepPt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_LepPt->GetBinError(ibin)*p_LepPt->GetBinError(ibin));
 		p_LepPt->SetBinError(ibin, totalerror);
 	}
@@ -279,7 +279,7 @@ void pred_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_MET->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_MET[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_MET->GetBinError(ibin)*p_MET->GetBinError(ibin));
 		p_MET->SetBinError(ibin, totalerror);
 	}
@@ -287,7 +287,7 @@ void pred_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_Mt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_Mt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_Mt->GetBinError(ibin)*p_Mt->GetBinError(ibin));
 		p_Mt->SetBinError(ibin, totalerror);
 	}
@@ -295,7 +295,7 @@ void pred_eleBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_HT->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_HT[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_HT->GetBinError(ibin)*p_HT->GetBinError(ibin));
 		p_HT->SetBinError(ibin, totalerror);
 	}
@@ -304,7 +304,7 @@ void pred_eleBkg(){
 			toyvec.clear();
 			toyvec.push_back(h_elefakepho_norm->GetBinContent(ibin));
 			for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_eventcount[it]->GetBinContent(ibin));
-			double syserr = calcToyError( toyvec, useGaussFit);
+			double syserr = calcToyError( toyvec, useGaussFit, channelType);
 
 			h_elefakepho_transferfactor->SetBinContent(ibin,h_elefakepho_norm->GetBinContent(ibin)/h_elefakepho_controlsample->GetBinContent(ibin)); 
 			h_elefakepho_transferfactor->SetBinError(ibin,syserr/h_elefakepho_norm->GetBinContent(ibin));
@@ -326,7 +326,7 @@ void pred_eleBkg(){
 			toyvec.clear();
 			toyvec.push_back(sf);
 			for(unsigned it(0); it < NTOY; it++)toyvec.push_back( ibin <= 9? toy_predict_lowEt[it]/proxy_lowEt: toy_predict_highEt[it]/proxy_highEt);
-			double syserr = calcToyError( toyvec, useGaussFit);
+			double syserr = calcToyError( toyvec, useGaussFit, channelType);
 			std::cout << "syserr " << ibin << " " << syserr << " proxy " << proxy_highEt << std::endl;
 
 			h_elefakepho_transferfactor->SetBinContent(ibin, sf); 
@@ -345,6 +345,7 @@ void pred_eleBkg(){
 	}
 		
 	std::ostringstream outputname;
+	outputname << "/uscms_data/d3/tmishra/Output/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	

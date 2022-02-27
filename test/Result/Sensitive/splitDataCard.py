@@ -12,6 +12,7 @@ syst_names = ['jes','jer','esf','scale','e_to_pho_syst','j_to_pho_syst','fakelep
 
 expect = [324.214,467.461,98.865,27.271, 61.307, 45.150, 1.236,  2.914,  5.311,  6.538, 21.444, 15.580, 5.012, 8.368, 5.459, 0.766, 0.634, 0.539 ,163.626, 256.955, 78.950, 17.309, 49.956, 28.164, 1.302,1.160, 2.804, 5.927,21.614,11.677 , 4.135, 8.876, 5.123, 0.394,0.532, 0.848]
 
+# input from Result/plot_eventct.C
 file_in = ROOT.TFile('../SignalSystematic.root', 'read')
 h_rates = {}
 for hname in pro_names:
@@ -33,13 +34,13 @@ for ich in range(1,n_channels+1):
   file_out.write("jmax 5  number of backgrounds\n")
   file_out.write("kmax *  number of nuisance parameters\n")
   file_out.write("------------\n")
-  file_out.write("bin  1  \n")
+  file_out.write("bin  bin1  \n")
   file_out.write('observation {:10f}\n'.format(expect[ich-1]))  
   file_out.write("------------\n")
   
   file_out.write('{:26s}'.format('bin'))
   for j in range(0,n_processes):
-    file_out.write('{:12d} '.format(1))
+    file_out.write('        bin{:d} '.format(1))
   file_out.write('\n')
   
   file_out.write('{:26s}'.format('process'))

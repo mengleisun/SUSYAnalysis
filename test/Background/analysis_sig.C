@@ -1,4 +1,4 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void analysis_sig(){
 	
@@ -26,9 +26,11 @@ void analysis_sig(){
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
 	// signatree from data
-	if(channelType==1)sigtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
-	if(channelType==2)sigtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
-	
+	//if(channelType==1)sigtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
+	//if(channelType==2)sigtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
+	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
+        if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+
 	float phoEt(0);
 	float phoEta(0);
 	float phoPhi(0);

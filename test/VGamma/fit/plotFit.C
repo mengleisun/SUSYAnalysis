@@ -39,15 +39,15 @@
 #include "RooNumIntConfig.h"
 
 #include "../../../include/analysis_rawData.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
 #include "../../../include/analysis_tools.h"
 
-void
-plotFit(){
-
+void plotFit(){
+	gROOT->SetBatch(kTRUE);
 	gStyle->SetOptStat(0);
 	// VGamma scale factor as a function of lepton pT(Figure 27 AN)
 	TGraphErrors *p_frac = new TGraphErrors(4);
@@ -73,7 +73,7 @@ plotFit(){
 	temphist[3] = new TH1D("temphist3","",100,0.5,2);
 	cantemp->Divide(2,2);
 	for(unsigned i(0);  i < 4; i++){
-		double xvalue, xerror, yvalue, yerror;
+		double xvalue = 0, xerror = 0, yvalue = 0, yerror;
 		for(unsigned j(0);  j < 1000; j++){
 			vgammascalefile >> leplow >> lephigh >> fakescale >> fakescaleerror >> vgammascale >> vgammascaleerror;
 			if(j==0){
@@ -85,7 +85,7 @@ plotFit(){
 		}
 		cantemp->cd(i+1);
 		temphist[i]->Draw();
-		temphist[i]->Fit("gaus","","",0.5,2);a
+		temphist[i]->Fit("gaus","","",0.5,2);
 		yerror = temphist[i]->GetFunction("gaus")->GetParameter(2);
 		if(yerror > 0.5)yerror= temphist[i]->GetRMS()/2;
 		// set four point for VGamma scale factor
@@ -143,10 +143,10 @@ plotFit(){
 	gStyle->SetLegendBorderSize(0);
 	gStyle->SetLegendFillColor(0);
 	leg->Draw("same");
-	can->SaveAs("scale_ptDependence_mg.pdf");	
+	can->SaveAs("/eos/uscms/store/user/tmishra/VGamma/scale_ptDependence_mg.png");	
 
 	TCanvas *canscale = new TCanvas("canscale","",600,600);
 	canscale->cd();
 	p_frac_0->Draw();	
-	canscale->SaveAs("VGammaScale_mg.pdf");	
+	canscale->SaveAs("/eos/uscms/store/user/tmishra/VGamma/VGammaScale_mg.png");	
 }

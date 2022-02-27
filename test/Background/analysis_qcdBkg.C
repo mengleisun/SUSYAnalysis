@@ -1,4 +1,4 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void analysis_qcdBkg(){
 
@@ -30,7 +30,7 @@ void analysis_qcdBkg(){
 	TFile *scaleFile;
 	if(channelType == 1)scaleFile = TFile::Open("../script/qcd_eg_scale.root");
 	else if(channelType == 2)scaleFile = TFile::Open("../script/qcd_mg_scale.root");
-	TH1D *p_scale;
+	TH1D *p_scale = 0;
 	if(channelType == 1)p_scale = (TH1D*)scaleFile->Get("transfer_factor");
 	else if(channelType == 2)p_scale = (TH1D*)scaleFile->Get("transfer_factor");
 	
@@ -72,8 +72,8 @@ void analysis_qcdBkg(){
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
   	// fake lepton is predicted from data, fakeLeptree
-	if(channelType==1)fakeEtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
-	if(channelType==2)fakeEtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
+	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
+	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);

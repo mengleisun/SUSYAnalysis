@@ -1,4 +1,4 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void analysis_VGBkg(){
 	
@@ -249,8 +249,8 @@ void analysis_VGBkg(){
 		// ZG sample has llmass > 30, we use DY for llmass < 30
 		if(mcType == 4 && llmass < 30)continue;
 		if(mcType == 5 && llmass > 30)continue;
-
-		float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
+		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		//float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
 		// check all weights used
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight*factorMC;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup*ISRWeight*factorMC;

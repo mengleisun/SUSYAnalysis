@@ -1,4 +1,5 @@
 // input is VGamma/src/analysis_Mixing.C
+// g++ `root-config --cflags` plot_Mixing.C -o plot_Mixing.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -22,7 +23,7 @@
 #include "TProfile.h"
 #include "TLorentzVector.h"
 #include "TProfile2D.h"
-int RunYear = 2017;
+//int RunYear = 2017;
 
 float DeltaR(float eta1,float phi1,float eta2,float phi2)
 {
@@ -33,7 +34,7 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 		return TMath::Sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
 }
 
-void plot_Mixing(){//main 
+void plot_Mixing(int RunYear){//main 
 // for pt<50, pt>50 pt > 130 samples
   double scalefactor1,scalefactor2,scalefactor3;
   if(RunYear==2016){
@@ -51,7 +52,7 @@ void plot_Mixing(){//main
 	scalefactor2 = 59.96*1000*19.75/4764595;
 	scalefactor3 = 59.96*1000*0.8099/4708995;
    }
-    gROOT->SetBatch(kTRUE);
+    //gROOT->SetBatch(kTRUE);
   TH1D *mugamma_phoEt_1 = new TH1D("mugamma_phoEt_1","",165,35,200); 
   TH1D *mugamma_phoEt_2 = new TH1D("mugamma_phoEt_2","",165,35,200); 
   TH1D *mugamma_phoEt_3 = new TH1D("mugamma_phoEt_3","",165,35,200); 
@@ -134,7 +135,7 @@ void plot_Mixing(){//main
   egtree->SetBranchAddress("phoEt",    &eg_phoEt);
   egtree->SetBranchAddress("phoEta",   &eg_phoEta);
   egtree->SetBranchAddress("phoPhi",   &eg_phoPhi);
-  cout<<egtree->GetEntries()<<endl;
+  //cout<<egtree->GetEntries()<<endl;
 
 	for(unsigned ievt(0); ievt < egtree->GetEntries(); ievt++){
 		egtree->GetEntry(ievt);
@@ -154,7 +155,7 @@ void plot_Mixing(){//main
   eg40tree->SetBranchAddress("phoEt",    &eg40_phoEt);
   eg40tree->SetBranchAddress("phoEta",   &eg40_phoEta);
   eg40tree->SetBranchAddress("phoPhi",   &eg40_phoPhi);
-  cout<<eg40tree->GetEntries()<<endl;
+  //cout<<eg40tree->GetEntries()<<endl;
 	for(unsigned ievt(0); ievt < eg40tree->GetEntries(); ievt++){
 		eg40tree->GetEntry(ievt);
 		if(eg40_phoEt <= 50)continue;
@@ -172,7 +173,7 @@ void plot_Mixing(){//main
   eg130tree->SetBranchAddress("phoEt",    &eg130_phoEt);
   eg130tree->SetBranchAddress("phoEta",   &eg130_phoEta);
   eg130tree->SetBranchAddress("phoPhi",   &eg130_phoPhi);
-  cout<<eg130tree->GetEntries()<<endl;
+  //cout<<eg130tree->GetEntries()<<endl;
 
 	for(unsigned ievt(0); ievt < eg130tree->GetEntries(); ievt++){
 		eg130tree->GetEntry(ievt);
@@ -218,4 +219,11 @@ void plot_Mixing(){//main
 	leg->AddEntry(egamma_phoEt_3,"WGJets_MonoPhoton_PtG-130");
 	leg->Draw("same");
 	can1->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/WGMixing_%d.pdf",RunYear));
+	can1->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/WGMixing_%d.png",RunYear));
 }
+int main(int argc, char** argv)
+{
+    plot_Mixing(atoi(argv[1]));
+    return 0;
+}
+

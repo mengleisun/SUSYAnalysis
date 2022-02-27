@@ -1,3 +1,4 @@
+// g++ `root-config --cflags` plot_dPhiTemplate.C -o plot_dPhiTemplate.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -35,9 +36,9 @@
 #include "../../include/tdrstyle.C"
 
 #define NTOY 1000
-int channelType = 1; // eg = 1; mg =2;
-int RunYear = 2018;
-void plot_dPhiTemplate(){
+//int channelType = 1; // eg = 1; mg =2;
+//int RunYear = 2016;
+void plot_dPhiTemplate(int RunYear, int channelType){
 
 	//setTDRStyle();   
 	gStyle->SetLegendBorderSize(0);
@@ -108,8 +109,8 @@ void plot_dPhiTemplate(){
 
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("fakeLepTree");
-	if(channelType==1)proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d_NEW.root",RunYear));
-	if(channelType==2)proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d_NEW.root",RunYear));
+	if(channelType==1)proxytree->Add(Form("/eos/uscms/store/user/tmishra/eg_mg_trees/resTree_egsignal_DoubleEG_%d_NEW.root",RunYear));
+	if(channelType==2)proxytree->Add(Form("/eos/uscms/store/user/tmishra/eg_mg_trees/resTree_mgsignal_MuonEG_%d_NEW.root",RunYear));
 
 	float proxyphoEt(0);
 	float proxyphoEta(0);
@@ -181,6 +182,8 @@ void plot_dPhiTemplate(){
 	p_dPhiEleMET->Draw("P same");
 	if(channelType==1) c_dphi->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_egChannel_%d.pdf",RunYear));
 	if(channelType==2) c_dphi->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_mgChannel_%d.pdf",RunYear));
+	if(channelType==1) c_dphi->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_egChannel_%d.png",RunYear));
+	if(channelType==2) c_dphi->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_mgChannel_%d.png",RunYear));
 
 // ******** MET ************************//
 	gStyle->SetOptStat(0);
@@ -201,6 +204,14 @@ void plot_dPhiTemplate(){
 	leg_met->Draw("same");
 	if(channelType==1) c_met->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_MET_egChannel_%d.pdf",RunYear));
 	if(channelType==2) c_met->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_MET_mgChannel_%d.pdf",RunYear));
+	if(channelType==1) c_met->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_MET_egChannel_%d.png",RunYear));
+	if(channelType==2) c_met->SaveAs(Form("/eos/uscms/store/user/tmishra/VGamma/dphiTemplate_MET_mgChannel_%d.png",RunYear));
 }
 
-
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+      cout << "You have to provide two arguments!!\n";
+    plot_dPhiTemplate(atoi(argv[1]),atoi(argv[2]));
+    return 0;
+}

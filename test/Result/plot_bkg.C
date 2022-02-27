@@ -25,7 +25,7 @@
 #include "TGraphErrors.h"
 #include "../../include/tdrstyle.C"
 
-int channel = 2; // 1 = eg, 2 = mg
+int channel = 1; // 1 = eg, 2 = mg
 
 void plot_bkg(){//main  
 
@@ -65,12 +65,12 @@ void plot_bkg(){//main
 
 	TFile *file_t5 = TFile::Open("signalTree_T5WG.root");
 	TFile *file_tchi=TFile::Open("signalTree_TChiWG.root");
-	TH1D *p_t5wg_MET_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_MET_signal_1700_1000_mg");
-	TH1D *p_tchiwg_MET_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_MET_signal_mg");
-	TH1D *p_t5wg_HT_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_HT_signal_1700_1000_mg");
-	TH1D *p_tchiwg_HT_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_HT_signal_mg");
-	TH1D *p_t5wg_PhoEt_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_PhoEt_signal_1700_1000_mg");
-	TH1D *p_tchiwg_PhoEt_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_PhoEt_signal_mg");
+	TH1D *p_t5wg_MET_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_MET_signal_1700_1000_eg");
+	TH1D *p_tchiwg_MET_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_MET_signal_eg");
+	TH1D *p_t5wg_HT_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_HT_signal_1700_1000_eg");
+	TH1D *p_tchiwg_HT_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_HT_signal_eg");
+	TH1D *p_t5wg_PhoEt_signal_1700_1000= (TH1D*)file_t5->Get("p_t5wg_PhoEt_signal_1700_1000_eg");
+	TH1D *p_tchiwg_PhoEt_signal_800  = (TH1D*)file_tchi->Get("p_tchiwg_PhoEt_signal_eg");
 
 	Double_t bkgEtBins[]={35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
 	int nBkgEtBins= sizeof(bkgEtBins)/sizeof(bkgEtBins[0]) -1;
@@ -82,6 +82,17 @@ void plot_bkg(){//main
 	int nBkgMtBins= sizeof(bkgMtBins)/sizeof(bkgMtBins[0]) -1;
 	Double_t bkgHTBins[]={0,40,60,80,100,120,140,160,180,200,225,250,275,300,340,380,420,500,600,1000};
 	int nBkgHTBins= sizeof(bkgHTBins)/sizeof(bkgHTBins[0]) -1;
+
+Double_t sigEtBins[]={35,50,100,150,200,300,500,800};
+const int nSigEtBins= sizeof(sigEtBins)/sizeof(sigEtBins[0]) -1;
+Double_t sigPtBins[]={25,50,100,150,200,300,500,800};
+const int nSigPtBins= sizeof(sigPtBins)/sizeof(sigPtBins[0])-1;
+Double_t sigMETBins[]={0,20,40,60,80,100,120,150,200,250,300,350,400,600};
+const int nSigMETBins= sizeof(sigMETBins)/sizeof(sigMETBins[0]) -1;
+Double_t sigMtBins[]={100,200,300,400,600,1000};
+const int nSigMtBins= sizeof(sigMtBins)/sizeof(sigMtBins[0]) -1;
+Double_t sigHTBins[]={0,100,200,300,400,800,1500,2000};
+const int nSigHTBins= sizeof(sigHTBins)/sizeof(sigHTBins[0]) -1;
 
 	TGraphErrors *error_PhoEt = new TGraphErrors(nBkgEtBins);
 	TGraphErrors *error_LepPt = new TGraphErrors(nBkgPtBins);
@@ -259,8 +270,10 @@ void plot_bkg(){//main
 	TCanvas *c_mt = new TCanvas("Mt", "Mt",600,600);
 	setCanvas(c_mt); 
 	c_mt->cd();
-	TPad *mt_pad1 = new TPad("mt_pad1", "mt_pad1", 0, 0.3, 1, 1.0);
+	 
+	TPad *mt_pad1 = new TPad("mt_pad1", "mt_pad1", 0, 0.3, 1, 0.7);
 	setTopPad(mt_pad1); 
+	mt_pad1->SetTopMargin(0);
 	mt_pad1->Draw();  
 	mt_pad1->cd();  
 	gPad->SetLogy();
@@ -308,8 +321,56 @@ void plot_bkg(){//main
   error_Mt->SetFillColor(12);
   error_Mt->SetFillStyle(3345);
 	//error_Mt->Draw("E2 same");
-	TLegend *leg_mt =  new TLegend(0.35,0.55,0.9,0.83);
-	leg_mt->SetNColumns(2);
+//**//	TLegend *leg_mt =  new TLegend(0.35,0.55,0.9,0.83);
+//**//	leg_mt->SetNColumns(2);
+//**//	leg_mt->SetFillStyle(0);
+//**//	leg_mt->SetBorderSize(0);
+//**//	leg_mt->SetFillColor(0);
+//**//	p_rareMt->SetMarkerSize(0);
+//**//	p_eleMt->SetMarkerSize(0);
+//**//	p_jetMt->SetMarkerSize(0);
+//**//	p_qcdMt->SetMarkerSize(0);
+//**//	p_VGMt->SetMarkerSize(0);
+//**//	ratioerror_Mt->SetMarkerSize(0);
+//**//	ratioerror_Mt->SetLineWidth(0);
+//**//  p_t5wg_MET_signal_1700_1000->SetLineColor(9);
+//**//  p_t5wg_MET_signal_1700_1000->SetLineWidth(4);
+//**//	p_tchiwg_MET_signal_800->SetLineColor(28);
+//**//	p_tchiwg_MET_signal_800->SetLineStyle(2);
+//**//	p_tchiwg_MET_signal_800->SetLineWidth(4);
+//**//	leg_mt->AddEntry(p_allMt,"observed","epl");
+//**//	leg_mt->AddEntry(p_rareMt,"t#bar{t}#gamma / WW#gamma / WZ#gamma");
+//**//	leg_mt->AddEntry(p_eleMt,"e#rightarrow#gamma fakes");
+//**//	leg_mt->AddEntry(p_jetMt,"j#rightarrow#gamma fakes");
+//**//	leg_mt->AddEntry(p_qcdMt,"fake lepton");
+//**//	leg_mt->AddEntry(p_VGMt, "W#gamma / Z#gamma");
+//**//  leg_mt->AddEntry(p_t5wg_MET_signal_1700_1000, "T5Wg");
+//**//	leg_mt->AddEntry(p_tchiwg_MET_signal_800, "TChiWg");
+//**//	leg_mt->AddEntry(ratioerror_Mt, "Unc");
+//**//	leg_mt->Draw("same");
+//**//	p_allMt->Draw("E same");
+//**// 	gPad->RedrawAxis();
+//**//  CMS_lumi( mt_pad1, 11 );
+
+	c_mt->cd();
+	TPad *legpad_mt = new TPad("legpad", "legpad", 0, 0.7, 1, 1.0);
+	legpad_mt->SetTopMargin(0.25);
+	legpad_mt->SetBottomMargin(0); 
+	legpad_mt->Draw();  
+	legpad_mt->cd(); 
+	TH1F *upperframe = new TH1F("upperframe","",1,0,1);
+  upperframe->GetXaxis()->SetLabelSize(0);
+	upperframe->GetXaxis()->SetTickLength(0);
+	upperframe->GetXaxis()->SetTickSize(0);
+	upperframe->GetXaxis()->SetNdivisions(1);
+  upperframe->GetYaxis()->SetLabelSize(0);
+	upperframe->GetYaxis()->SetTickLength(0);
+  upperframe->GetYaxis()->SetTickSize(0);
+	upperframe->GetYaxis()->SetTicks("U");
+	upperframe->GetYaxis()->SetNdivisions(1);
+	upperframe->Draw();
+	TLegend *leg_mt =  new TLegend(0.18,0.05,0.9,0.5);
+	leg_mt->SetNColumns(3);
 	leg_mt->SetFillStyle(0);
 	leg_mt->SetBorderSize(0);
 	leg_mt->SetFillColor(0);
@@ -325,19 +386,17 @@ void plot_bkg(){//main
 	p_tchiwg_MET_signal_800->SetLineColor(28);
 	p_tchiwg_MET_signal_800->SetLineStyle(2);
 	p_tchiwg_MET_signal_800->SetLineWidth(4);
-	leg_mt->AddEntry(p_allMt,"observed","epl");
+	leg_mt->AddEntry(p_allMt,"Data","epl");
 	leg_mt->AddEntry(p_rareMt,"t#bar{t}#gamma / WW#gamma / WZ#gamma");
-	leg_mt->AddEntry(p_eleMt,"e#rightarrow#gamma fakes");
-	leg_mt->AddEntry(p_jetMt,"j#rightarrow#gamma fakes");
-	leg_mt->AddEntry(p_qcdMt,"fake lepton");
+	leg_mt->AddEntry(p_eleMt,"e #rightarrow #gamma misid.");
+	leg_mt->AddEntry(p_jetMt,"j #rightarrow #gamma misid.");
+	leg_mt->AddEntry(p_qcdMt,"Misid. lepton");
 	leg_mt->AddEntry(p_VGMt, "W#gamma / Z#gamma");
   leg_mt->AddEntry(p_t5wg_MET_signal_1700_1000, "T5Wg");
 	leg_mt->AddEntry(p_tchiwg_MET_signal_800, "TChiWg");
-	leg_mt->AddEntry(ratioerror_Mt, "Unc");
+	leg_mt->AddEntry(ratioerror_Mt, "Unc.");
 	leg_mt->Draw("same");
-	p_allMt->Draw("E same");
- 	gPad->RedrawAxis();
-  CMS_lumi( mt_pad1, 11 );
+  CMS_lumi( legpad_mt, 11 );
 
 	c_mt->cd();
 	TPad *mt_pad2 = new TPad("mt_pad2", "mt_pad2", 0, 0, 1, 0.3);
@@ -355,7 +414,7 @@ void plot_bkg(){//main
 	ratio_mt->SetMaximum(2);
 	ratio_mt->Divide(p_VGMt);
 	ratio_mt->SetTitle("");
-	ratio_mt->GetYaxis()->SetTitle("#frac{Obs.}{Bkg.}");
+	ratio_mt->GetYaxis()->SetTitle("#frac{Data}{Bkg.}");
 	ratio_mt->Draw();
 	ratioerror_Mt->SetFillColor(12);
 	ratioerror_Mt->SetFillStyle(3345);
@@ -368,12 +427,13 @@ void plot_bkg(){//main
 	TCanvas *c_pt = new TCanvas("Photon_Pt", "Photon P_{T}",600,600);
 	setCanvas(c_pt); 
 	c_pt->cd();
-	TPad *pt_pad1 = new TPad("pt_pad1", "pt_pad1", 0, 0.3, 1, 1.0);
+	TPad *pt_pad1 = new TPad("pt_pad1", "pt_pad1", 0, 0.3, 1, 0.75);
 	setTopPad(pt_pad1); 
+	pt_pad1->SetTopMargin(0);
 	pt_pad1->Draw();  
 	pt_pad1->cd();  
 	gPad->SetLogy();
-	p_allPhoEt->SetMaximum(50*p_allPhoEt->GetBinContent(p_allPhoEt->GetMaximumBin()));
+	p_allPhoEt->SetMaximum(5*p_allPhoEt->GetBinContent(p_allPhoEt->GetMaximumBin()));
 	p_allPhoEt->SetMinimum(0.5);
 	p_allPhoEt->GetXaxis()->SetRangeUser(35,800);
 	p_allPhoEt->SetLineColor(1);
@@ -419,7 +479,6 @@ void plot_bkg(){//main
   error_PhoEt->SetFillColor(12);
   error_PhoEt->SetFillStyle(3345);
 	error_PhoEt->Draw("E2 same");
-	leg_mt->Draw("same");
 	p_allPhoEt->Draw("E same");
   p_t5wg_PhoEt_signal_1700_1000->SetLineColor(9);
   p_t5wg_PhoEt_signal_1700_1000->SetLineWidth(4);
@@ -431,12 +490,22 @@ void plot_bkg(){//main
   TLatex chantex;
   chantex.SetNDC();
   chantex.SetTextFont(42);
-  chantex.SetTextSize(0.05);    
-  chantex.DrawLatex(0.4,0.87,"M_{T} > 100 GeV, p_{T}^{miss} > 120 GeV");
-  chantex.SetTextSize(0.07);    
-	chantex.DrawLatex(0.8,0.5,"(d)");
+  chantex.SetTextSize(0.15);    
+	chantex.DrawLatex(0.7,0.75,"(c)");
+	chantex.DrawLatex(0.7,0.6,"e + #gamma");
  	gPad->RedrawAxis();
-  CMS_lumi( pt_pad1, 11 );
+
+	c_pt->cd();
+	TPad *legpad_pt = new TPad("legpad", "legpad", 0, 0.75, 1, 1.0);
+	legpad_pt->SetTopMargin(0.25);
+	legpad_pt->SetBottomMargin(0); 
+	legpad_pt->Draw();  
+	legpad_pt->cd(); 
+	upperframe->Draw();
+  chantex.SetTextSize(0.14);    
+  chantex.DrawLatex(0.4,0.6,"M_{T} > 100 GeV, p_{T}^{miss} > 120 GeV");
+	leg_mt->Draw("same");
+  CMS_lumi( legpad_pt, 11 );
 
 	c_pt->cd();
 	TPad *pt_pad2 = new TPad("pt_pad2", "pt_pad2", 0, 0, 1, 0.3);
@@ -451,7 +520,7 @@ void plot_bkg(){//main
 	ratio->SetLineColor(kBlack);
 	ratio->Divide(p_VGPhoEt);
 	ratio->SetTitle("");
-	ratio->GetYaxis()->SetTitle("#frac{Obs.}{Bkg.}");
+	ratio->GetYaxis()->SetTitle("#frac{Data}{Bkg.}");
 	ratio->GetYaxis()->SetNdivisions(504);
 	ratio->Draw();
 	ratioerror_PhoEt->SetFillColor(12);
@@ -466,12 +535,13 @@ void plot_bkg(){//main
 	TCanvas *c_met = new TCanvas("MET", "MET",600,600);
 	setCanvas(c_met); 
 	c_met->cd();
-	TPad *met_pad1 = new TPad("met_pad1", "met_pad1", 0, 0.3, 1, 1.0);
+	TPad *met_pad1 = new TPad("met_pad1", "met_pad1", 0, 0.3, 1, 0.75);
 	setTopPad(met_pad1); 
+	met_pad1->SetTopMargin(0);
 	met_pad1->Draw();  
 	met_pad1->cd();  
 	gPad->SetLogy();
-	p_allMET->GetYaxis()->SetRangeUser(0.05, 50*p_allMET->GetBinContent(p_allMET->GetMaximumBin()));
+	p_allMET->GetYaxis()->SetRangeUser(0.05, 5*p_allMET->GetBinContent(p_allMET->GetMaximumBin()));
 	p_allMET->SetMinimum(0.5);
 	p_allMET->GetXaxis()->SetRangeUser(0,600);
 	p_allMET->SetLineColor(1);
@@ -516,25 +586,6 @@ void plot_bkg(){//main
   error_MET->SetFillColor(12);
   error_MET->SetFillStyle(3345);
 	error_MET->Draw("E2 same");
-//	TLegend *leg_met =  new TLegend(0.5,0.65,0.9,0.9);
-//	leg_met->SetFillStyle(0);
-//	gStyle->SetLegendBorderSize(1);
-//	gStyle->SetLegendFillColor(0);
-//	leg_met->AddEntry(p_allMET,"observed (MT < 100 GeV)");
-//	leg_met->AddEntry(p_rareMET,"t#bar{t}#gamma/WW#gamma/WZ#gamma");
-//	leg_met->AddEntry(p_eleMET,"e->#gamma fake");
-//	leg_met->AddEntry(p_jetMET,"j->#gamma fake");
-//	leg_met->AddEntry(p_qcdMET,"j->e fake");
-//	leg_met->AddEntry(p_VGMET, "WG/ZG");
-	leg_mt->Draw("same");
-	p_allMET->Draw("E same");
-  chantex.SetTextSize(0.05);    
-  chantex.DrawLatex(0.4,0.87,"M_{T} > 100 GeV");
-  chantex.SetTextSize(0.07);    
-	chantex.DrawLatex(0.8,0.5,"(b)");
- 	gPad->RedrawAxis();
-  CMS_lumi( met_pad1, 11 );
-
   p_t5wg_MET_signal_1700_1000->SetLineColor(9);
   p_t5wg_MET_signal_1700_1000->SetLineWidth(4);
   p_t5wg_MET_signal_1700_1000->Draw("same");
@@ -542,15 +593,23 @@ void plot_bkg(){//main
 	p_tchiwg_MET_signal_800->SetLineStyle(2);
 	p_tchiwg_MET_signal_800->SetLineWidth(4);
 	p_tchiwg_MET_signal_800->Draw("same");
-//	TLegend *leg_susy =  new TLegend(0.1,0.75,0.5,0.9);
-//	leg_susy->SetFillStyle(0);
-//	gStyle->SetLegendBorderSize(1);
-//	gStyle->SetLegendFillColor(0);
-//  leg_susy->AddEntry(p_t5wg_MET_signal_1800_1000,"T5WG,1800,1000");
-//  leg_susy->AddEntry(p_t5wg_MET_signal_1800_200, "T5WG,1800,200");
-//	leg_susy->AddEntry(p_tchiwg_MET_signal_800, "TChiWG, 800");
-//	leg_susy->AddEntry(p_tchiwg_MET_signal_1000,"TChiWG, 1000");
-//	leg_susy->Draw("same");
+	p_allMET->Draw("E same");
+  chantex.SetTextSize(0.15);    
+	chantex.DrawLatex(0.7,0.75,"(a)");
+	chantex.DrawLatex(0.7,0.6,"e + #gamma");
+ 	gPad->RedrawAxis();
+
+	c_met->cd();
+	TPad *legpad_met = new TPad("legpad", "legpad", 0, 0.75, 1, 1.0);
+	legpad_met->SetTopMargin(0.25);
+	legpad_met->SetBottomMargin(0); 
+	legpad_met->Draw();  
+	legpad_met->cd(); 
+	upperframe->Draw();
+	leg_mt->Draw("same");
+  CMS_lumi( legpad_met, 11 );
+  chantex.SetTextSize(0.14);    
+  chantex.DrawLatex(0.4,0.6,"M_{T} > 100 GeV");
 
 	c_met->cd();
 	TPad *met_pad2 = new TPad("met_pad2", "met_pad2", 0, 0, 1, 0.3);
@@ -565,7 +624,7 @@ void plot_bkg(){//main
 	ratio_met->SetMarkerStyle(20);
 	ratio_met->Divide(p_VGMET);
 	ratio_met->SetTitle("");
-	ratio_met->GetYaxis()->SetTitle("#frac{Obs.}{Bkg.}");
+	ratio_met->GetYaxis()->SetTitle("#frac{Data}{Bkg.}");
 	ratio_met->GetYaxis()->SetRangeUser(0,2.3);
 	ratio_met->Draw();
 	ratioerror_MET->SetFillColor(12);
@@ -581,7 +640,7 @@ void plot_bkg(){//main
 	TCanvas *c_leppt = new TCanvas("LepPt", "LepPt",600,600);
 	setCanvas(c_leppt); 
 	c_leppt->cd();
-	TPad *leppt_pad1 = new TPad("leppt_pad1", "leppt_pad1", 0, 0.3, 1, 1.0);
+	TPad *leppt_pad1 = new TPad("leppt_pad1", "leppt_pad1", 0, 0.3, 1, 0.7);
 	setTopPad(leppt_pad1); 
 	leppt_pad1->Draw();  
 	leppt_pad1->cd();  
@@ -655,7 +714,7 @@ void plot_bkg(){//main
 	ratio_leppt->SetLineColor(kBlack);
 	ratio_leppt->Divide(p_VGLepPt);
 	ratio_leppt->SetTitle("");
-	ratio_leppt->GetYaxis()->SetTitle("#frac{Obs.}{Bkg.}");
+	ratio_leppt->GetYaxis()->SetTitle("#frac{Data}{Bkg.}");
 	ratio_leppt->GetYaxis()->SetRangeUser(0,2);
 	ratio_leppt->Draw();
 	ratioerror_LepPt->SetFillColor(12);
@@ -670,13 +729,14 @@ void plot_bkg(){//main
 	TCanvas *c_HT = new TCanvas("HT", "HT",600,600);
 	setCanvas(c_HT); 
 	c_HT->cd();
-	TPad *HT_pad1 = new TPad("HT_pad1", "HT_pad1", 0, 0.3, 1, 1.0);
+	TPad *HT_pad1 = new TPad("HT_pad1", "HT_pad1", 0, 0.3, 1, 0.75);
 	setTopPad(HT_pad1); 
+	HT_pad1->SetTopMargin(0);
 	HT_pad1->Draw();  
 	HT_pad1->cd();  
 	gPad->SetLogy();
 	p_allHT->SetMinimum(0.5);
-	p_allHT->SetMaximum(50*p_allHT->GetBinContent(p_allHT->GetMaximumBin()));
+	p_allHT->SetMaximum(2*p_allHT->GetBinContent(p_allHT->GetMaximumBin()));
 	p_allHT->SetLineColor(1);
 	p_allHT->SetMarkerStyle(20);
 	p_allHT->Draw("P");
@@ -714,14 +774,11 @@ void plot_bkg(){//main
 	error_HT->SetFillColor(12);
 	error_HT->SetFillStyle(3345);
 	error_HT->Draw("E2 same");
-	leg_mt->Draw("same");
 	p_allHT->Draw("E same");
-  chantex.SetTextSize(0.05);    
-  chantex.DrawLatex(0.4,0.87,"M_{T} > 100 GeV, p_{T}^{miss} > 120 GeV");
-  chantex.SetTextSize(0.07);    
-	chantex.DrawLatex(0.8,0.5,"(f)");
+  chantex.SetTextSize(0.15);    
+	chantex.DrawLatex(0.7,0.75,"(e)");
+	chantex.DrawLatex(0.7,0.6,"e + #gamma");
  	gPad->RedrawAxis();
-  CMS_lumi( HT_pad1, 11 );
 
   p_t5wg_HT_signal_1700_1000->SetLineColor(9);
   p_t5wg_HT_signal_1700_1000->SetLineWidth(4);
@@ -730,6 +787,18 @@ void plot_bkg(){//main
 	p_tchiwg_HT_signal_800->SetLineStyle(2);
 	p_tchiwg_HT_signal_800->SetLineWidth(4);
 	p_tchiwg_HT_signal_800->Draw("same");
+
+	c_HT->cd();
+	TPad *legpad_HT = new TPad("legpad", "legpad", 0, 0.75, 1, 1.0);
+	legpad_HT->SetTopMargin(0.25);
+	legpad_HT->SetBottomMargin(0); 
+	legpad_HT->Draw();  
+	legpad_HT->cd(); 
+	upperframe->Draw();
+	leg_mt->Draw("same");
+  CMS_lumi( legpad_HT, 11 );
+  chantex.SetTextSize(0.14);    
+  chantex.DrawLatex(0.4,0.6,"M_{T} > 100 GeV, p_{T}^{miss} > 120 GeV");
 
 	c_HT->cd();
 	TPad *HT_pad2 = new TPad("HT_pad2", "HT_pad2", 0, 0, 1, 0.3);
@@ -747,7 +816,7 @@ void plot_bkg(){//main
 	ratio_HT->SetMaximum(2);
 	ratio_HT->Divide(p_VGHT);
 	ratio_HT->SetTitle("");
-	ratio_HT->GetYaxis()->SetTitle("#frac{Obs.}{Bkg.}");
+	ratio_HT->GetYaxis()->SetTitle("#frac{Data}{Bkg.}");
 	ratio_HT->Draw();
 	ratioerror_HT->SetFillColor(12);
 	ratioerror_HT->SetFillStyle(3345);

@@ -36,7 +36,7 @@ void analysis_mgMC(int RunYear, const char *Sample){//main
 
 
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WZ.log"); 
+  logfile.open(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_egsignal_%s_%d.log",Sample,RunYear));
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
@@ -53,7 +53,9 @@ void analysis_mgMC(int RunYear, const char *Sample){//main
   
   TChain* es = new TChain("ggNtuplizer/EventTree");
   char* inputfile = new char[300];
-  sprintf(inputfile,"/eos/uscms/store/group/lpcsusyhad/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+  //for TTJets and DYJetsToLL
+  sprintf(inputfile,"/eos/uscms/store/group/lpcsusyphotons/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+  //sprintf(inputfile,"/eos/uscms/store/user/tmishra/InputFilesMC/%s/%s_%d.root",Sample,Sample,RunYear);
   es->Add(inputfile);
 
   const unsigned nEvts = es->GetEntries(); 

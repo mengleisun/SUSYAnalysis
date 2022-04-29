@@ -35,7 +35,7 @@ void analysis_VGamma(){//main
 	float ntotalevent  = 9885348;
 	float PUweight(1);
 	
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../../lib/libAnaClasses.so");
 
   char outputname[100] = "/uscms_data/d3/mengleis/resTree_VGamma_TTGJets.root";
   ofstream logfile;

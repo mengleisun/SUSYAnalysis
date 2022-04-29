@@ -25,35 +25,41 @@
 #include "../../include/analysis_photon.h"
 #include "../../include/analysis_muon.h"
 #include "../../include/analysis_ele.h"
+#include "../../include/analysis_jet.h"
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
-#include "../../include/analysis_jet.h"
 
+int RunYear = 2016;
 
 void analysis_egMC(){//main 
 
   gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "fakelep_egsignal_QCD.root";
+  char outputname[100] = "/eos/uscms/store/user/tmishra/fakeLep/fakelep_egsignal_QCD.root";
   //char outputname[100] = "fakelep_egsignal_GJet.root";
   ofstream logfile;
-  logfile.open("fakelep_egsignal_QCD.log"); 
+  logfile.open("/eos/uscms/store/user/tmishra/fakeLep/fakelep_egsignal_QCD.log"); 
   //logfile.open("fakelep_egsignal_GJet.log"); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
   //logfile << "Loose the proxy definition: no upper bounds for photon; LooseFakeProxy for electron" << std::endl;
 
-  RunType datatype(MCDoubleEG2016); 
-	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2
+  RunType datatype;
+  if(RunYear==2016) datatype = MCDoubleEG2016;
+  if(RunYear==2017) datatype = MCDoubleEG2017;
+  if(RunYear==2018) datatype = MCDoubleEG2018;
+
+  bool  isMC(false);
+
+  if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
+  if(datatype == MC || datatype == MCDoubleEG2017 || datatype == MCMuonEG2017||  datatype == MCSingleElectron2017 || datatype == MCSingleMuon2017||  datatype == MCDoubleMuon2017 || datatype == MCMET2017)isMC=true;
+  if(datatype == MC || datatype == MCDoubleEG2018 || datatype == MCMuonEG2018||  datatype == MCSingleElectron2018 || datatype == MCSingleMuon2018||  datatype == MCDoubleMuon2018 || datatype == MCMET2018)isMC=true;
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/mengleis/copied/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TrancheIV_v6-v1.root");
-	//es->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2016/GJets_2016.root");
+  es->Add("root://cmseos.fnal.gov//store/user/mengleis/copied/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TrancheIV_v6-v1.root");
 
-  //const unsigned nEvts = es->GetEntries(); 
-  const unsigned nEvts = 100000; 
+  const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
   logfile << "Output file: " << outputname << std::endl;
@@ -255,6 +261,7 @@ void analysis_egMC(){//main
 				if(PixelVeto){
 					if(!hasPho){
 						hasPho=true;
+						npassPho +=1;
 						signalPho = itpho;
 					}
 				}
@@ -465,5 +472,3 @@ void analysis_egMC(){//main
 	outputfile->Close();
 	logfile.close();
 }
-
-

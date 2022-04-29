@@ -7,7 +7,7 @@ void analysis_eg(int RunYear, const char *Era){//main
   gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
   ofstream logfile;
-  logfile.open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_egsignal_DoubleEG_%d%s.log",RunYear,Era),ios::trunc);
+  logfile.open(Form("/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_egsignal_DoubleEG_%d%s.log",RunYear,Era),ios::trunc);
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
@@ -19,16 +19,16 @@ void analysis_eg(int RunYear, const char *Era){//main
 	bool  isMC(false);
 	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_%d%s.root",RunYear,Era));
+	es->Add(Form("/eos/uscms/store/group/lpcsusyphotons/Tribeni/DoubleEG/DoubleEG_%d%s.root",RunYear,Era));
 
   const unsigned nEvts = es->GetEntries();
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << "/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_egsignal_DoubleEG_"<<RunYear<<Era<<".root" << std::endl;
+  logfile << "Output file: " << "/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_egsignal_DoubleEG_"<<RunYear<<Era<<".root" << std::endl;
 
 	int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
 
-  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_egsignal_DoubleEG_%d%s.root",RunYear,Era),"RECREATE");
+  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_egsignal_DoubleEG_%d%s.root",RunYear,Era),"RECREATE");
   outputfile->cd();
 	TH1D *p_METFilter = new TH1D("p_METFilter","",12,-2,10);	
 	TH1D *p_invmass = new TH1D("p_invmass","",200,0,200);	
@@ -307,7 +307,7 @@ void analysis_eg(int RunYear, const char *Era){//main
   int METFilter(0);
   logfile << "RunType: " << datatype << std::endl;
 
-  TFile *skimfile = TFile::Open("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/select_DoubleEG_signal.root","RECREATE");
+  TFile *skimfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/eg_mg_treesData/select_DoubleEG_signal_%d%s.root",RunYear,Era),"RECREATE");
   TDirectory *dir_out = skimfile->mkdir("ggNtuplizer");
   dir_out->cd();
   TTree *tree_out = es->CloneTree(0);
@@ -383,8 +383,10 @@ void analysis_eg(int RunYear, const char *Era){//main
 				if(itpho->getR9() < R9EBCut)continue;
 				if(!itpho->passHLTSelection())continue;
 				if(!itpho->passBasicSelection())continue;
-				bool passSigma = itpho->passSigma(1);
-				bool passChIso = itpho->passChIso(1);
+				bool passSigma = itpho->passSigmaOLD(1);
+				bool passChIso = itpho->passChIsoOLD(1);
+				//bool passSigma = itpho->passSigma(1);
+				//bool passChIso = itpho->passChIso(1);
 				bool PixelVeto = itpho->PixelSeed()==0? true: false;
 				bool GSFveto(true);
 				bool photonFSRVeto(true);

@@ -51,7 +51,7 @@ void analysis_sig(){
 
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
-	sigtree->Add("fakelep_egsignal_GJet.root");
+	sigtree->Add("/eos/uscms/store/user/tmishra/fakeLep/fakelep_egsignal_GJet.root");
 	//sigtree->Add("/uscms_data/d3/mengleis/Sep1/test_egsignal_QCDfake_2.root");
 
 	float phoEt(0);
@@ -126,7 +126,7 @@ void analysis_sig(){
 
 	std::ostringstream outputname;
 
-	outputname << "signalTree_sig.root";
+	outputname << "/eos/uscms/store/user/tmishra/fakeLep/signalTree_sig.root";
 	TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
 	outputfile->cd();
 	p_PhoEt->Write();

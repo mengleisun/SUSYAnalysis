@@ -318,6 +318,7 @@ void analysis_egTrigger(int RunYear, const char *Era){//main
 		}// loop over tag electrons
 
 	}//loop on  events
+	// to see percentage
 	cout<<egtree->GetEntries()<<"  "<<100*egtree->GetEntries()/nEvts<<endl;
 	cout<<eetree->GetEntries()<<"  "<<100*eetree->GetEntries()/nEvts<<endl;
 	

@@ -53,11 +53,11 @@ void analysis_egMC(int RunYear, const char *Sample){//main
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	
 	char* inputfile = new char[300];
-  	sprintf(inputfile,"/eos/uscms/store/group/lpcsusyhad/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+  	if (strstr(Sample, "DYJetsToLL") != NULL or strstr(Sample, "TTJets") != NULL or strstr(Sample, "WJetsToLNu"))
+  		sprintf(inputfile,"/eos/uscms/store/group/lpcsusyphotons/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+  	else
+  		sprintf(inputfile,"/eos/uscms/store/user/tmishra/InputFilesMC/%s/%s_%d.root",Sample,Sample,RunYear);
   	es->Add(inputfile);
-
-	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WJetsToLNu_RunIISummer16MiniAODv2-TrancheIV_v6-ext2-v1.root");
-//	es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
 
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
@@ -68,7 +68,13 @@ void analysis_egMC(int RunYear, const char *Sample){//main
   TFile* outputfile = new TFile(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_%s_%d.root",Sample,RunYear),"RECREATE");
   outputfile->cd();
   
-    int mcType;
+  int mcType;
+  float crosssection;
+
+  if(strstr(inputfile, "WJetsToLNu") != NULL){
+                std::cout << "WJetsToLNu sample !" << std::endl;
+		crosssection = 53870.0;
+  }
   if(strstr(inputfile, "WGToLNuG") != NULL){
                 std::cout << "WGToLNuG sample !" << std::endl;
                 mcType = MCType::WGJetInclusive;
@@ -113,12 +119,20 @@ void analysis_egMC(int RunYear, const char *Sample){//main
                 std::cout << "WZ sample !" << std::endl;
                 mcType = MCType::WZ;
   }
+  else if(strstr(inputfile, "GJet") != NULL){
+                std::cout << "GJet sample !" << std::endl;
+                mcType = MCType::GJet;
+  }
+  else if(strstr(inputfile, "QCD_DoubleEM") != NULL){
+                std::cout << "QCD_DoubleEM sample !" << std::endl;
+                mcType = MCType::QCDEM40;
+  }
   else {
                 std::cout << "not specific MC !" << std::endl;
                 mcType = MCType::NOMC;
   }
   Double_t  L1ECALPrefire;
-  float crosssection = MC_XS[mcType];
+  crosssection  = MC_XS[mcType];
   float ntotalevent = es->GetEntries();
   float lumiWeight = getEvtWeight(RunYear,crosssection, ntotalevent);
 

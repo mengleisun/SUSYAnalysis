@@ -1,4 +1,4 @@
-// g++ `root-config --cflags` ../lib/libAnaClasses.so analysis_mg.C -o analysis_mg.exe `root-config --libs`
+// g++ `root-config --cflags` ../lib/libAnaClasses.so analysis_mg.C -o analysis_mg.exe `oot-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -33,7 +33,7 @@
 void analysis_mg(int RunYear, const char *Era){//main
 
   ofstream logfile;
-  logfile.open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_mgsignal_MuonEG_%d%s.log",RunYear,Era),ios::trunc);
+  logfile.open(Form("/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_mgsignal_MuonEG_%d%s.log",RunYear,Era),ios::trunc);
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
@@ -44,16 +44,16 @@ void analysis_mg(int RunYear, const char *Era){//main
 	bool  isMC(false);
 	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/MuonEG/MuonEG_%d%s.root",RunYear,Era));
+	es->Add(Form("/eos/uscms/store/user/tmishra/InputFilesDATA/MuonEG/MuonEG_%d%s.root",RunYear,Era));
 
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << "/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_mgsignal_MuonEG_"<<RunYear<<Era<<".root" << std::endl;
+  logfile << "Output file: " << "/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_mgsignal_MuonEG_"<<RunYear<<Era<<".root" << std::endl;
 
 	int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
 
-  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees_new/resTree_mgsignal_MuonEG_%d%s.root",RunYear,Era),"RECREATE");
+  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_mgsignal_MuonEG_%d%s.root",RunYear,Era),"RECREATE");
   outputfile->cd();
 
 	TH1D *p_METFilter = new TH1D("p_METFilter","",12,-2,10);	

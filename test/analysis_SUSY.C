@@ -22,27 +22,15 @@ void analysis_SUSY(){//main
 	gSystem->Load("../lib/libAnaClasses.so");
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
-	es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5WG_TuneCUETP8M1_RunIISummer16MiniAOD.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/GGM_GravitinoLSP_M1-200to1500_M2-200to1500.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2_scan.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiNG_BF50N50G.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/GGM_M1M3.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_mGo2150To2500.root");
+	es->Add("/eos/uscms/store/user/msun/Signal/T6WG_TuneCUETP8M1_RunIISummer16MiniAOD.root");
+	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5WG_TuneCUETP8M1_RunIISummer16MiniAOD.root");
+	//es->Add("/eos/uscms/store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
 
 	RunType datatype(MC); 
 	std::ostringstream outputname;
-	//outputname << "/uscms_data/d3/mengleis/test/resTree_TChiWG.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_test.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNg_test_debug.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_test.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_M1M3.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T6WG.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_M1M2.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNG.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_M1M3.root";
-	outputname << "/uscms/home/tmishra/nobackup/signal_trees/resTree_T5WG_2016.root";
+	outputname << "/uscms/home/tmishra/nobackup/signal_trees/resTree_T6WG_2016_march.root";
+	//outputname << "/uscms/home/tmishra/nobackup/signal_trees/resTree_T5WG_2016.root";
+	//outputname << "/uscms/home/tmishra/nobackup/signal_trees/resTree_TChiWG_2016_march.root";
 
 	int SUSYtype(-1);
 	if(outputname.str().find("T5WG") != std::string::npos){
@@ -335,7 +323,7 @@ void analysis_SUSY(){//main
 
 	for(unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
   
-		if (ievt%10000==0) std::cout << " -- Processing event " << ievt << std::endl;
+		if (ievt%100000==0) std::cout << " -- Processing event " << ievt << std::endl;
 		
 		Mass1_ = -1;
 		Mass2_ = -1;

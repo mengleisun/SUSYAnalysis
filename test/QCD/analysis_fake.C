@@ -263,12 +263,15 @@ void analysis_fake(){//main
 				for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
 					if(DeltaR(itpho->getEta(), itpho->getPhi(), itEle->getEta(), itEle->getPhi()) < 0.05){
 						matchPho = itpho;
-						hasmatch = true;
+						hasmatch = true; // ele match pho
 					}
 				}
 				bool isSig = passEleSignalSelection( itEle->getEta(), itEle->getSigma(),fabs(itEle->getdEtaIn()) , fabs(itEle->getdPhiIn()), itEle->getHoverE(), itEle->getEoverPInv(), itEle->getMissHits(), itEle->getConvVeto(), itEle->getMiniIso());
 				//if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))isSig=false;
 				//if(itEle->passSignalSelection() && isSig){
+
+				
+				// electron signal selection
 				if(isSig){
 					if(eleOrder == 1)eff_pass->Fill(itEle->getCalibPt(), 1);
 					phoEt = 100; 
@@ -313,6 +316,8 @@ void analysis_fake(){//main
 					sigtree->Fill();
 				}
 				//else if(!itEle->passSignalSelection()){
+
+				// electron does n't pass signal selection
 				else{
 					if(eleOrder == 1)eff_pass->Fill(itEle->getCalibPt(), 0);
 					fakeLepIndex = eleOrder;

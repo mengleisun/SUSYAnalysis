@@ -22,6 +22,7 @@ void pred_qcdBkg(){
 	bool toDeriveScale(false);
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
@@ -45,6 +46,7 @@ void pred_qcdBkg(){
 		factorQCDUP = 1;
 	}
 
+	// Corrections on electron proxy sample as described in Section 5.3.3 in AN
 	TFile *scaleFile;
 	if(channelType == 1)scaleFile = TFile::Open("qcd_eg_scale.root");
 	else if(channelType == 2)scaleFile = TFile::Open("qcd_mg_scale.root");
@@ -138,10 +140,9 @@ void pred_qcdBkg(){
 	
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
-	//if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root");
-        //if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
 	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+        if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+
   int   run(0);
   Long_t event(0);
   int   lumis(0);
@@ -192,7 +193,8 @@ void pred_qcdBkg(){
 		double w_qcd_up = 0; 
 		double w_qcd_unweight = 0;
 
-		if(channelType == 1){
+		// Corrections on electron proxy sample, not on muon proxy sample as described in Section 5.3.3 in AN
+		if(channelType == 1){ // eg channel
 			w_qcd = factorQCD*p_scale->GetBinContent(p_scale->FindBin(lepPt));
 			w_qcd_up = factorQCDUP*p_scale->GetBinContent(p_scale->FindBin(lepPt));
 			w_qcd_unweight = factorQCD;

@@ -1,5 +1,5 @@
 #include "../../include/analysis_commoncode.h"
-int RunYear = 2018;
+int RunYear = 2016;
 #define NTOY 1000
 bool useGaussFit, channelType=false;
 
@@ -22,6 +22,7 @@ bool compareByRun(const runinfo &a, const runinfo &b)
 void pred_jetBkg(){
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
@@ -208,8 +209,6 @@ void pred_jetBkg(){
 		TChain *jettree = new TChain("jetTree");
 		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
                 if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
-		//if(channelType==1)jettree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d.root",RunYear));
-                //if(channelType==2)jettree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d.root",RunYear));
 
   	int   run(0);
   	Long64_t  event(0);

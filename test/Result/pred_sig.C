@@ -4,6 +4,7 @@
 void pred_sig(){
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
@@ -27,8 +28,7 @@ void pred_sig(){
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
 	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
-
+        if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
 
   	int   run(0);
   	Long64_t  event(0);
@@ -126,8 +126,8 @@ void pred_sig(){
 	p_PU->Write();
 	p_eventcount->Write();
 	p_nJet->Write();
-	for(int ibin(1); ibin <= NBIN; ibin++)std::cout << "bin " << ibin << " " << p_eventcount->GetBinContent(ibin) << std::endl;
-	for(int ibin(1); ibin <= NBIN; ibin++)std::cout << p_eventcount->GetBinContent(ibin) << "\t";
+	for(int ibin(1); ibin <= NBIN; ibin++)std::cout << ibin << " " << "bin " << p_eventcount->GetBinContent(ibin) << std::endl;
+	for(int ibin(1); ibin <= NBIN; ibin++)std::cout << p_eventcount->GetBinContent(ibin) << "  ";
 	outputfile->Write();
 	outputfile->Close();
 }

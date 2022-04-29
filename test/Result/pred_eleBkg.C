@@ -7,6 +7,7 @@ bool dopostfit=true;
 void pred_eleBkg(){
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
@@ -160,7 +161,7 @@ void pred_eleBkg(){
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
 	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+        if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
 
 	float phoEt(0);
 	float phoEta(0);

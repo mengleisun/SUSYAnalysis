@@ -1,3 +1,4 @@
+// Here jet is taken as lepton only signalTree , signal events from QCD sample
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -22,21 +23,21 @@
 #include "TFileCollection.h"
 
 #include "../../include/analysis_rawData.h"
+#include "../../include/analysis_jet.h"
 #include "../../include/analysis_photon.h"
 #include "../../include/analysis_muon.h"
 #include "../../include/analysis_ele.h"
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
-#include "../../include/analysis_jet.h"
 
 
 void analysis_qcd(){//main 
 
   gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "fakelep_QCD.root";
+  char outputname[100] = "/eos/uscms/store/user/tmishra/fakeLep/fakelep_QCD.root";
   ofstream logfile;
-  logfile.open("fakelep_egsignal_QCD.log"); 
+  logfile.open("/eos/uscms/store/user/tmishra/fakeLep/fakelep_egsignal_QCD.log"); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;

@@ -3,6 +3,7 @@ int RunYear = 2016;
 void pred_rareBkg(){
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
@@ -127,6 +128,7 @@ void pred_rareBkg(){
 	if(channelType == 1)chainname << "egTree";
 	else if(channelType == 2)chainname << "mgTree";
   TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
+
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_TTG_VetoEle.root");
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WWG_VetoEle.root");
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WZG_VetoEle.root");
@@ -252,7 +254,8 @@ void pred_rareBkg(){
 			scalefactorup = scalefactor + s_error; 
 		}
 
-		double XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
+		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		//double XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		double weight = PUweight*XS_weight*scalefactor;
 		double weight_scaleup = PUweight*XS_weight*scalefactorup;
 		/** cut flow *****/

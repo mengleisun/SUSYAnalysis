@@ -6,10 +6,12 @@ import os
 import ROOT
 import argparse
 from os import system
+import sys
 
 limdir = './'
 
-n_channels = 22
+n_channels = int(sys.argv[1])*2
+#n_channels = 36
 n_processes= 6
 # 4 bkgrounds, 1 susy process
 pro_names = ['SUSY','elefakepho', 'jetfakepho', 'qcdfakelep','VGamma','rare']
@@ -39,22 +41,49 @@ file_out.write("------------\n")
 
 file_out.write('{:16s}'.format('bin'))
 for i in range(1,n_channels+1):
-        file_out.write('{:>8s} '.format('lg_'+ str(i)))
+        file_out.write('{:>8s} '.format('bin'+ str(i)))
+file_out.write('\n')
+
+file_out.write('{:16s}'.format('observation    '))
+with open('data_mg.log') as fileMG:
+	for line in fileMG:
+	          if re.search('bin', line):
+                        l = line.split('bin')
+                        v = int(l[1].strip())
+			file_out.write('{:>4d} '.format(v))
+
+with open('data_eg.log') as fileEG:
+	for line in fileEG:
+	          if re.search('bin', line):
+                        l = line.split('bin')
+                        v = int(l[1].strip())
+			file_out.write('{:>4d} '.format(v))
 file_out.write('\n')
 
 #### from file pred_sig.C
-if n_channels == 22 :
-	file_out.write("observation    321 517 105 36 76 52 1 2 3 1 2 163 297 81 38 55 36 1 1 6 1 1  \n")
+#if n_channels == 22 :
+#	file_out.write("observation    321 517 105 36 76 52 1 2 3 1 2 163 297 81 38 55 36 1 1 6 1 1  \n")
 
-if n_channels == 36 :
-	file_out.write("observation    309  494  85  32  64  45  1  1  5  12  23  20  4  12  7  1  1  0  153  276  67   32   46   32   1  1  4  10  21  14  6  9  4  0  1  3  \n")
+#if n_channels == 36 :
+	# MET cut starts at 100
+	#file_out.write("747  862  138  32  64  45   1   1    5   15  44  28 4 12 7 1 1 0 345  483  109  32  46  32  1  1  4  11  31  17  6  9  4  0  1  3 \n")
+	# photon pT boundary 200
+	#file_out.write("observation    309  494  85  32  64  45  1  1  5  12  23  20  4  12  7  1  1  0  153  276  67   32   46   32   1  1  4  10  21  14  6  9  4  0  1  3  \n")
+	# photon pT boundary 100
+#	file_out.write("observation     262  436  60  20  52  37  1  1  3  59  81  45  16  24  15  1  1  2  107  225  54  21  35  24  1 0 2 56 72  27  17  20  12  0  2  5  \n")
+
+#if n_channels == 18 :
+#	file_out.write("observation    321  517  105  36  76  52  2  2  5  163  297  81  38  55  36  1  2  7  \n")
+
+#if n_channels == 20 :
+#	file_out.write("observation    321  517  105  36  76  52  1  2  3  3  163  297  81  38 55  36  1 1 6 2    \n")
 
 file_out.write("------------\n")
 
 file_out.write('{:26s}'.format('bin'))
 for i in range(1,n_channels+1):
     for j in range(0,n_processes):
-	file_out.write('{:>12s} '.format('lg_'+ str(i)))
+	file_out.write('{:>12s} '.format('bin'+ str(i)))
 file_out.write('\n')
 
 file_out.write('{:26s}'.format('process'))
@@ -214,7 +243,10 @@ for ich in range(1,n_channels+1):
 
 for ich in range(1,n_channels+1):
     file_out.write('{:15s} {:3s} {:6s}'.format('rare_stat'+str(ich),'lnN',''))
-    staterror= 1.0 + h_rates['h_rare_norm'].GetBinError(ich)/h_rates['h_rare_norm'].GetBinContent(ich)
+    if(h_rates['h_rare_norm'].GetBinContent(ich) != 0):
+    	staterror= 1.0 + h_rates['h_rare_norm'].GetBinError(ich)/h_rates['h_rare_norm'].GetBinContent(ich)
+    else:
+	staterror= 1.0	
     # stat error for rare bkgs
     for k in range(1,n_channels+1):
         if( k == ich):
@@ -225,7 +257,10 @@ for ich in range(1,n_channels+1):
 
 for ich in range(1,n_channels+1):
     file_out.write('{:15s} {:3s} {:6s}'.format('VG_stat'+str(ich),'lnN',''))
-    staterror= 1.0 + h_rates['h_VGamma_norm'].GetBinError(ich)/h_rates['h_VGamma_norm'].GetBinContent(ich)
+    if(h_rates['h_VGamma_norm'].GetBinContent(ich) != 0):
+    	staterror= 1.0 + h_rates['h_VGamma_norm'].GetBinError(ich)/h_rates['h_VGamma_norm'].GetBinContent(ich)
+    else:
+	staterror= 1.0	
     # stat error for VG bkgs
     for k in range(1,n_channels+1):
         if( k == ich):

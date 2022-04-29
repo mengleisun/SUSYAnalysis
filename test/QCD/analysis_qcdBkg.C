@@ -64,7 +64,7 @@ void analysis_qcdBkg(){
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
 	//fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/test_egsignal_GJet.root");
-	fakeEtree->Add("fakelep_egsignal_GJet.root");
+	fakeEtree->Add("/eos/uscms/store/user/tmishra/fakeLep/fakelep_egsignal_GJet.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -202,7 +202,7 @@ void analysis_qcdBkg(){
 	p_dPhiEleMET_2->Draw("EP same");
 	p_dPhiEleMET_3->Draw("EP same");
 
-	TFile *outputfile = TFile::Open("signalTree_qcd.root","RECREATE");
+	TFile *outputfile = TFile::Open("/eos/uscms/store/user/tmishra/fakeLep/signalTree_qcd.root","RECREATE");
 	outputfile->cd();
 	p_PhoEt->Write();
 	p_PhoEta->Write();

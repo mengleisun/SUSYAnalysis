@@ -10,6 +10,7 @@ void pred_VGBkg(){
   	gSystem->Load("../../lib/libAnaClasses.so");
 	
 	esfScaleFactor  objectESF;
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 
 	if(anatype == 0)toDeriveScale = true;
@@ -170,11 +171,11 @@ void pred_VGBkg(){
 	if(channelType == 1)chainname << "egTree";
 	else if(channelType == 2)chainname << "mgTree";
   	TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
-  	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG35_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG50_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG130_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_ZG_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_DY.root");
+	 mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG35_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG50_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG130_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_ZG_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_DY.root");
 	float crosssection(0);
 	float ntotalevent(0);
 	float ISRWeight(0);
@@ -283,9 +284,10 @@ void pred_VGBkg(){
 
 		if(mcType == 4 && llmass < 30)continue;
 		if(mcType == 5 && llmass > 30)continue;
-
-		float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
-
+		
+		
+		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		//float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight*factorMC;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup*ISRWeight*factorMC;
 		float weight_normup = PUweight*XS_weight*scalefactor*ISRWeight*factorMCUP;
@@ -445,8 +447,10 @@ void pred_VGBkg(){
 		syserror += pow(jererror,2);
 		p_dPhiEleMET->SetBinError(ibin,sqrt(syserror));
 	}	
+	cout<<"each bin VGammma content"<<endl;
 	for(int contbin(1); contbin <=NBIN; contbin++){
 		float nominalsig = h_VGamma_norm->GetBinContent(contbin); 
+		cout<<contbin <<" "<< nominalsig<<endl;
 		float jesuperror = fabs(h_VGamma_jesUp->GetBinContent(contbin)- nominalsig);
 		float jesdoerror = fabs(h_VGamma_jesDown->GetBinContent(contbin)- nominalsig);
 		float jeruperror = fabs(h_VGamma_jerUp->GetBinContent(contbin)- nominalsig);

@@ -64,9 +64,8 @@ enum RunType{
   public:
     rawData(TTree *tree, RunType type): runtype_(type)
   {    
-	  if(type == MC || type == MCDoubleEG2016 || type == MCMuonEG2016 ||  type == MCSingleElectron2016 || type == MCSingleMuon2016 ||  type == MCDoubleMuon2016 || type == MCMET2016 ){
+	  if(type == MC || type == MCDoubleEG2016 || type == MCMuonEG2016 ||  type == MCSingleElectron2016 || type == MCSingleMuon2016 ||  type == MCDoubleMuon2016 || type == MCMET2016 || type == MCDoubleEG2017 || type == MCMuonEG2017 ||  type == MCSingleElectron2017 || type == MCSingleMuon2017 ||  type == MCDoubleMuon2017 || type == MCMET2017 || type == MCDoubleEG2018 || type == MCMuonEG2018 ||  type == MCSingleElectron2018 || type == MCSingleMuon2018 ||  type == MCDoubleMuon2018 || type == MCMET2018 ){
 		tree->SetBranchAddress("EventTag",     &EventTag);
-		
 		tree->SetBranchAddress("nMC",          &nMC);
 		tree->SetBranchAddress("mcPID",        &mcPID);
 		tree->SetBranchAddress("mcPt",         &mcPt);

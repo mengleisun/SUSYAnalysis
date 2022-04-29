@@ -31,7 +31,7 @@
 
 void validateDPhi(){//main 
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
   std::ostringstream histname;
  
   TChain* es = new TChain("ggNtuplizer/EventTree");
@@ -110,5 +110,3 @@ void validateDPhi(){//main
 	leg->AddEntry(p_dphi_gen, "#Delta#phi, MET > 40");
 	leg->Draw("same");
 }
-
-

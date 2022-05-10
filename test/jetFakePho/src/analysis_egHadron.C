@@ -1,3 +1,4 @@
+//  g++ `root-config --cflags` analysis_egHadron.C  -o analysis_egHadron.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -26,24 +27,26 @@
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_mcData.h"
+#include "../../../src/analysis_rawData.cc"
+#include "../../../src/analysis_ele.cc"
+#include "../../../src/analysis_photon.cc"
+#include "../../../src/analysis_muon.cc"
 
-void analysis_egHadron(){//main  
-
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/plot_hadron_DoubleEG.root";
+void analysis_egHadron(int RunYear, const char *Era){//main
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/plot_hadron_DoubleEG.log"); 
+  logfile.open(Form("/eos/uscms/store/user/tmishra/jetfakepho/logs/plot_hadron_DoubleEG_%d%s.log",RunYear,Era),ios::trunc);
 
   logfile << "analysis_hadron()" << std::endl;
-
-  RunType datatype(DoubleEG2016); 
+  RunType datatype;
+  if(RunYear==2016) datatype = DoubleEG2016;
+  if(RunYear==2017) datatype = DoubleEG2017;
+  if(RunYear==2018) datatype = DoubleEG2018;
 
   TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/skim-DoubleEG_FebReminiAOD.root");
+  es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_%d%s.root",RunYear,Era));
 
-  TFile *outputfile = TFile::Open(outputname,"NEW");
-  outputfile->cd();
+  TFile *output = TFile::Open(Form("/eos/uscms/store/user/tmishra/jetfakepho/files/plot_hadron_DoubleEG_%d%s.root",RunYear,Era),"RECREATE");
+  output->cd();
 
   TH1F *size_eleproxy = new TH1F("size_eleproxy","",10,0,10);
 	TH1F *ele_et = new TH1F("ele_et","",100,0,100);
@@ -155,7 +158,8 @@ void analysis_egHadron(){//main
 	int METFilter(0);
 	logfile << "RunType: " << datatype << std::endl;
 
-	const unsigned nEvts = es->GetEntries(); 
+	const unsigned nEvts = es->GetEntries();
+	//const unsigned nEvts = 1000000;
 	std::cout << "total " << nEvts << std::endl;
 	logfile <<   "total " << nEvts << std::endl;
 
@@ -296,7 +300,6 @@ void analysis_egHadron(){//main
 		if(nsizeele == 1){
 			for(unsigned ie(0); ie < signalEleVec.size(); ie++)ele_et->Fill(signalEleVec[ie]->getPt());
 		}
-
 		if(signalEleVec.size() > 0 && !hasSigPho){
 			std::vector<recoEle>::iterator hadEle = signalEleVec[0];
 			for(unsigned ip(0); ip < hadPhoVec.size(); ip++){
@@ -323,5 +326,21 @@ void analysis_egHadron(){//main
 		}
 
 	} 
-outputfile->Write();
+cout<<signaltree->GetEntries()<<endl;
+cout<<eleproxytree->GetEntries()<<endl;
+cout<<hadtree->GetEntries()<<endl;
+logfile << "signalTree: " << signaltree->GetEntries() <<std::endl;
+logfile << "eleproxyTree: " << eleproxytree->GetEntries() <<std::endl;
+logfile << "hadTree: " << hadtree->GetEntries() <<std::endl;
+output->Write();
+output->Close();
+logfile.close();
+}
+
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+      cout << "You have to provide two arguments!!\n";
+    analysis_egHadron(atoi(argv[1]),argv[2]);
+    return 0;
 }

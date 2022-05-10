@@ -1,3 +1,4 @@
+// store W and top pT in addition to eg tree
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -39,7 +40,7 @@ void analysis_W(){//main
 
   RunType datatype(MC); 
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/TT-powheg.root");
 	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WGToLNuG_madgraphMLM_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
@@ -242,6 +243,7 @@ void analysis_W(){//main
   mcGMomPID.clear();
 						 for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){
 						 	if(itMC->getEt() < 1.0)continue;
+							// W and top pT
 							if(fabs(itMC->getPID()) == 24)WPt = itMC->getMass();
 							else if(fabs(itMC->getMomPID()) == 24)WPt = itMC->getmomMass();
 							if(fabs(itMC->getPID()) == 24 && fabs(itMC->getMomPID()) == 6)TPt = itMC->getmomMass();

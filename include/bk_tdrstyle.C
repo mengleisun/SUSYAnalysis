@@ -2,10 +2,13 @@
 #include "TPad.h"
 #include "TLatex.h"
 
-  TStyle *tdrStyle = new TStyle("tdrStyle","Style for P-TDR");
+TStyle *tdrStyle = new TStyle("tdrStyle","Style for P-TDR");
 // tdrGrid: Turns the grid lines on (true) or off (false)
 	TLatex *prelim = new TLatex(0.15,0.8, "#splitline{#font[22]{CMS}}{#font[12]{Preliminary}}");
 	TLatex *lumitex = new TLatex(0.6,0.92, "35.87 fb^{-1} (13 TeV)");
+	//TLatex *lumitex17 = new TLatex(0.6,0.92, "41.54 fb^{-1} (13 TeV)");
+	TLatex *lumitex17 = new TLatex(0.6,0.92, "27.13 fb^{-1} (13 TeV)");
+	TLatex *lumitex18 = new TLatex(0.6,0.92, "59.96 fb^{-1} (13 TeV)");
 
 void tdrGrid(bool gridOn) {
   tdrStyle->SetPadGridX(gridOn);
@@ -157,5 +160,7 @@ void setTDRStyle() {
 
   prelim->SetNDC();
 	lumitex->SetNDC();
+	lumitex17->SetNDC();
+	lumitex18->SetNDC();
 
 }

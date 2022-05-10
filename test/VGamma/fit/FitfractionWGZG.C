@@ -1,3 +1,4 @@
+// same as Fitfractioneg.C, VGamma splitted to WG and ZG, an extra fit is made
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -57,6 +58,7 @@ FitfractionWGZG(int ih,int metlow, int methigh, int leplow, int lephigh, int iso
 
 	std::ostringstream filename;
 	filename.str("");
+	// data in the control region
 	filename << "../../Background/controlTree_egamma_signal_" << "met" << metlow << "_" << methigh << "_pt" << leplow << "_" << lephigh << ".root";
 	TFile *file_sig = TFile::Open(filename.str().c_str());
 	filename.str("");
@@ -85,17 +87,21 @@ FitfractionWGZG(int ih,int metlow, int methigh, int leplow, int lephigh, int iso
 
 	TH1D *p_rawsig = (TH1D*)p_sig->Clone("p_rawsig");
 	TH1D *p_target = (TH1D*)p_sig->Clone("fit_target");
+	//Target distribution is deltaPhi shape of the data in the CR, with jet fake photon, ele fake photon, rare EWK backgrounds subtracted.
 	p_target->Add(p_rare, -1);
 	p_target->Add(p_ele, -1);
 	p_target->Add(p_jet, -1);
 	p_target->Sumw2();
+	// fake lepton template
   TH1D *p_proxy = (TH1D*)file_qcd->Get("p_dPhiEleMET");
+	// WG and VG templates
   TH1D *p_MC_WG = (TH1D*)file_VG->Get("p_dPhiEleMET_WG"); 
   TH1D *p_MC_ZG = (TH1D*)file_VG->Get("p_dPhiEleMET_ZG"); 
 	gRandom = new TRandom3(0);
 	gRandom->SetSeed(0);
 	double radomMC = -1+ gRandom->Rndm()*2.0;
 	if(ih == 0)radomMC = 0;
+	// WG and ZG error from random number generation
 	for(int ibin(1); ibin < p_MC_WG->GetSize(); ibin++)p_MC_WG->SetBinContent(ibin, p_MC_WG->GetBinContent(ibin)+radomMC*p_MC_WG->GetBinError(ibin));
 	for(int ibin(1); ibin < p_MC_ZG->GetSize(); ibin++)p_MC_ZG->SetBinContent(ibin, p_MC_ZG->GetBinContent(ibin)+radomMC*p_MC_ZG->GetBinError(ibin));
 	p_MC_WG->Sumw2();
@@ -117,24 +123,32 @@ FitfractionWGZG(int ih,int metlow, int methigh, int leplow, int lephigh, int iso
 //	p_MC->Rebin(2);	
 
   RooRealVar dphi("dphi","",0,3.2);
+	// RooDataHist for target and three fitting templates
   RooDataHist* h_target = new RooDataHist("h_target","h_target",dphi,p_target);
   RooDataHist* h_proxy  = new RooDataHist("h_proxy", "h_proxy", dphi,p_proxy );
   RooDataHist* h_MC_WG  = new RooDataHist("h_MC_WG", "h_MC_WG", dphi,p_MC_WG);
   RooDataHist* h_MC_ZG  = new RooDataHist("h_MC_ZG", "h_MC_ZG", dphi,p_MC_ZG);
+	// RooHistPdf for fake lepton, WG, ZG
   RooHistPdf*  pdf_proxy= new RooHistPdf("pdf_proxy","pdf_proxy",dphi, *h_proxy);
   RooHistPdf*  pdf_MC_WG= new RooHistPdf("pdf_MC_WG","pdf_MC_WG",dphi, *h_MC_WG);
   RooHistPdf*  pdf_MC_ZG= new RooHistPdf("pdf_MC_ZG","pdf_MC_ZG",dphi, *h_MC_ZG);
+	// fraction of fake lepton and VG
   RooRealVar fakefrac("fakefrac","fakefrac",0.3,0,1.0);
+	// fraction of WG and ZG
   RooRealVar mcfrac("mcfrac","mcfrac",0.6);
+	// combined pdf of WG and ZG
 	RooAddPdf* pdf_MC_VG = new RooAddPdf("pdf_MC_VG", "", RooArgList(*pdf_MC_WG, *pdf_MC_ZG), mcfrac);
+	// combined pdf of fake lepton and VGamma
   RooAddPdf model("model","",RooArgList(*pdf_proxy, *pdf_MC_VG),RooArgList(fakefrac));
 
   RooPlot* frame = dphi.frame(RooFit::Title("#Delta#phi(l,MET) (40 GeV < MET < 70 GeV)"));
   TCanvas *can=new TCanvas("can","",600,600);
   can->cd(1);
+	// fitting dPhi of two templates to data
 	model.fitTo(*h_target,RooFit::SumW2Error(kTRUE),RooFit::Save());
   RooFitResult* result = model.fitTo(*h_target,RooFit::SumW2Error(kTRUE),RooFit::Save());
   h_target->plotOn(frame);
+	//histograms of figure 28, AN
   model.plotOn(frame,
 		   RooFit::FillColor(kBlue-4));
   model.plotOn(frame, RooFit::Components(*pdf_proxy),
@@ -155,20 +169,27 @@ FitfractionWGZG(int ih,int metlow, int methigh, int leplow, int lephigh, int iso
 	TH1D *p_qcd  = new TH1D("p_qcd","",32,0,3.2);
 	TH1D *p_WG = new TH1D("p_WG","",32,0,3.2);
 	TH1D *p_ZG = new TH1D("p_ZG","",32,0,3.2);
+	// unit normalised template histograms
 	TH1D *norm_WG = (TH1D*)p_MC_WG->Clone("norm_WG");
 	TH1D *norm_ZG = (TH1D*)p_MC_ZG->Clone("norm_ZG");
 	TH1D *norm_proxy = (TH1D*)p_proxy->Clone("norm_proxy");
 	norm_WG->Scale(1.0/norm_WG->Integral(1, norm_WG->GetSize()) );
 	norm_ZG->Scale(1.0/norm_ZG->Integral(1, norm_ZG->GetSize()) );
 	norm_proxy->Scale(1.0/norm_proxy->Integral(1, norm_proxy->GetSize()));
+	// unit normalised templates scaled by fakefrac and mcfrac (from template fit) and combined
 	p_combine->Add(norm_proxy, fakefrac.getVal());
 	p_combine->Add(norm_WG, (1-fakefrac.getVal())*mcfrac.getVal());
 	p_combine->Add(norm_ZG, (1-fakefrac.getVal())*(1-mcfrac.getVal()));
+	// p_combine should of Integral 1, It is scaled to data template
 	p_combine->Scale(p_target->Integral(1, p_target->GetSize()));
+
 	for(int ibin(1); ibin <= 32; ibin++)p_combine->SetBinError(ibin, fakefrac.getError()*p_combine->GetBinContent(ibin));
+
+	// unit normalised templates scaled to a fraction from fitting
 	p_qcd->Add(norm_proxy, fakefrac.getVal()*p_target->Integral(1, p_target->GetSize()));
 	p_WG->Add(norm_WG, (1-fakefrac.getVal())*mcfrac.getVal()*p_target->Integral(1, p_target->GetSize()));
 	p_ZG->Add(norm_ZG, (1-fakefrac.getVal())*(1-mcfrac.getVal())*p_target->Integral(1, p_target->GetSize()));
+
 	TH1D *fitratio = new TH1D("fitratio",";#Delta#phi(l, E_{T}^{miss});fit/data", 32,0,3.2);
 	TGraphErrors *fitratio_error = new TGraphErrors(32);
 	TGraphErrors *p_combine_error = new TGraphErrors(32);

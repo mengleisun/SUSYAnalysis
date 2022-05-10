@@ -450,7 +450,7 @@ void analysis_VGBkg(){
     if(mcType == 7)crosssection = 18760;
 		if((mcType == 7) && llmass > 30)continue;
 
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 	
 	
 		if(mcType == 2)XS_weight = XS_weight*WG40Factor;

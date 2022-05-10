@@ -30,10 +30,10 @@
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_fakes.h"
-
 void analysis_qcdBkg(){
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gROOT->SetBatch(kTRUE);
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
 	//*********** histo list **********************//
 	std::ostringstream histname;
@@ -63,7 +63,8 @@ void analysis_qcdBkg(){
 	TH1D *p_dPhiEleMET_3 = new TH1D("p_dPhiEleMET_3","dPhiEleMET",32,0,3.2); 
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
-	fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/test_egsignal_GJet.root");
+	//fakeEtree->Add("/uscms_data/d3/mengleis/Sep1/test_egsignal_GJet.root");
+	fakeEtree->Add("/eos/uscms/store/user/tmishra/fakeLep/fakelep_egsignal_GJet.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -146,7 +147,7 @@ void analysis_qcdBkg(){
 //		if(fakeLepIndex != 1)continue;
 //		if(fakeLepSigma < 0.00998 && fakeLepMiniIso < 0.1)continue;
 		if(fakeLepMiniIso > 0.4)continue;
-
+		// mini-isolation < 0.4 for fake electron proxies
 		p_PhoEt->Fill(phoEt, 1);
 		p_PhoEta->Fill(phoEta, 1);
 		p_LepPt->Fill(lepPt, 1);
@@ -201,7 +202,7 @@ void analysis_qcdBkg(){
 	p_dPhiEleMET_2->Draw("EP same");
 	p_dPhiEleMET_3->Draw("EP same");
 
-	TFile *outputfile = TFile::Open("signalTree_qcd.root","RECREATE");
+	TFile *outputfile = TFile::Open("/eos/uscms/store/user/tmishra/fakeLep/signalTree_qcd.root","RECREATE");
 	outputfile->cd();
 	p_PhoEt->Write();
 	p_PhoEta->Write();

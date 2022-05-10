@@ -1,3 +1,5 @@
+// g++ `root-config --cflags` ../../../lib/libAnaClasses.so analysis_egMC.C -o analysis_egMC.exe `root-config --libs`
+
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -25,42 +27,119 @@
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_mcData.h"
 #include "../../../include/analysis_tools.h"
-#include "../../../include/analysis_jet.h"
 
 
-void analysis_egMC(){//main 
+void analysis_egMC(int RunYear, const char *Sample){//main 
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-
-  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_GJet.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_GJet.log"); 
+  logfile.open(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_%s_%d.log",Sample,RunYear)); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
   //logfile << "Loose the proxy definition: no upper bounds for photon; LooseFakeProxy for electron" << std::endl;
-  RunType datatype(MCDoubleEG); 
+
+  RunType datatype;
+  if(RunYear==2016) datatype = MCDoubleEG2016;
+  if(RunYear==2017) datatype = MCDoubleEG2017;
+  if(RunYear==2018) datatype = MCDoubleEG2018;
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2017 || datatype == MCMuonEG2017||  datatype == MCSingleElectron2017 || datatype == MCSingleMuon2017||  datatype == MCDoubleMuon2017 || datatype == MCMET2017)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2018 || datatype == MCMuonEG2018||  datatype == MCSingleElectron2018 || datatype == MCSingleMuon2018||  datatype == MCDoubleMuon2018 || datatype == MCMET2018)isMC=true;
+
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WJetsToLNu_RunIISummer16MiniAODv2-TrancheIV_v6-ext2-v1.root");
-//	es->Add("root://cmseos.fnal.gov///store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
+	
+	char* inputfile = new char[300];
+  	if (strstr(Sample, "DYJetsToLL") != NULL or strstr(Sample, "TTJets") != NULL or strstr(Sample, "WJetsToLNu"))
+  		sprintf(inputfile,"/eos/uscms/store/group/lpcsusyphotons/Tribeni/%s/%s_%d.root",Sample,Sample,RunYear);
+  	else
+  		sprintf(inputfile,"/eos/uscms/store/user/tmishra/InputFilesMC/%s/%s_%d.root",Sample,Sample,RunYear);
+  	es->Add(inputfile);
 
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << outputname << std::endl;
 
-	int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
+  int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
 
-  TFile *outputfile = TFile::Open(outputname,"RECREATE");
+  TFile* outputfile = new TFile(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_%s_%d.root",Sample,RunYear),"RECREATE");
   outputfile->cd();
+  
+  int mcType;
+  float crosssection;
 
-  int mcType = MCType::GJet;
-  float crosssection = MC_XS[mcType];
+  if(strstr(inputfile, "WJetsToLNu") != NULL){
+                std::cout << "WJetsToLNu sample !" << std::endl;
+		crosssection = 53870.0;
+  }
+  if(strstr(inputfile, "WGToLNuG") != NULL){
+                std::cout << "WGToLNuG sample !" << std::endl;
+                mcType = MCType::WGJetInclusive;
+  }
+  else if(strstr(inputfile, "WGJet40") != NULL){
+                std::cout << "WGJet40 sample !" << std::endl;
+                mcType = MCType::WGJet40;
+  }
+  else if(strstr(inputfile, "WGJet130") != NULL){
+                std::cout << "WGJet130 sample !" << std::endl;
+                mcType = MCType::WGJet130;
+  }
+  else if(strstr(inputfile, "ZGToLLG") != NULL){
+                std::cout << "ZGInclusive sample !" << std::endl;
+                mcType = MCType::ZGInclusive;
+  }
+  else if(strstr(inputfile, "DYJetsToLL") != NULL){
+                std::cout << "DYJetsToLL sample !" << std::endl;
+                mcType = MCType::DYLL50;
+  }
+  else if(strstr(inputfile, "TTGJets") != NULL){
+                std::cout << "TTGJets sample !" << std::endl;
+                mcType = MCType::TTG;
+  }
+  else if(strstr(inputfile, "WWG") != NULL){
+                std::cout << "WWG sample !" << std::endl;
+                mcType = MCType::WWG;
+  }
+  else if(strstr(inputfile, "WZG") != NULL){
+                std::cout << "WZG sample !" << std::endl;
+                mcType = MCType::WZG;
+  }
+  else if(strstr(inputfile, "TTJets") != NULL){
+                std::cout << "TTJets sample !" << std::endl;
+                mcType = MCType::TT;
+  }
+  else if(strstr(inputfile, "WW") != NULL){
+                std::cout << "WW sample !" << std::endl;
+                mcType = MCType::WW;
+  }
+  else if(strstr(inputfile, "WZ") != NULL){
+                std::cout << "WZ sample !" << std::endl;
+                mcType = MCType::WZ;
+  }
+  else if(strstr(inputfile, "GJet") != NULL){
+                std::cout << "GJet sample !" << std::endl;
+                mcType = MCType::GJet;
+  }
+  else if(strstr(inputfile, "QCD_DoubleEM") != NULL){
+                std::cout << "QCD_DoubleEM sample !" << std::endl;
+                mcType = MCType::QCDEM40;
+  }
+  else {
+                std::cout << "not specific MC !" << std::endl;
+                mcType = MCType::NOMC;
+  }
+  Double_t  L1ECALPrefire;
+  crosssection  = MC_XS[mcType];
   float ntotalevent = es->GetEntries();
+  float lumiWeight = getEvtWeight(RunYear,crosssection, ntotalevent);
+
+  cout<<"crosssection = "<<crosssection<<endl;
+  cout<<"ntotalevent = "<<ntotalevent<<endl;
+  cout<<"lumiWeight = "<<lumiWeight<<endl;
+
 //************ Signal Tree **********************//
   TTree *sigtree = new TTree("signalTree","signalTree");
   int   run(0);
@@ -90,10 +169,11 @@ void analysis_egMC(){//main
   std::vector<int>   mcMomPID;
   std::vector<int>   mcGMomPID;
 
-	sigtree->Branch("crosssection",&crosssection);
-	sigtree->Branch("ntotalevent", &ntotalevent);
+  sigtree->Branch("crosssection",&crosssection);
+  sigtree->Branch("ntotalevent", &ntotalevent);
   sigtree->Branch("run",       &run);
   sigtree->Branch("event",     &event);
+  sigtree->Branch("L1ECALPrefire",     &L1ECALPrefire);
   sigtree->Branch("lumis",     &lumis);
   sigtree->Branch("phoEt",     &phoEt);
   sigtree->Branch("phoEta",    &phoEta);
@@ -109,17 +189,17 @@ void analysis_egMC(){//main
   sigtree->Branch("dRPhoLep",  &dRPhoLep);
   sigtree->Branch("HT",        &HT);
   sigtree->Branch("nJet",      &nJet);
-	sigtree->Branch("trailPt",   &trailPt);
-	sigtree->Branch("trailEta",  &trailEta);
-	sigtree->Branch("trailPhi",  &trailPhi);
-	if(isMC){
+  sigtree->Branch("trailPt",   &trailPt);
+  sigtree->Branch("trailEta",  &trailEta);
+  sigtree->Branch("trailPhi",  &trailPhi);
+  if(isMC){
   	sigtree->Branch("mcPID",     &mcPID);
   	sigtree->Branch("mcEta",     &mcEta);
   	sigtree->Branch("mcPhi",     &mcPhi);
-  	sigtree->Branch("mcPt",      &mcPt);
+ 	sigtree->Branch("mcPt",      &mcPt);
   	sigtree->Branch("mcMomPID",  &mcMomPID);
   	sigtree->Branch("mcGMomPID", &mcGMomPID);
-	}
+  }
                                                                                                 
 //************ Signal Tree **********************//
   TTree *proxytree = new TTree("proxyTree","proxyTree");
@@ -143,8 +223,9 @@ void analysis_egMC(){//main
 	float proxytrailEta(0);
 	float proxytrailPhi(0);
   
-	proxytree->Branch("crosssection",&crosssection);
-	proxytree->Branch("ntotalevent", &ntotalevent);
+  proxytree->Branch("crosssection",&crosssection);
+  proxytree->Branch("L1ECALPrefire",     &L1ECALPrefire);
+  proxytree->Branch("ntotalevent", &ntotalevent);
   proxytree->Branch("phoEt",     &proxyphoEt);
   proxytree->Branch("phoEta",    &proxyphoEta);
   proxytree->Branch("phoPhi",    &proxyphoPhi);
@@ -185,8 +266,9 @@ void analysis_egMC(){//main
 	float jettrailEta(0);
 	float jettrailPhi(0);
   
-	jettree->Branch("crosssection",&crosssection);
-	jettree->Branch("ntotalevent", &ntotalevent);
+  jettree->Branch("crosssection",&crosssection);
+  jettree->Branch("ntotalevent", &ntotalevent);
+  jettree->Branch("L1ECALPrefire",     &L1ECALPrefire);
   jettree->Branch("phoEt",     &jetphoEt);
   jettree->Branch("phoEta",    &jetphoEta);
   jettree->Branch("phoPhi",    &jetphoPhi);
@@ -228,8 +310,9 @@ void analysis_egMC(){//main
   float fakeLepnJet(0);
   
   
-	fakeLeptree->Branch("crosssection",&crosssection);
-	fakeLeptree->Branch("ntotalevent", &ntotalevent);
+  fakeLeptree->Branch("crosssection",&crosssection);
+  fakeLeptree->Branch("ntotalevent", &ntotalevent);
+  fakeLeptree->Branch("L1ECALPrefire",     &L1ECALPrefire);
   fakeLeptree->Branch("phoEt",     &fakeLepphoEt);
   fakeLeptree->Branch("phoEta",    &fakeLepphoEta);
   fakeLeptree->Branch("phoPhi",    &fakeLepphoPhi);
@@ -278,6 +361,7 @@ void analysis_egMC(){//main
 
 	hadrontree->Branch("crosssection",&crosssection);
 	hadrontree->Branch("ntotalevent", &ntotalevent);
+  	hadrontree->Branch("L1ECALPrefire",     &L1ECALPrefire);
 	hadrontree->Branch("phoEt",     &hadron_phoEt);
 	hadrontree->Branch("phoEta",    &hadron_phoEta);
 	hadrontree->Branch("phoPhi",    &hadron_phoPhi);
@@ -344,6 +428,7 @@ void analysis_egMC(){//main
 			run=raw.run;
 			event=raw.event;
 			lumis=raw.lumis;
+			L1ECALPrefire=raw.L1ECALPrefire;
 
 			nTotal+=1;
 			if(!raw.passHLT())continue;
@@ -629,7 +714,7 @@ void analysis_egMC(){//main
 									jetnJet += 1;
 									jetHT += itJet->getPt();	
 								}
-								jettree->Fill();
+								jettree->Fill();// jet fake photon tree
 
 							}//MET Filter
 						}// Z mass Filter
@@ -682,7 +767,7 @@ void analysis_egMC(){//main
 									fakeLepnJet += 1;
 									fakeLepHT += itJet->getPt();
 								}	
-								fakeLeptree->Fill();
+								fakeLeptree->Fill();// fake lepton tree
 
 							}//MET Filter
 						}// Z mass Filter
@@ -730,6 +815,7 @@ void analysis_egMC(){//main
 					hadron_nVertex = nVtx;
 					hadron_HT = 0;
 					hadron_nJet = jetNumber;
+					// photon passing all selection, except signal selection; hadron photon
 				}}
 			}
 			for(unsigned ip(0); ip < hadeleproxyPhoCollection.size(); ip++){
@@ -744,6 +830,7 @@ void analysis_egMC(){//main
 						hadron_eleproxySigma.push_back(proxyPho->getSigma());
 						hadron_eleproxyChIso.push_back(proxyPho->getChIso());
 						hadron_eleproxynVertex.push_back(nVtx); 
+						// electron-fake-photon
 					}//dR filter
 				}// loop on ele collection
 			} // loop on pho collection
@@ -789,4 +876,10 @@ void analysis_egMC(){//main
 	logfile.close();
 }
 
-
+int main(int argc, char** argv)
+{
+    if(argc < 2)
+      cout << "You have to provide two arguments!!\n";
+    analysis_egMC(atoi(argv[1]),argv[2]);
+    return 0;
+}

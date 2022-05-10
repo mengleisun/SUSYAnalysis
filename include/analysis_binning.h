@@ -21,6 +21,7 @@
 	~binning(){
 	};
 
+   	// AN bins (18 bins)
 	inline int findSignalBin(float MET, float HT, float Et){
 
 		int SigBinIndex(-1);
@@ -64,31 +65,86 @@
 		}
 		return SigBinIndex;
 	}
-	
-//	inline int findSignalBin(float MET, float HT, float Et){
-//
-//		int SigBinIndex(-1);
-//			if(MET > 120 && MET <= METbin1_){
-//				if(HT  < HTbin1_)SigBinIndex = 0;
-//				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 1;
-//				else if(HT >= HTbin2_)SigBinIndex = 2; 
-//			}
-//			else if(MET > METbin1_ && MET <= METbin2_){
-//				if(HT  < HTbin1_)SigBinIndex = 3;
-//				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 4; 
-//				else if(HT >= HTbin2_)SigBinIndex = 5;
-//			}
-//			else if(MET > METbin2_ && MET < 600){ 
-//				if(HT  < HTbin1_)SigBinIndex = 6;
-//				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 7; 
-//				else if(HT >= HTbin2_)SigBinIndex = 8;
-//			}
-//			else if(MET >= 600){
-//				if(HT  < HTbin2_)SigBinIndex = 9;
-//				else if(HT >= HTbin2_)SigBinIndex = 10;	
-//			}
-//		return SigBinIndex;
-//	}
+
+
+	//   option1 : 9 bins
+/*	inline int findSignalBin(float MET, float HT, float Et){
+
+		int SigBinIndex(-1);
+		int halfbin = NBIN_/2;
+		if(NBIN_ > 20)halfbin = NBIN_/3;
+
+			if(MET > 120 && MET <= METbin1_){
+				if(HT  < HTbin1_)SigBinIndex = 0;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 1;
+				else if(HT >= HTbin2_)SigBinIndex = 2; 
+			}
+			else if(MET > METbin1_ && MET <= METbin2_){
+				if(HT  < HTbin1_)SigBinIndex = 3;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 4; 
+				else if(HT >= HTbin2_)SigBinIndex = 5;
+			}
+			else if(MET > METbin2_){ 
+				if(HT  < HTbin1_)SigBinIndex = 6;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 7; 
+				else if(HT >= HTbin2_)SigBinIndex = 8;
+			}
+		return SigBinIndex;
+	}
+
+
+	// option3	(11 bins)
+	inline int findSignalBin(float MET, float HT, float Et){
+
+		int SigBinIndex(-1);
+			if(MET > 120 && MET <= METbin1_){
+				if(HT  < HTbin1_)SigBinIndex = 0;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 1;
+				else if(HT >= HTbin2_)SigBinIndex = 2; 
+			}
+			else if(MET > METbin1_ && MET <= METbin2_){
+				if(HT  < HTbin1_)SigBinIndex = 3;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 4; 
+				else if(HT >= HTbin2_)SigBinIndex = 5;
+			}
+			else if(MET > METbin2_ && MET < 600){ 
+				if(HT  < HTbin1_)SigBinIndex = 6;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 7; 
+				else if(HT >= HTbin2_)SigBinIndex = 8;
+			}
+			else if(MET >= 600){
+				if(HT  < HTbin2_)SigBinIndex = 9;
+				else if(HT >= HTbin2_)SigBinIndex = 10;	
+			}
+		return SigBinIndex;
+	}
+
+// option4  (10 bins)
+
+	inline int findSignalBin(float MET, float HT, float Et){
+
+		int SigBinIndex(-1);
+			if(MET > 120 && MET <= METbin1_){
+				if(HT  < HTbin1_)SigBinIndex = 0;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 1;
+				else if(HT >= HTbin2_)SigBinIndex = 2; 
+			}
+			else if(MET > METbin1_ && MET <= METbin2_){
+				if(HT  < HTbin1_)SigBinIndex = 3;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 4; 
+				else if(HT >= HTbin2_)SigBinIndex = 5;
+			}
+			else if(MET > METbin2_ && MET < 600){ 
+				if(HT  < HTbin1_)SigBinIndex = 6;
+				else if(HT  > HTbin1_ && HT < HTbin2_)SigBinIndex = 7; 
+				else if(HT >= HTbin2_)SigBinIndex = 8;
+			}
+			else if(MET >= 600){
+				SigBinIndex = 9;
+			}
+		return SigBinIndex;
+	}
+*/
 	private:
 		int	NBIN_;
 		float	METbin1_;
@@ -99,4 +155,3 @@
 	};
 
 #endif
-

@@ -22,10 +22,11 @@ void pred_qcdBkg(){
 	bool toDeriveScale(false);
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 
   int channelType = ichannel; // eg = 1; mg =2;
 	double factorQCD(1);
@@ -45,10 +46,11 @@ void pred_qcdBkg(){
 		factorQCDUP = 1;
 	}
 
+	// Corrections on electron proxy sample as described in Section 5.3.3 in AN
 	TFile *scaleFile;
 	if(channelType == 1)scaleFile = TFile::Open("qcd_eg_scale.root");
 	else if(channelType == 2)scaleFile = TFile::Open("qcd_mg_scale.root");
-	TH1D *p_scale;
+	TH1D *p_scale = 0;
 	if(channelType == 1)p_scale = (TH1D*)scaleFile->Get("transfer_factor");
 	else if(channelType == 2)p_scale = (TH1D*)scaleFile->Get("transfer_factor");
 
@@ -65,21 +67,21 @@ void pred_qcdBkg(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 
-	TH1D *h_qcdfakelep_norm;
-	TH1D *h_qcdfakelep_controlsample;
-	TH1D *h_qcdfakelep_transferfactor;
-	TH1D *h_qcdfakelep_normup;
-	TH1D *h_qcdfakelep_unweight;
-	TH1D *h_qcdfakelep_syserr_jes;
-	TH1D *h_qcdfakelep_syserr_jer;
-	TH1D *h_qcdfakelep_syserr_esf;
-	TH1D *h_qcdfakelep_syserr_scale;
-	TH1D *h_qcdfakelep_syserr_e_to_pho;
-	TH1D *h_qcdfakelep_syserr_j_to_pho;
-	TH1D *h_qcdfakelep_syserr_j_to_lep;
-	TH1D *h_qcdfakelep_syserr_xs;
-	TH1D *h_qcdfakelep_syserr_lumi;
-	TH1D *h_qcdfakelep_syserr_isr;
+	TH1D *h_qcdfakelep_norm =0;
+	TH1D *h_qcdfakelep_controlsample =0;
+	TH1D *h_qcdfakelep_transferfactor =0;
+	TH1D *h_qcdfakelep_normup =0;
+	TH1D *h_qcdfakelep_unweight =0;
+	TH1D *h_qcdfakelep_syserr_jes =0;
+	TH1D *h_qcdfakelep_syserr_jer =0;
+	TH1D *h_qcdfakelep_syserr_esf =0;
+	TH1D *h_qcdfakelep_syserr_scale =0;
+	TH1D *h_qcdfakelep_syserr_e_to_pho =0;
+	TH1D *h_qcdfakelep_syserr_j_to_pho =0;
+	TH1D *h_qcdfakelep_syserr_j_to_lep =0;
+	TH1D *h_qcdfakelep_syserr_xs =0;
+	TH1D *h_qcdfakelep_syserr_lumi =0;
+	TH1D *h_qcdfakelep_syserr_isr =0;
 	if(channelType==1){
 		h_qcdfakelep_norm            = new TH1D("eg_qcdfakelep_norm","eventcount",NBIN,0,NBIN);
 		h_qcdfakelep_controlsample   = new TH1D("eg_qcdfakelep_controlsample","",NBIN,0,NBIN);
@@ -138,13 +140,12 @@ void pred_qcdBkg(){
 	
 // ********** fake lepton tree ************** //
   TChain *fakeEtree = new TChain("fakeLepTree","fakeLepTree");
-	//if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	//if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
-	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root");
-	if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
-	int   run(0);
-	Long_t event(0);
-	int   lumis(0);
+	if(channelType==1)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+        if(channelType==2)fakeEtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+
+  int   run(0);
+  Long_t event(0);
+  int   lumis(0);
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -159,13 +160,13 @@ void pred_qcdBkg(){
   float dPhiLepMET(0);
   int   nVertex(0);
   float dRPhoLep(0);
-	float threeMass(0);
+//	float threeMass(0);
   float HT(0);
   float nJet(0);
   
-	fakeEtree->SetBranchAddress("run",       &run);	
-	fakeEtree->SetBranchAddress("event",     &event);
-	fakeEtree->SetBranchAddress("lumis",     &lumis);
+  fakeEtree->SetBranchAddress("run",       &run);	
+  fakeEtree->SetBranchAddress("event",     &event);
+  fakeEtree->SetBranchAddress("lumis",     &lumis);
   fakeEtree->SetBranchAddress("phoEt",     &phoEt);
   fakeEtree->SetBranchAddress("phoEta",    &phoEta);
   fakeEtree->SetBranchAddress("phoPhi",    &phoPhi);
@@ -180,7 +181,7 @@ void pred_qcdBkg(){
   fakeEtree->SetBranchAddress("dPhiLepMET",&dPhiLepMET);
   fakeEtree->SetBranchAddress("nVertex",   &nVertex);
   fakeEtree->SetBranchAddress("dRPhoLep",  &dRPhoLep);
-	fakeEtree->SetBranchAddress("threeMass", &threeMass);
+//	fakeEtree->SetBranchAddress("threeMass", &threeMass);
   fakeEtree->SetBranchAddress("HT",        &HT);
   fakeEtree->SetBranchAddress("nJet",      &nJet);
 
@@ -192,7 +193,8 @@ void pred_qcdBkg(){
 		double w_qcd_up = 0; 
 		double w_qcd_unweight = 0;
 
-		if(channelType == 1){
+		// Corrections on electron proxy sample, not on muon proxy sample as described in Section 5.3.3 in AN
+		if(channelType == 1){ // eg channel
 			w_qcd = factorQCD*p_scale->GetBinContent(p_scale->FindBin(lepPt));
 			w_qcd_up = factorQCDUP*p_scale->GetBinContent(p_scale->FindBin(lepPt));
 			w_qcd_unweight = factorQCD;
@@ -339,6 +341,7 @@ void pred_qcdBkg(){
 	}	
 
 	std::ostringstream outputname;
+	outputname << "/uscms_data/d3/tmishra/Output/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	
@@ -375,9 +378,9 @@ void pred_qcdBkg(){
 	h_qcdfakelep_syserr_lumi->Write();      
 	h_qcdfakelep_syserr_isr->Write();     
 
-	for(unsigned ibin(1); ibin < h_qcdfakelep_controlsample->GetSize(); ibin++)std::cout <<"bin " << ibin << " " <<  h_qcdfakelep_controlsample->GetBinContent(ibin) << std::endl; 
+	for(int ibin(1); ibin < h_qcdfakelep_controlsample->GetSize(); ibin++)std::cout <<"bin " << ibin << " " <<  h_qcdfakelep_controlsample->GetBinContent(ibin) << std::endl; 
 	std::sort(sig_runV.begin(), sig_runV.end(), compareByRun);
-	for(unsigned i=0; i < sig_runV.size(); i++)std::cout <<  sig_runV[i].binN+18 << " " <<  sig_runV[i].runN << " " << sig_runV[i].lumiN << " " << sig_runV[i].eventN << std::endl;	
+	for(unsigned i=0; i < sig_runV.size(); i++)std::cout <<  sig_runV[i].binN+NBIN << " " <<  sig_runV[i].runN << " " << sig_runV[i].lumiN << " " << sig_runV[i].eventN << std::endl;	
 	outputfile->Write();
 	outputfile->Close();
 }

@@ -9,7 +9,7 @@ void pred_VGBkg(){
 
 	init_weight( ichannel, bgtype); 
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 	//*********** histo list **********************//
 	TH1F *prefit_PhoEt = (TH1F*)file_prefit->Get("p_PhoEt");
@@ -104,7 +104,7 @@ void pred_VGBkg(){
 		if(mcType == 5 && llmass > 30)continue;
 	
 		double scalefactor = getWeight(ichannel, bgtype, phoEt, nVertex, phoEta, lepPt, lepEta); 
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight;
 
 		/** cut flow *****/

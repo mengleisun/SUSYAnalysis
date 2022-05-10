@@ -19,6 +19,7 @@
 #include "TPad.h"
 #include "TPaveText.h"
 #include "../include/tdrstyle.C"
+int RunYear = 2016;
 
 bool isElectron(int PID, int momID){
    bool isEle;
@@ -50,7 +51,7 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 }
 
 void plotTrigger(){//main  
-
+	gROOT->SetBatch(kTRUE);
 	std::ostringstream treename;
 	bool plotLeading(false);
 
@@ -61,7 +62,7 @@ void plotTrigger(){//main
 	gStyle->SetOptStat(0);
 	setTDRStyle();    
 	gStyle->SetErrorX(0.5);
-	TFile *file = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/plot_egTrigger_ReMiniAOD.root");
+	TFile *file = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_ReMiniAOD_%d.root",RunYear));
 
   TCanvas *can[8];
   std::ostringstream canvas; 
@@ -169,7 +170,7 @@ void plotTrigger(){//main
 		}
 	}
 /***************************************************************************  Start MC ***************************************************************************/
-	TFile *mcfile = TFile::Open("/uscms_data/d3/mengleis/FullStatusOct/plot_egTrigger_DY.root");
+	TFile *mcfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_DY_%d.root",RunYear));
 
 	TTree *DYtree = (TTree*)mcfile->Get(treename.str().c_str());
 	float DY_tagPt(0);
@@ -261,11 +262,9 @@ void plotTrigger(){//main
 		}
 	}
 
-	std::ostringstream outputname;
-	outputname.str("");
-	if(plotLeading)outputname << "diphoton_pholeg.root";
-	else outputname << "diphoton_eleg.root";
-	TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
+	TFile *outputfile;
+	if(plotLeading) outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/diphoton_pholeg_%d.root",RunYear),"RECREATE");
+	else outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/diphoton_eleg_%d.root",RunYear),"RECREATE");
 	outputfile->cd();
 	p_effEB2D->Write();
 	p_effEBMC->Write();
@@ -278,15 +277,15 @@ void plotTrigger(){//main
 	gStyle->SetPalette(9, PaletteColors);
 	can[0]->cd();
 	p_leadeffEB->Draw();
-	if(plotLeading)can[0]->SaveAs("egTrigger_LeadingEB_re.pdf");
+	if(plotLeading)can[0]->SaveAs(Form("/eos/uscms/store/user/tmishra/Trigger/egTrigger_LeadingEB_%d.pdf",RunYear));
 
 	can[1]->cd();
 	p_traileffEB->Draw();
-	if(!plotLeading)can[1]->SaveAs("egTrigger_TrailingEB_re.pdf");
+	if(!plotLeading)can[1]->SaveAs(Form("/eos/uscms/store/user/tmishra/Trigger/egTrigger_TrailingEB_%d.pdf",RunYear));
 	
 	can[2]->cd();
 	p_traileffEE->Draw();
-	if(!plotLeading)can[2]->SaveAs("egTrigger_TrailingEE_re.pdf");
+	if(!plotLeading)can[2]->SaveAs(Form("/eos/uscms/store/user/tmishra/Trigger/egTrigger_TrailingEE_%d.pdf",RunYear));
 
 	can[3]->cd();
 	p_traileffEB->SetLineColor(kBlack);
@@ -298,7 +297,7 @@ void plotTrigger(){//main
 	leg->AddEntry(p_traileffEB, "EB");
 	leg->AddEntry(p_traileffEE, "EE");
 	leg->Draw("same");
-	if(!plotLeading)can[3]->SaveAs("egTrigger_TrailingAll_re.pdf");
+	if(!plotLeading)can[3]->SaveAs(Form("/eos/uscms/store/user/tmishra/Trigger/egTrigger_TrailingAll_%d.pdf",RunYear));
 
   can[4]->cd();
 	p_effEB2D->Draw("colz text");
@@ -311,12 +310,10 @@ void plotTrigger(){//main
 	if(!plotLeading)p_TriggerScale->SetTitle("electron trigger ESF");
 	p_TriggerScale->GetXaxis()->SetRangeUser(20,500);
 	p_TriggerScale->Draw("colz E text");
-	if(plotLeading)can[7]->SaveAs("egTrigger_LeadingESF_re.pdf");
-	else can[7]->SaveAs("egTrigger_TrailingESF_re.pdf");
+	if(plotLeading)can[7]->SaveAs(Form("/eos/uscms/store/user/tmishra/Trigger/egTrigger_LeadingESF_%d.pdf",RunYear));
+	else can[7]->SaveAs(Form("/eos/uscms/store/user/tmishra/Trigger/egTrigger_TrailingESF_%d.pdf",RunYear));
 
 	for(unsigned ibin(1); ibin < p_leadeffEB->GetSize(); ibin++){
 		std::cout << p_leadeffEB->GetBinCenter(ibin) << " EB " << p_leadeffEB->GetBinContent(ibin) << " EE " << p_traileffEE->GetBinContent(ibin) << std::endl;
 	}
 }
-
-

@@ -1,19 +1,21 @@
 #include "../../include/analysis_commoncode.h"
 #include "TProfile2D.h"
+int RunYear = 2016;
+
 void pred_VGBkg(){
-	
 	bool toDeriveScale(false);
 	SetSignalConfig();
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  	gSystem->Load("../../lib/libAnaClasses.so");
 	
 	esfScaleFactor  objectESF;
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 
 	if(anatype == 0)toDeriveScale = true;
 
-  int channelType = ichannel; // eg = 1; mg =2;
+  	int channelType = ichannel; // eg = 1; mg =2;
 	double factorMC(1);
 	double factorMCUP = factorMC*(1+0);
 	if(toDeriveScale){
@@ -33,6 +35,7 @@ void pred_VGBkg(){
 
 	//*********** histo list **********************//
 	std::ostringstream outputname;
+	outputname << "/uscms_data/d3/tmishra/Output/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	
@@ -58,24 +61,24 @@ void pred_VGBkg(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 
-	TH1D *h_VGamma_norm;
-	TH1D *h_VGamma_jesUp;
-	TH1D *h_VGamma_jesDown;
-	TH1D *h_VGamma_jerUp;
-	TH1D *h_VGamma_jerDown;
-	TH1D *h_VGamma_esfUp;
-	TH1D *h_VGamma_normUp;
-	TH1D *h_VGamma_isrAlter;
-	TH1D *h_VGamma_syserr_jes;
-	TH1D *h_VGamma_syserr_jer;
-	TH1D *h_VGamma_syserr_esf;
-	TH1D *h_VGamma_syserr_scale;
-	TH1D *h_VGamma_syserr_eleshape;
-	TH1D *h_VGamma_syserr_jetshape;
-	TH1D *h_VGamma_syserr_qcdshape;
-	TH1D *h_VGamma_syserr_xs;
-	TH1D *h_VGamma_syserr_lumi;
-	TH1D *h_VGamma_syserr_isr;
+	TH1D *h_VGamma_norm = 0;
+	TH1D *h_VGamma_jesUp = 0;
+	TH1D *h_VGamma_jesDown = 0;
+	TH1D *h_VGamma_jerUp = 0;
+	TH1D *h_VGamma_jerDown = 0;
+	TH1D *h_VGamma_esfUp = 0;
+	TH1D *h_VGamma_normUp = 0;
+	TH1D *h_VGamma_isrAlter = 0;
+	TH1D *h_VGamma_syserr_jes = 0;
+	TH1D *h_VGamma_syserr_jer = 0;
+	TH1D *h_VGamma_syserr_esf = 0;
+	TH1D *h_VGamma_syserr_scale = 0;
+	TH1D *h_VGamma_syserr_eleshape = 0;
+	TH1D *h_VGamma_syserr_jetshape = 0;
+	TH1D *h_VGamma_syserr_qcdshape = 0;
+	TH1D *h_VGamma_syserr_xs = 0;
+	TH1D *h_VGamma_syserr_lumi = 0;
+	TH1D *h_VGamma_syserr_isr = 0;
 	if(channelType==1){
 		h_VGamma_norm            = new TH1D("eg_VGamma_norm","eventcount",NBIN,0,NBIN);
 		h_VGamma_jesUp           = new TH1D("eg_VGamma_jesUp","eventcount",NBIN,0,NBIN);
@@ -161,36 +164,37 @@ void pred_VGBkg(){
 	TH1D *isrup_Mt = new TH1D("isrup_Mt","M_{T}; M_{T} (GeV);",nSigMtBins,sigMtBins); 
 	TH1D *isrup_HT = new TH1D("isrup_HT","HT; HT (GeV);",nSigHTBins, sigHTBins); 
 	TH1D *isrup_dPhiEleMET = new TH1D("isrup_dPhiEleMET","dPhiEleMET",32,0,3.2); 
-// ********  MC *************************//
+
+	// ********  MC *************************//
 	std::ostringstream chainname;
 	chainname.str("");
 	if(channelType == 1)chainname << "egTree";
 	else if(channelType == 2)chainname << "mgTree";
-  TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
-  mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG35_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG50_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG130_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_ZG_VetoEle.root");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_DY.root");
+  	TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
+	 mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG35_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG50_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG130_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_ZG_VetoEle.root");
+        mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_DY.root");
 	float crosssection(0);
 	float ntotalevent(0);
 	float ISRWeight(0);
 	int   mcType(0);
 	float PUweight(1);
-  float phoEt(0);
-  float phoEta(0);
-  float phoPhi(0);
-  float lepPt(0);
-  float lepEta(0);
-  float lepPhi(0);
-  float sigMT(0);
-  float sigMET(0);
-  float sigMETPhi(0);
-  float dPhiLepMET(0);
-  int   nVertex(0);
-  float dRPhoLep(0);
-  float HT(0);
-  float nJet(0);
+        float phoEt(0);
+        float phoEta(0);
+        float phoPhi(0);
+        float lepPt(0);
+        float lepEta(0);
+        float lepPhi(0);
+        float sigMT(0);
+        float sigMET(0);
+        float sigMETPhi(0);
+        float dPhiLepMET(0);
+        int   nVertex(0);
+        float dRPhoLep(0);
+        float HT(0);
+        float nJet(0);
 	float llmass(0);
 	float ISRPt(0); 
 	float sigMETJESup(0);
@@ -207,34 +211,34 @@ void pred_VGBkg(){
 	float dPhiLepMETJESdo(0);
 	float dPhiLepMETJERup(0);
 	float dPhiLepMETJERdo(0);
-  std::vector<int> *mcPID=0;
-  std::vector<float> *mcEta=0;
-  std::vector<float> *mcPhi=0;
-  std::vector<float> *mcPt=0;
-  std::vector<int> *mcMomPID=0;
-//  std::vector<int> *mcGMomPID=0;
-//
+  	std::vector<int> *mcPID=0;
+  	std::vector<float> *mcEta=0;
+  	std::vector<float> *mcPhi=0;
+  	std::vector<float> *mcPt=0;
+  	std::vector<int> *mcMomPID=0;
+	//  std::vector<int> *mcGMomPID=0;
+	
 	mctree->SetBranchAddress("crosssection",&crosssection);
 	mctree->SetBranchAddress("ntotalevent", &ntotalevent);
 	mctree->SetBranchAddress("ISRWeight", &ISRWeight);
 	mctree->SetBranchAddress("mcType",    &mcType);
 	mctree->SetBranchAddress("PUweight",  &PUweight);
-  mctree->SetBranchAddress("phoEt",     &phoEt);
-  mctree->SetBranchAddress("phoEta",    &phoEta);
-  mctree->SetBranchAddress("phoPhi",    &phoPhi);
-  mctree->SetBranchAddress("lepPt",     &lepPt);
-  mctree->SetBranchAddress("lepEta",    &lepEta);
-  mctree->SetBranchAddress("lepPhi",    &lepPhi);
-  mctree->SetBranchAddress("sigMT",     &sigMT);
-  mctree->SetBranchAddress("sigMET",    &sigMET);
-  mctree->SetBranchAddress("sigMETPhi", &sigMETPhi);
-  mctree->SetBranchAddress("dPhiLepMET",&dPhiLepMET);
-  mctree->SetBranchAddress("nVertex",   &nVertex);
-  mctree->SetBranchAddress("dRPhoLep",  &dRPhoLep);
+  	mctree->SetBranchAddress("phoEt",     &phoEt);
+  	mctree->SetBranchAddress("phoEta",    &phoEta);
+  	mctree->SetBranchAddress("phoPhi",    &phoPhi);
+  	mctree->SetBranchAddress("lepPt",     &lepPt);
+  	mctree->SetBranchAddress("lepEta",    &lepEta);
+  	mctree->SetBranchAddress("lepPhi",    &lepPhi);
+  	mctree->SetBranchAddress("sigMT",     &sigMT);
+  	mctree->SetBranchAddress("sigMET",    &sigMET);
+  	mctree->SetBranchAddress("sigMETPhi", &sigMETPhi);
+  	mctree->SetBranchAddress("dPhiLepMET",&dPhiLepMET);
+  	mctree->SetBranchAddress("nVertex",   &nVertex);
+  	mctree->SetBranchAddress("dRPhoLep",  &dRPhoLep);
 	mctree->SetBranchAddress("llmass",    &llmass);
-  mctree->SetBranchAddress("HT",        &HT);
-  mctree->SetBranchAddress("nJet",      &nJet);
-  mctree->SetBranchAddress("ISRJetPt",     &ISRPt);
+  	mctree->SetBranchAddress("HT",        &HT);
+  	mctree->SetBranchAddress("nJet",      &nJet);
+  	mctree->SetBranchAddress("ISRJetPt",     &ISRPt);
 	mctree->SetBranchAddress("sigMETJESup",     &sigMETJESup);
 	mctree->SetBranchAddress("sigMETJESdo",     &sigMETJESdo);
 	mctree->SetBranchAddress("sigMETJERup",     &sigMETJERup);
@@ -249,11 +253,11 @@ void pred_VGBkg(){
 	mctree->SetBranchAddress("dPhiLepMETJESdo", &dPhiLepMETJESdo);
 	mctree->SetBranchAddress("dPhiLepMETJERup", &dPhiLepMETJERup);
 	mctree->SetBranchAddress("dPhiLepMETJERdo", &dPhiLepMETJERdo);
-  mctree->SetBranchAddress("mcPID",     &mcPID);
-  mctree->SetBranchAddress("mcEta",     &mcEta);
-  mctree->SetBranchAddress("mcPhi",     &mcPhi);
-  mctree->SetBranchAddress("mcPt",      &mcPt);
-  mctree->SetBranchAddress("mcMomPID",  &mcMomPID);
+ 	mctree->SetBranchAddress("mcPID",     &mcPID);
+  	mctree->SetBranchAddress("mcEta",     &mcEta);
+  	mctree->SetBranchAddress("mcPhi",     &mcPhi);
+ 	mctree->SetBranchAddress("mcPt",      &mcPt);
+  	mctree->SetBranchAddress("mcMomPID",  &mcMomPID);
 
 	for(unsigned ievt(0); ievt < mctree->GetEntries(); ievt++){
 		mctree->GetEntry(ievt);
@@ -272,17 +276,18 @@ void pred_VGBkg(){
 		if(channelType == 2){
 			scalefactor = objectESF.getMuonESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getMuonEGTRGESF(phoEt, lepPt);
 			double s_mu_error = objectESF.getMuonESFError(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getMuonEGTRGESF(phoEt, lepPt);
-      double s_pho_error = objectESF.getPhotonESFError(phoEt,phoEta)*objectESF.getMuonESF(lepPt,lepEta)*objectESF.getMuonEGTRGESF(phoEt, lepPt);
-      double s_trg_error = objectESF.getMuonEGTRGESFError(phoEt, lepPt)*objectESF.getMuonESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta);
+      			double s_pho_error = objectESF.getPhotonESFError(phoEt,phoEta)*objectESF.getMuonESF(lepPt,lepEta)*objectESF.getMuonEGTRGESF(phoEt, lepPt);
+      			double s_trg_error = objectESF.getMuonEGTRGESFError(phoEt, lepPt)*objectESF.getMuonESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta);
 			double s_error = sqrt(pow(s_mu_error,2) + pow(s_pho_error,2) + pow(s_trg_error,2));
 			scalefactorup = scalefactor + s_error; 
 		}
 
 		if(mcType == 4 && llmass < 30)continue;
 		if(mcType == 5 && llmass > 30)continue;
-
+		
+		
 		float XS_weight = 35.87*1000*crosssection/ntotalevent;
-
+		//float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight*factorMC;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup*ISRWeight*factorMC;
 		float weight_normup = PUweight*XS_weight*scalefactor*ISRWeight*factorMCUP;
@@ -290,6 +295,7 @@ void pred_VGBkg(){
 
 		/** cut flow *****/
 		if(phoEt < 35 || fabs(phoEta) > 1.4442)continue;
+		// Mt and lepton pT cuts
 		if(sigMT < lowMt)continue;
 		if(highMt > 0 && sigMT > highMt)continue;
 		if(lepPt < lowPt)continue;
@@ -302,7 +308,7 @@ void pred_VGBkg(){
 		for(unsigned iMC(0); iMC<mcPID->size(); iMC++){
 			double dR = DeltaR((*mcEta)[iMC], (*mcPhi)[iMC], phoEta,phoPhi);
 			double dE = fabs((*mcPt)[iMC] - phoEt)/phoEt;
-			if(dR < mindRpho && dE < 0.5){mindRpho=dR; phoIndex=iMC;}
+			if(dR < mindRpho && dE < 0.5){	mindRpho=dR; phoIndex=iMC;	}
 		}
 		if(mindRpho < 0.2){
 			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex]) <= 6 || fabs((*mcMomPID)[phoIndex]) == 21 || fabs((*mcMomPID)[phoIndex]) == 999 || fabs((*mcMomPID)[phoIndex])== 11 || fabs((*mcMomPID)[phoIndex])== 13 || fabs((*mcMomPID)[phoIndex])== 15 || fabs((*mcMomPID)[phoIndex])== 23 || fabs((*mcMomPID)[phoIndex])== 24)  )istruepho=true;
@@ -319,6 +325,7 @@ void pred_VGBkg(){
 		isrup_MET->Fill(sigMET, weight_noisr);
 
 		/** cut flow *****/
+		// MET cut
 		if(sigMET < lowMET)continue;
 		if(highMET > 0 && sigMET > highMET)continue;
 
@@ -332,6 +339,7 @@ void pred_VGBkg(){
 		p_nJet->Fill(nJet, weight);
 
 		int SigBinIndex(-1);
+		// fill events in signal bins defined in analysis_binning.h
 		SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt); 
 		if(SigBinIndex >=0){
 			h_VGamma_norm->Fill( SigBinIndex, weight);
@@ -439,8 +447,10 @@ void pred_VGBkg(){
 		syserror += pow(jererror,2);
 		p_dPhiEleMET->SetBinError(ibin,sqrt(syserror));
 	}	
+	cout<<"each bin VGammma content"<<endl;
 	for(int contbin(1); contbin <=NBIN; contbin++){
 		float nominalsig = h_VGamma_norm->GetBinContent(contbin); 
+		cout<<contbin <<" "<< nominalsig<<endl;
 		float jesuperror = fabs(h_VGamma_jesUp->GetBinContent(contbin)- nominalsig);
 		float jesdoerror = fabs(h_VGamma_jesDown->GetBinContent(contbin)- nominalsig);
 		float jeruperror = fabs(h_VGamma_jerUp->GetBinContent(contbin)- nominalsig);

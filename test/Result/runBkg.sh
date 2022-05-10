@@ -86,8 +86,7 @@ do
 		root -q analysis_jetBkg.C++
 		root -q analysis_qcdBkg.C++
 		root -q analysis_rareBkg.C++
-
-		root -b -q plot_eventct.C++
+		root -b -q "plot_eventct.C+(36)"
 		root -q analysis_TChiWG.C++
 		mv SignalSystematic_egmg.root SignalSystematic_${METbin1}_${METbin2}.root
 		mv signalTree_TChiWG.root signalTree_TChiWG_${METbin1}_${METbin2}.root

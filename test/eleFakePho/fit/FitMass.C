@@ -66,8 +66,10 @@ enum BinType{
 
 bool isElectron(int PID, int momID){
    bool isEle;
+// electron particle ID = 11
    if(fabs(PID) == 11){ 
 	   switch(momID){
+// MomID is quark or gluon or Z boson, it is a electron.
 	     case 1: isEle = true; break;
 	     case 2: isEle = true; break;
 	     case 3: isEle = true; break;
@@ -86,7 +88,7 @@ bool isElectron(int PID, int momID){
 
 void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, int fitrangelow, int fitrangehigh){//main  
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libRooFitClasses.so");
+  gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 	setTDRStyle();
   
 	bool useCMSShape;
@@ -128,8 +130,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
 
 //************** Process Z->ee Tree ********************************************************//   
   TChain *etree = new TChain("FakeRateTree");																									
-  etree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho-FullEcalTnP.root");
-  //etree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP.root");
+  etree->Add("../src/plot_elefakepho_DYTnP_dR05.root");
 
   float invmass=0; 
   float probePt=0; 
@@ -158,7 +159,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
     if(bintype == byPt)keyvariable = probePt;
     else if(bintype == byEta)keyvariable = fabs(probeEta);
     else if(bintype == byVtx)keyvariable = nVertex;
-    if(keyvariable >= lowercut && keyvariable < uppercut){ 
+    if(keyvariable >= lowercut && keyvariable < uppercut){
 			if(inputfittype == 0 && vetovalue== false){p_invmass->Fill(invmass); invmass_newetree = invmass; newetree->Fill(); } 
 			else if(inputfittype == 1 && vetovalue== true && FSRveto == true){p_invmass->Fill(invmass); invmass_newetree = invmass; newetree->Fill(); }
 			Zee_PU->Fill(nVertex);
@@ -171,7 +172,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
   newbgtree->Branch("invmass", &invmass_fordataset);
 
   TChain *bgtree = new TChain("BGTree");
-  bgtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_bgtemplate_FullEcal.root");
+  bgtree->Add("../src/plot_bgtemplate_FullEcal.root");
   float invmass_bg=0; 
   float probePt_bg=0; 
   float probeEta_bg=0; 
@@ -211,7 +212,7 @@ void FitKer(int inputbintype, int inputfittype, float lowercut, float uppercut, 
 
 	if(useDY){
 		TChain *DYtree = new TChain("FakeRateTree");
-		DYtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP.root");
+		DYtree->Add("../src/plot_elefakepho_DYTnP_dR05.root");
 
 		float DY_invmass=0; 
 		float DY_tagPt=0; 

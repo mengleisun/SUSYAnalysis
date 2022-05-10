@@ -1,15 +1,15 @@
 #include "../include/analysis_commoncode.h"
 #include "../include/analysis_cuts.h"
 
-#define debugMCLevel 4
+#define debugMCLevel 0
 enum branchType{
-	gg = 1,
-	gZ = 2,
-	gH = 3,
-	gW = 4,
-	ZZ = 5,
+	gZ = 1,
+  gg = 2,
+  ZZ = 3,
+	gH = 4,
+	gW = 5,
 	HH = 6,
-	noType = 7	
+	noType = 7
 };
 
 struct decayChain{
@@ -19,26 +19,18 @@ struct decayChain{
 
 void analysis_SUSY(){//main  
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("../lib/libAnaClasses.so");
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/GGM_GravitinoLSP_M1-200to1500_M2-200to1500.root");
-	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5Wg_TuneCUETP8M1_RunIISummer16MiniAODv2_scan.root");
-	es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-TChiNG_BF50N50G_TuneCUETP8M1.root");
-	//es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/SMS-T6Wg_TuneCUETP8M1_RunIISummer16MiniAODv2_scan.root");
+	es->Add("/eos/uscms/store/user/msun/Signal/T6WG_TuneCUETP8M1_RunIISummer16MiniAOD.root");
+	//es->Add("root://cmseos.fnal.gov///store/user/msun/Signal/SMS-T5WG_TuneCUETP8M1_RunIISummer16MiniAOD.root");
+	//es->Add("/eos/uscms/store/user/msun/Signal/SMS-TChiWG_TuneCUETP8M1_RunIISummer16MiniAODv2.root");
 
 	RunType datatype(MC); 
 	std::ostringstream outputname;
-	//outputname << "/uscms_data/d3/mengleis/test/resTree_TChiWG.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_test.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNg_test_debug.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_test.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_GMSB_M1M3.root";
-	//outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_T6WG.root";
-	outputname << "/uscms_data/d3/mengleis/FullStatusOct/resTree_TChiNG_debug.root";
+	outputname << "/uscms/home/tmishra/nobackup/signal_trees/resTree_T6WG_2016_march.root";
+	//outputname << "/uscms/home/tmishra/nobackup/signal_trees/resTree_T5WG_2016.root";
+	//outputname << "/uscms/home/tmishra/nobackup/signal_trees/resTree_TChiWG_2016_march.root";
 
 	int SUSYtype(-1);
 	if(outputname.str().find("T5WG") != std::string::npos){
@@ -63,12 +55,17 @@ void analysis_SUSY(){//main
 	}
 
 	int decaybranch;
+	//std::vector<float> ScaleSystWeight; 
 
 	TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
 	outputfile->cd();
 	TTree *tree = new TTree("SUSYtree","SUSYtree");
 	float Mass1_(0);
 	float Mass2_(0);
+	float MsGsQ(0);
+  float Mchargino(0);
+	float Mneutralino(0);
+	float ISRPt(0);
 	float mcPhotonEt_(0);
 	float mcPhotonEta_(0);
 	float mcPhotonPhi_(0);
@@ -106,11 +103,16 @@ void analysis_SUSY(){//main
 	int   nJet_(0);
 	float HT_(0);
 	float sigMET_(0);
+	float genMET_(0);
 	double MT_(0), ThreeBodyMass_(0);
 	int   nVertex_(0);
 	
 	tree->Branch("Mass1",          &Mass1_);
 	tree->Branch("Mass2",          &Mass2_);
+  tree->Branch("MsGsQ",        		&MsGsQ);
+  tree->Branch("Mchargino",      &Mchargino);
+	tree->Branch("Mneutralino", &Mneutralino);
+	tree->Branch("ISRPt",       &ISRPt);
 	tree->Branch("branch",         &decaybranch);
 	tree->Branch("nVertex",        &nVertex_);
 	tree->Branch("MT",&MT_);
@@ -152,6 +154,8 @@ void analysis_SUSY(){//main
 	tree->Branch("nJet"           ,&nJet_);
 	tree->Branch("HT"             ,&HT_);
 	tree->Branch("sigMET"         ,&sigMET_);
+	tree->Branch("genMET"         ,&genMET_);
+	//tree->Branch("ScaleSystWeight",&ScaleSystWeight);
 	
 //************ Signal Tree **********************//
 	TTree *egtree = new TTree("egTree","egTree");
@@ -187,6 +191,10 @@ void analysis_SUSY(){//main
 	
 	egtree->Branch("Mass1",     &Mass1_);
 	egtree->Branch("Mass2",     &Mass2_);
+  egtree->Branch("MsGsQ",        		&MsGsQ);
+  egtree->Branch("Mchargino",      &Mchargino);
+	egtree->Branch("Mneutralino", &Mneutralino);
+	egtree->Branch("ISRPt",       &ISRPt);
 	egtree->Branch("branch",    &decaybranch);
 	egtree->Branch("phoEt",     &eg_phoEt);
 	egtree->Branch("phoEta",    &eg_phoEta);
@@ -197,6 +205,7 @@ void analysis_SUSY(){//main
 	egtree->Branch("sigMT",     &eg_sigMT);
 	egtree->Branch("sigMET",    &eg_sigMET);
 	egtree->Branch("sigMETPhi", &eg_sigMETPhi);
+	egtree->Branch("genMET",    &genMET_);
 	egtree->Branch("dPhiLepMET",&eg_dPhiLepMET);
 	egtree->Branch("nVertex",   &eg_nVertex);
 	egtree->Branch("dRPhoLep",  &eg_dRPhoLep);
@@ -217,6 +226,7 @@ void analysis_SUSY(){//main
 	egtree->Branch("dPhiLepMETJERdo", &eg_dPhiLepMETJERdo);
 	egtree->Branch("HTJESup",     &eg_HTJESup);
 	egtree->Branch("HTJESdo",     &eg_HTJESdo);
+//	egtree->Branch("ScaleSystWeight",&ScaleSystWeight);
 	
 	TTree *mgtree = new TTree("mgTree","mgTree");
 	float mg_phoEt(0);
@@ -251,6 +261,10 @@ void analysis_SUSY(){//main
 	
 	mgtree->Branch("Mass1",     &Mass1_);
 	mgtree->Branch("Mass2",     &Mass2_);
+  mgtree->Branch("MsGsQ",        		&MsGsQ);
+  mgtree->Branch("Mchargino",      &Mchargino);
+	mgtree->Branch("Mneutralino", &Mneutralino);
+	mgtree->Branch("ISRPt",       &ISRPt);
 	mgtree->Branch("branch",    &decaybranch);
 	mgtree->Branch("phoEt",     &mg_phoEt);
 	mgtree->Branch("phoEta",    &mg_phoEta);
@@ -261,6 +275,7 @@ void analysis_SUSY(){//main
 	mgtree->Branch("sigMT",     &mg_sigMT);
 	mgtree->Branch("sigMET",    &mg_sigMET);
 	mgtree->Branch("sigMETPhi", &mg_sigMETPhi);
+	mgtree->Branch("genMET",    &genMET_);
 	mgtree->Branch("dPhiLepMET",&mg_dPhiLepMET);
 	mgtree->Branch("threeMass", &mg_threeMass);
 	mgtree->Branch("nVertex",   &mg_nVertex);
@@ -281,6 +296,7 @@ void analysis_SUSY(){//main
 	mgtree->Branch("dPhiLepMETJERdo", &mg_dPhiLepMETJERdo);
 	mgtree->Branch("HTJESup",     &mg_HTJESup);
 	mgtree->Branch("HTJESdo",     &mg_HTJESdo);
+//	mgtree->Branch("ScaleSystWeight",&ScaleSystWeight);
 	
 	rawData raw(es, datatype);
 	std::vector<mcData>  MCData;
@@ -301,15 +317,19 @@ void analysis_SUSY(){//main
 	int nVtx(0);
 	int jetNumber(0);
 
-	const unsigned nEvts = es->GetEntries()/10; 
+	//const unsigned nEvts = 355160; 
+	const unsigned nEvts = es->GetEntries(); 
 	std::cout << "total event : " << nEvts << std::endl;
 
 	for(unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
   
-		if (ievt%10000==0) std::cout << " -- Processing event " << ievt << std::endl;
+		if (ievt%100000==0) std::cout << " -- Processing event " << ievt << std::endl;
 		
 		Mass1_ = -1;
 		Mass2_ = -1;
+		MsGsQ=-1;
+		Mchargino=-1;
+		Mneutralino=-1;
 		mcPhotonEt_ = 0;
 		mcPhotonEta_ = 0;
 		mcPhotonPhi_ = 0;
@@ -348,6 +368,7 @@ void analysis_SUSY(){//main
 		ThreeBodyMass_ = 0;
 		nJet_ = 0;
 		HT_ = 0;
+		genMET_ = 0;
 		
 		raw.GetData(es, ievt);
 		MCData.clear();
@@ -362,6 +383,7 @@ void analysis_SUSY(){//main
 		for(int iJet(0); iJet < raw.nJet; iJet++){JetCollection.push_back(recoJet(raw, iJet));}
 		met = raw.pfMET;
 		metPhi = raw.pfMETPhi;
+		genMET_ = raw.genMET;	
 		met_T1JERUp = raw.pfMET_T1JERUp;
 		met_T1JERDo = raw.pfMET_T1JERDo;
 		met_T1JESUp = raw.pfMET_T1JESUp;
@@ -371,6 +393,12 @@ void analysis_SUSY(){//main
 		metPhi_T1UESUp = raw.pfMETPhi_T1UESUp;
 		metPhi_T1UESDo = raw.pfMETPhi_T1UESDo;
 		nVtx = raw.nVtx;
+
+		//ScaleSystWeight.clear(); 
+		//cout<<"line 392"<<endl;
+		//for(unsigned i(0); i < raw.genScaleSystWeights->size(); i++){
+		//	ScaleSystWeight.push_back( (*raw.genScaleSystWeights)[i]);
+		//}
 	
 		if(SUSYtype == 2){
 			int scan1 = raw.EventTag->Index("M1");
@@ -413,8 +441,27 @@ void analysis_SUSY(){//main
 		itMCList.clear();	
 		if(debugMCLevel > 0)std::cout << std::endl;
 		bool hasLepFromPho(false);	
-		for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){ 
 
+		std::vector< std::vector<mcData>::iterator > ISRVEC;
+		ISRVEC.clear();
+		for(std::vector<mcData>::iterator itMC = MCData.begin(); itMC!= MCData.end(); itMC++){ 
+      //Look for gluino
+      if(itMC->getMomPID()== 1000021)MsGsQ = itMC->getmomMass();
+      //Look for neutralino
+      if(itMC->getPID() == 1000022 && itMC->getMomPID()== 1000023)Mneutralino = itMC->getmomMass();
+      //Look for chargino
+			if(itMC->getPID()== 1000022 && fabs(itMC->getMomPID())== 1000024)Mchargino = itMC->getmomMass();
+			
+			if(fabs(itMC->getPID()) > 1000000 && (fabs(itMC->getMomPID()) < 25 || fabs(itMC->getMomPID())==999) && itMC->getStatus() < 29)ISRVEC.push_back(itMC);
+			//if(SUSYtype == 2){
+			// 	if(fabs(itMC->getPID()) > 1000000 && (fabs(itMC->getMomPID() == 1000023))  && itMC->getStatus() < 29){
+			//		bool inISRlist(false);
+			//		for(unsigned i(0); i < ISRVEC.size(); i++){
+			//			if(itMC->getPID()== ISRVEC[i]->getPID() && DeltaR(itMC->getEta(), itMC->getPhi(), ISRVEC[i]->getEta(), ISRVEC[i]->getPhi())<0.3)inISRlist = true;
+			//		}
+			//		if(!inISRlist)ISRVEC.push_back(itMC);
+			//	}
+			//}	
 			if(debugMCLevel >= 1 && itMC->getPt() > 0.1){
 				bool inList(false);
 				for(unsigned imc(0); imc < itMCList.size(); imc++){
@@ -463,12 +510,21 @@ void analysis_SUSY(){//main
 			}//endif:: found signal ELectron
 		
 		}//loop on MC particles
-     
+
+		ISRPt = 0;
+		TLorentzVector JetVec(0,0,0,0);
+		if(ISRVEC.size()!=2)std::cout << "wrong ISR" << std::endl;
+		for(unsigned i(0); i < ISRVEC.size(); i++){
+			if(fabs(ISRVEC[i]->getPID()) > 1000000 && fabs(ISRVEC[i]->getMomPID()) == 1000023)JetVec = JetVec + ISRVEC[i]->getmomP4();
+			else JetVec = JetVec + ISRVEC[i]->getP4();
+		}
+		ISRPt = JetVec.Pt();
+ 
 		bool hasBranchPho(false);
 		bool hasBranchZ(false);
 		bool hasBranchH(false);
 		bool hasBranchW(false);
-		for(int i(0); i < finalState.size(); i++){
+		for(unsigned i(0); i < finalState.size(); i++){
 			if(finalState[i].first == 22)hasBranchPho = true;
 			if(finalState[i].first == 23)hasBranchZ = true;
 			if(finalState[i].first == 24)hasBranchW = true;
@@ -477,6 +533,7 @@ void analysis_SUSY(){//main
 		if(hasBranchPho && hasBranchZ)decaybranch = branchType::gZ;
 		else if(hasBranchPho && hasBranchH)decaybranch = branchType::gH;
 		else if(hasBranchPho && hasBranchW)decaybranch = branchType::gW;
+		else if(!hasBranchPho && !hasBranchH && hasBranchZ)decaybranch = branchType::ZZ;
 		else if(hasBranchPho && !hasBranchZ && !hasBranchH && !hasBranchW)decaybranch = branchType::gg;
 		else decaybranch = branchType::noType;
 		// Calculate HT 
@@ -697,6 +754,8 @@ void analysis_SUSY(){//main
 			}//dR Filter
 		}//Candidate Filter
 
+
+		if(debugMCLevel >= 1){
 		std::vector< decayChain > chains;
 		chains.clear();
 		for(unsigned imc(0); imc<itMCList.size(); imc++){
@@ -728,13 +787,6 @@ void analysis_SUSY(){//main
 				else if(!findbranch && branchTwo.size() == 0)branchTwo.push_back(chains[ic]);
 			}
 		}
-		
-			//	if(decaybranch != 1)continue;
-			//	if(!acceptMu)continue;
-			//	else std::cout << "acc" << std::endl;
-			//	for(unsigned imc(0); imc<itMCList.size(); imc++){
-			//		printf("%10d %8.2f %8.2f %8.2f   %10d %8.2f %8.2f %8.2f \n", itMCList[imc]->getPID(), itMCList[imc]->getPt(), itMCList[imc]->getEta(), itMCList[imc]->getPhi(), itMCList[imc]->getMomPID(), itMCList[imc]->getmomPt(), itMCList[imc]->getmomEta(), itMCList[imc]->getmomPhi());
-			//	}
 				
 				for(unsigned ione(0); ione < branchOne.size(); ione++){
 					if(ione == 0)std::cout << branchOne[ione].iter->getMomPID() << "-> ";
@@ -787,20 +839,7 @@ void analysis_SUSY(){//main
 					if(hasPhotonConv)std::cout << "conve " << NrecoPho << std::endl;
 					else std::cout << "prompt " << NrecoPho << std::endl;	
 				}
-				
-
-	//	int iNEU(0);	
-	//	for(unsigned ic(0); ic < chains.size(); ic++){
-	//		if(chains[ic].iter->getPID() == 1000022)iNEU+=1;
-	//		if(fabs(chains[ic].iter->getPID()) > 100000 )std::cout << chains[ic].iter->getMomPID() << " "  << chains[ic].iter->getPID() << "->";
-	//		else if(fabs(chains[ic].iter->getMomPID()) > 100000 && fabs(chains[ic].iter->getGMomPID()) > 100000 )std::cout << "\t\t" << chains[ic].iter->getMomPID() << " " << chains[ic].iter->getPID() << "->";
-	//		else if(fabs(chains[ic].iter->getMomPID()) > 100000)std::cout <<  "\t" << chains[ic].iter->getMomPID() << " "  << chains[ic].iter->getPID() << "->";
-	//		else continue;
-	//		for(unsigned id(0); id < chains[ic].daughter.size();  id++)std::cout << (chains[ic].daughter)[id]->getPID() << " ";
-	//		std::cout << std::endl;
-	//	}
-	//	if(iNEU != 2)std::cout << "NO" << std::endl;
-	//	std::cout << "type: " << decaybranch << std::endl;
+		}
 	
 	}//loop on entries
 

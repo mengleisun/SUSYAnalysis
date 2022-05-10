@@ -1,3 +1,4 @@
+// similar to analysis_VGamma.C script
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -328,7 +329,9 @@ void analysis_DY(){//main
         METFilter = raw.metFilters;
         nVtx = raw.nVtx;
 				
-				PUweight = getPUESF(nVtx);
+				if(RunYear==2016)PUweight = getPUESF16(nVtx);
+                        	if(RunYear==2017)PUweight = getPUESF17(nVtx);
+                        	if(RunYear==2018)PUweight = getPUESF18(nVtx);
 	
         if(raw.nPho <1)continue;
 

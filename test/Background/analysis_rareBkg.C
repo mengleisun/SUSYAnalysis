@@ -1,16 +1,17 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void analysis_rareBkg(){
 
 	SetRunConfig();
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 	esfScaleFactor  objectESF;
 
   int channelType = ichannel; // eg = 1; mg =2;
 	//*********** histo list **********************//
 	std::ostringstream outputname;
+	outputname << "/eos/uscms/store/user/tmishra/Background/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	
@@ -73,6 +74,7 @@ void analysis_rareBkg(){
 	chainname.str("");
 	if(channelType == 1)chainname << "egTree";
 	else if(channelType == 2)chainname << "mgTree";
+	// background from directly simulations, mctree
   TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_TTG_VetoEle.root");
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WWG_VetoEle.root");
@@ -169,6 +171,7 @@ void analysis_rareBkg(){
 		p_PU->Fill(nVertex,PUweight);
 		double scalefactor(0);
 		double scalefactorup(0);
+		// scale factors
 		if(channelType == 1){
 			scalefactor = objectESF.getElectronESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
 			double s_ele_error = objectESF.getElectronESFError(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
@@ -188,6 +191,7 @@ void analysis_rareBkg(){
 			scalefactorup = scalefactor + s_error; 
 		}
 		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		//float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
 		float weight = PUweight*XS_weight*scalefactor;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup;
 		/** cut flow *****/
@@ -198,7 +202,7 @@ void analysis_rareBkg(){
 		if(highMt > 0 && sigMT > highMt)continue;
 		if(lepPt < lowPt)continue;
 		if(highPt > 0 && lepPt > highPt)continue;
-
+		// different MET, MT, lepton pT range
 		double mindRpho(0.3);
 		int phoIndex(0), anyphoIndex(-1);
 		for(unsigned iMC(0); iMC<mcPID->size(); iMC++){
@@ -208,6 +212,7 @@ void analysis_rareBkg(){
 			if(dR < 0.3 && fabs((*mcPID)[iMC]) == 22)anyphoIndex = iMC;
 		}
 		bool isTruePho(false);
+		// checking dR and momID for true photon identification
 		if(mindRpho < 0.1){
 			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex]) <= 6 || fabs((*mcMomPID)[phoIndex]) == 21 || fabs((*mcMomPID)[phoIndex]) == 999 || fabs((*mcMomPID)[phoIndex])== 11 || fabs((*mcMomPID)[phoIndex])== 13 || fabs((*mcMomPID)[phoIndex])== 15 || fabs((*mcMomPID)[phoIndex])== 23 || fabs((*mcMomPID)[phoIndex])== 24)  )isTruePho = true;
 		}
@@ -216,6 +221,7 @@ void analysis_rareBkg(){
 		}
 
 		bool isFSRPho(false);
+		// FSR photon if particles found within dR < 0.3 around photon, and momID is e, mu, tau, W, top
 		if(mindRpho < 0.3){
 			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex])==11 || fabs((*mcMomPID)[phoIndex]) == 13 ||  fabs((*mcMomPID)[phoIndex]) == 15 || fabs((*mcMomPID)[phoIndex])==24 || fabs((*mcMomPID)[phoIndex])==6 ))isFSRPho = true;
 		}
@@ -348,7 +354,7 @@ void analysis_rareBkg(){
 		syserror += pow((p_HT_TT->GetBinContent(ibin)*0.5),2);
 		p_HT_TT->SetBinError(ibin,sqrt(syserror));
 	}	
-	p_PhoEt->Sumw2();
+	//p_PhoEt->Sumw2();
 	outputfile->Write();
 	outputfile->Close();
 

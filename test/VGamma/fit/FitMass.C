@@ -1,3 +1,4 @@
+// same as plotFit.C but it fits Mt instead of dPhi
 #include<string>
 #include<iostream>
 #include<fstream>

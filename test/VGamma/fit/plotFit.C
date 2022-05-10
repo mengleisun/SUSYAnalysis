@@ -39,19 +39,22 @@
 #include "RooNumIntConfig.h"
 
 #include "../../../include/analysis_rawData.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
 #include "../../../include/analysis_mcData.h"
 #include "../../../include/analysis_tools.h"
 
-void
-plotFit(){
-
+void plotFit(){
+	gROOT->SetBatch(kTRUE);
 	gStyle->SetOptStat(0);
+	// VGamma scale factor as a function of lepton pT(Figure 27 AN)
 	TGraphErrors *p_frac = new TGraphErrors(4);
+	// VGamma scale factor in full pT range
 	TGraphErrors *p_frac_total = new TGraphErrors(1);
 	TGraphErrors *p_error_total = new TGraphErrors(1);
+	// distribution of VGamma scale factor in full pT range(Figure 29 AN)
 	TH1F *p_frac_0 = new TH1F("p_frac_0","a_{V#gamma}",50,1,1.5);
 
 	std::ifstream vgammascalefile("VGamma_scalefactor_mg.txt");
@@ -62,6 +65,7 @@ plotFit(){
 	float fittingerror(0), systematicerror(0), totalerror(0);
 
 	TCanvas *cantemp = new TCanvas("cantemp","",1200,1200);
+	// four temporary histograms for four lepton pT bins, where scalefactor is derived
 	TH1D *temphist[4];
 	temphist[0] = new TH1D("temphist0","",100,0.5,2);
 	temphist[1] = new TH1D("temphist1","",100,0.5,2);
@@ -69,7 +73,7 @@ plotFit(){
 	temphist[3] = new TH1D("temphist3","",100,0.5,2);
 	cantemp->Divide(2,2);
 	for(unsigned i(0);  i < 4; i++){
-		double xvalue, xerror, yvalue, yerror;
+		double xvalue = 0, xerror = 0, yvalue = 0, yerror;
 		for(unsigned j(0);  j < 1000; j++){
 			vgammascalefile >> leplow >> lephigh >> fakescale >> fakescaleerror >> vgammascale >> vgammascaleerror;
 			if(j==0){
@@ -84,6 +88,7 @@ plotFit(){
 		temphist[i]->Fit("gaus","","",0.5,2);
 		yerror = temphist[i]->GetFunction("gaus")->GetParameter(2);
 		if(yerror > 0.5)yerror= temphist[i]->GetRMS()/2;
+		// set four point for VGamma scale factor
 		p_frac->SetPoint(i, xvalue, yvalue);
 		p_frac->SetPointError(i, xerror, yerror);
 	}
@@ -94,6 +99,7 @@ plotFit(){
 		if(i == 0)p_error_total->SetPoint(0, 100, vgammascale);
 		if(i == 0)norm = vgammascale;
 		if(i == 0)fittingerror = vgammascaleerror;
+		// VGamma scale in full pT range
 		p_frac_0->Fill(vgammascale);
 		if(vgammascale < lowbound)lowbound = vgammascale;
 		if(vgammascale > highbound)highbound = vgammascale;
@@ -137,10 +143,10 @@ plotFit(){
 	gStyle->SetLegendBorderSize(0);
 	gStyle->SetLegendFillColor(0);
 	leg->Draw("same");
-	can->SaveAs("scale_ptDependence_mg.pdf");	
+	can->SaveAs("/eos/uscms/store/user/tmishra/VGamma/scale_ptDependence_mg.png");	
 
 	TCanvas *canscale = new TCanvas("canscale","",600,600);
 	canscale->cd();
 	p_frac_0->Draw();	
-	canscale->SaveAs("VGammaScale_mg.pdf");	
+	canscale->SaveAs("/eos/uscms/store/user/tmishra/VGamma/VGammaScale_mg.png");	
 }

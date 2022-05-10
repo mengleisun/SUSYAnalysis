@@ -38,32 +38,32 @@
     float eta = fabs((*raw.eleSCEta)[iele]);
     float rho = raw.rho;
     if(eta<=1.0){
-      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1703))/(*raw.elePt)[iele];
-      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1703))/(*raw.eleCalibPt)[iele];
+      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1440))/(*raw.elePt)[iele];
+      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1440))/(*raw.eleCalibPt)[iele];
     }
     else if(eta>1.0 && eta<= 1.479){
-      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1715))/(*raw.elePt)[iele];
-      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1715))/(*raw.eleCalibPt)[iele];
+      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1562))/(*raw.elePt)[iele];
+      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1562))/(*raw.eleCalibPt)[iele];
     }
     else if(eta>1.479 && eta<=2.0){
-      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1213))/(*raw.elePt)[iele];
-      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1213))/(*raw.eleCalibPt)[iele];
+      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1032))/(*raw.elePt)[iele];
+      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1032))/(*raw.eleCalibPt)[iele];
     }
     else if(eta>2.0 && eta<=2.2){
-      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1230))/(*raw.elePt)[iele];
-      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1230))/(*raw.eleCalibPt)[iele];
+      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.0859))/(*raw.elePt)[iele];
+      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.0859))/(*raw.eleCalibPt)[iele];
     } 
     else if(eta>2.2 && eta<=2.3){
-      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1635))/(*raw.elePt)[iele];
-      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1635))/(*raw.eleCalibPt)[iele];
+      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1116))/(*raw.elePt)[iele];
+      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1116))/(*raw.eleCalibPt)[iele];
     } 
     else if(eta>2.3 && eta<=2.4){
-      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1937))/(*raw.elePt)[iele];
-      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1937))/(*raw.eleCalibPt)[iele];
+      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1321))/(*raw.elePt)[iele];
+      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1321))/(*raw.eleCalibPt)[iele];
     } 
     else if(eta>2.4 && eta<=2.5){
-      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.2393))/(*raw.elePt)[iele];
-      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.2393))/(*raw.eleCalibPt)[iele];
+      eleCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1654))/(*raw.elePt)[iele];
+      eleCalibCombIso_ = (elePFChIso_ + std::max(0.0, elePFNeuIso_+elePFPhoIso_-rho*0.1654))/(*raw.eleCalibPt)[iele];
     } 
     else{
       eleCombIso_ = (elePFChIso_ + elePFNeuIso_+elePFPhoIso_)/(*raw.elePt)[iele];
@@ -78,6 +78,9 @@
 	eleFiredL1Trgs_ = (*raw.eleFiredL1Trgs)[iele];
     eleIDbit_ = (*raw.eleIDbit)[iele];
 
+    float energy = fabs((*raw.eleSCEn)[iele]);
+    if(eta <= 1.479) HoverEcut_= 0.0460 +(1.16/energy)+(0.0324*rho)/energy;
+    if(eta >  1.479) HoverEcut_= 0.0275 +(2.52/energy)+(0.183*rho)/energy;
  }
 
   ~recoEle(){
@@ -147,6 +150,9 @@ inline bool isEE(){
      else return false;
 }
 
+inline float getCutValueHoverE(){ return HoverEcut_;}
+
+
 bool passSignalSelection();
 bool passHLTSelection();
 bool isMiniMedium();
@@ -188,7 +194,7 @@ private:
     Int_t  eleFiredSingleTrgs_;
     Int_t  eleFiredDoubleTrgs_;
     Int_t  eleFiredL1Trgs_;
-
+    float  HoverEcut_;
     UShort_t eleIDbit_;
 };
   

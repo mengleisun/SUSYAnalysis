@@ -1,20 +1,23 @@
 #include "../../include/analysis_commoncode.h"
 #include "TArrow.h"
 
-#define NTOY 1000
+//#define NTOY 1000
+#define NTOY 1
 bool useGaussFit=false;
 
 #define MAXET 199
 #define MAXMT 399
 #define MAXMET 399
 #define MAXHT 399
+int RunYear = 2016;
+bool doDrellYan = true;
 
-void closure_efakepho(int ichannel){
-
+void closure_efakepho(){
+  gROOT->SetBatch(kTRUE);
   setTDRStyle();
 	gStyle->SetTitleXOffset(2.5);
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-  int channelType = ichannel; // eg = 1; mg =2;
+  gSystem->Load("../../lib/libAnaClasses.so");
+  int channelType = 1; // eg = 1; mg =2;
 
   /**********************************/
 	/*	double normfactor = par[0]; 	*/  
@@ -25,7 +28,8 @@ void closure_efakepho(int ichannel){
 	/*	double vtx_constant = par[5];	*/
 	/*	double vtx_slope = par[6];		*/
   /**********************************/
-	std::ifstream elefake_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/EleFakeRate-DrellYan-ByPtVtx-EB.txt");
+	std::ifstream elefake_file(Form("/eos/uscms/store/user/tmishra/elefakepho/EleFakeRate-DrellYan-ByPtVtx-EB_DY_%d.txt",RunYear));
+	// fake rate byPtVtx estimated from DrellYan
 	double scalefactor(0);
 	double ptslope(0);
 	double ptconstant(0);
@@ -53,7 +57,10 @@ void closure_efakepho(int ichannel){
 
 	TF3 *h_toymc_fakerate[NTOY];
 	std::ostringstream funcname;
-	std::ifstream elefake_toyfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/ToyFakeRate_DrellYan_EB.txt");
+	//std::ifstream elefake_toyfile("/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/DrellYanResult/ToyFakeRate_DrellYan_EB.txt");
+	std::ifstream elefake_toyfile(Form("/eos/uscms/store/user/tmishra/elefakepho/DrellYanResult%d/ToyFakeRate_DrellYan_EB.txt",RunYear));
+	// toy fake rate byPtVtx estimated from DrellYan
+	
 	if(elefake_toyfile.is_open()){
   	for(int i(0); i<NTOY; i++){ 
 			elefake_toyfile >> scalefactor >> ptslope >> ptconstant >> ptindex >>  vtxconst >> vtxslope;
@@ -80,15 +87,16 @@ void closure_efakepho(int ichannel){
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_TT.root");
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WW.root");
-	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WZ.root");
+	// processes contribute to electron fake photon background <= direct signal event
+	if(channelType==1)sigtree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_DYJetsToLL_%d.root",RunYear));
+	if(channelType==1)sigtree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_TTJets_%d.root",RunYear));
+	if(channelType==1)sigtree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_WW_%d.root",RunYear));
+	if(channelType==1)sigtree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_WZ_%d.root",RunYear));
 
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_DY.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_TT.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WW.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WZ.root");
+	if(channelType==2)sigtree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_DYJetsToLL_%d.root",RunYear));
+	if(channelType==2)sigtree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_TTJets_%d.root",RunYear));
+	if(channelType==2)sigtree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_WW_%d.root",RunYear));
+	if(channelType==2)sigtree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_WZ_%d.root",RunYear));
 
 	float crosssection(0);
 	float ntotalevent(0);
@@ -138,8 +146,8 @@ void closure_efakepho(int ichannel){
 
 	for (unsigned ievt(0); ievt<sigtree->GetEntries(); ++ievt){//loop on entries
 		sigtree->GetEntry(ievt);
-
-		double weight = 35.8*1000*crosssection/ntotalevent;
+		// cross sectional weight
+		double weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		/** cut flow *****/
 		if(phoEt < 35 || lepPt < 25)continue;
 		if(fabs(phoEta) > 1.4442 || fabs(lepEta) > 2.5)continue;
@@ -174,9 +182,11 @@ void closure_efakepho(int ichannel){
 			//if(dR < mindR && dE < 0.5){mindR=dR; matchIndex=iMC;deltaE = dE;}
 			if(dR < mindR){mindR=dR; matchIndex=iMC;deltaE = dE;}
 			if(fabs((*mcPID)[iMC]) == 11 && dR < minEledR)minEledR = dR;
+			// find the mc particle (and electron) closest to the signal photon
 		}
 		if(mindR < 0.1){
 			if(((*mcPID)[matchIndex] == 11 || (*mcPID)[matchIndex] == -11))isFakePho = true;
+			// If dR(ele,photon) < 0.1, It is a ele-fake photon
 		}
 		if(minEledR < 0.02)isFakePho = true;
 
@@ -185,17 +195,17 @@ void closure_efakepho(int ichannel){
 			for(unsigned iMC(0); iMC < mcPID->size(); iMC++){
 				double dR = DeltaR((*mcEta)[iMC], (*mcPhi)[iMC], phoEta, phoPhi);
 				double dE = fabs((*mcPt)[iMC] - phoEt)/phoEt;
-				std::cout << fabs((*mcPID)[iMC] << " dR " << dR << " dE " << dE << std::endl;
+				std::cout << fabs((*mcPID)[iMC]) << " dR " << dR << " dE " << dE << std::endl;
 			}
 		}
 	
 		if(!isFakePho)continue;
-
+		// only count events with a fake photon
 		if(phoEt > MAXET)phoEt = MAXET;
 		if(sigMET > MAXMET)sigMET = MAXMET;
 		if(sigMT > MAXMT)sigMT = MAXMT;
 		if(HT > MAXHT)HT = MAXHT;	
-
+		// only XSec wt
 		p_PhoEt->Fill(phoEt, weight);
 		p_PhoEta->Fill(phoEta, weight);
 		p_LepPt->Fill(lepPt, weight);
@@ -260,8 +270,9 @@ void closure_efakepho(int ichannel){
 	}
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
-	if(channelType==1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
-	if(channelType==2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_DY.root");
+	// DY majorly contribute to electron fake photon background, proxy event
+	if(channelType==1)proxytree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_DYJetsToLL_%d.root",RunYear));
+	if(channelType==2)proxytree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_DYJetsToLL_%d.root",RunYear));
 
 	float proxycrosssection(0);
 	float proxyntotalevent(0);
@@ -299,8 +310,8 @@ void closure_efakepho(int ichannel){
 
 	for (unsigned ievt(0); ievt<proxytree->GetEntries(); ++ievt){//loop on entries
 		proxytree->GetEntry(ievt);
-
-		double weight = 35.8*1000*proxycrosssection/proxyntotalevent;
+		
+		double weight = getEvtWeight(RunYear,proxycrosssection,proxyntotalevent);
 
 		if(proxyphoEt > MAXET)proxyphoEt = MAXET;
 		if(proxysigMET > MAXMET)proxysigMET = MAXMET;
@@ -310,9 +321,10 @@ void closure_efakepho(int ichannel){
 		/** cut flow *****/
 		if(proxyphoEt < 35 || proxylepPt < 25)continue;
 		if(fabs(proxyphoEta) > 1.4442 || fabs(proxylepEta) > 2.5)continue;
+		// Here, it is already cases where it is fake by proxy events means, so we apply the weight for fake rate
 		double w_ele = h_nominal_fakerate(proxyphoEt, proxynVertex, fabs(proxyphoEta));
 		w_ele = w_ele*weight;
-
+		// weight is XSec weight times eleFakePho weight
 		pred_PhoEt->Fill(proxyphoEt,w_ele);
 		pred_PhoEta->Fill(proxyphoEta, w_ele);
 		pred_MET->Fill(proxysigMET, w_ele);
@@ -334,6 +346,7 @@ void closure_efakepho(int ichannel){
 		DY_nJet->Fill(proxynJet, w_ele);
 
 		for(unsigned it(0); it < NTOY; it++){
+			// here is NTOY fake rates
 			double toy_ele = h_toymc_fakerate[it]->Eval(proxyphoEt,proxynVertex,fabs(proxyphoEta));
 			toy_ele = toy_ele*weight;
 			toy_PhoEt[it]->Fill(proxyphoEt,toy_ele);
@@ -347,13 +360,14 @@ void closure_efakepho(int ichannel){
 
 	//************ Proxy Tree **********************//
 	TChain *raretree = new TChain("proxyTree");
-	if(channelType==1)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_TT.root");
-	if(channelType==1)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WW.root");
-	if(channelType==1)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WZ.root");
+	// TTJets, WW, WZ rarely contribute to electron fake photon background, proxy event
+	if(channelType==1)raretree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_TTJets_%d.root",RunYear));
+	if(channelType==1)raretree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_WW_%d.root",RunYear));
+	if(channelType==1)raretree->Add(Form("/eos/uscms/store/user/tmishra/egMC/resTree_egsignal_WZ_%d.root",RunYear));
 
-	if(channelType==2)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_TT.root");
-	if(channelType==2)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WW.root");
-	if(channelType==2)raretree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_WZ.root");
+	if(channelType==2)raretree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_TTJets_%d.root",RunYear));
+	if(channelType==2)raretree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_WW_%d.root",RunYear));
+	if(channelType==2)raretree->Add(Form("/eos/uscms/store/user/tmishra/mgMC/resTree_mgsignal_WZ_%d.root",RunYear));
 
 	float rarecrosssection(0);
 	float rarentotalevent(0);
@@ -392,7 +406,7 @@ void closure_efakepho(int ichannel){
 	for (unsigned ievt(0); ievt<raretree->GetEntries(); ++ievt){//loop on entries
 		raretree->GetEntry(ievt);
 
-		double weight = 35.8*1000*rarecrosssection/rarentotalevent;
+		double weight = getEvtWeight(RunYear,rarecrosssection,rarentotalevent);
 
 		if(rarephoEt > MAXET)rarephoEt = MAXET;
 		if(raresigMET > MAXMET)raresigMET = MAXMET;
@@ -404,8 +418,9 @@ void closure_efakepho(int ichannel){
 		if(rarephoEt < 35 || rarelepPt < 25)continue;
 		if(fabs(rarephoEta) > 1.4442 || fabs(rarelepEta) > 2.5)continue;
 		double w_ele = h_nominal_fakerate(rarephoEt, rarenVertex, fabs(rarephoEta));
+		// XSec weight * ele fake photon weight
 		w_ele = w_ele*weight;
-
+		// predicted electron fake background using proxy events
 		pred_PhoEt->Fill(rarephoEt,w_ele);
 		pred_PhoEta->Fill(rarephoEta, w_ele);
 		pred_MET->Fill(raresigMET, w_ele);
@@ -428,14 +443,15 @@ void closure_efakepho(int ichannel){
 		}
 	}
 
-
+// total errors in bins of PhoEt, LepPt, MET, Mt, dPhiEleMET, HT
 	std::vector<double> toyvec; 
 	for(int ibin(1); ibin < pred_PhoEt->GetSize(); ibin++){
     toyvec.clear();
     toyvec.push_back(pred_PhoEt->GetBinContent(ibin));
     for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_PhoEt[it]->GetBinContent(ibin));
+	// systematic error from predicted bkg and toys with Gauss fit
     double syserr = calcToyError( toyvec, useGaussFit);
-
+		// Total stat and syst error
 		double totalerror = sqrt(syserr*syserr + pred_PhoEt->GetBinError(ibin)*pred_PhoEt->GetBinError(ibin));
 		pred_PhoEt->SetBinError(ibin, totalerror);
 	}
@@ -493,7 +509,7 @@ void closure_efakepho(int ichannel){
 	TGraphErrors *ratioerror_MET = new TGraphErrors(nBkgMETBins); 
 	TGraphErrors *ratioerror_Mt = new TGraphErrors(nBkgMtBins); 
 	TGraphErrors *ratioerror_HT = new TGraphErrors(nBkgHTBins);
-
+// from signal events
 	TH1F *ratio=(TH1F*)p_PhoEt->Clone("transfer factor");
 	TH1F *ratio_met=(TH1F*)p_MET->Clone("transfer factor");
 	TH1F *ratio_mt=(TH1F*)p_Mt->Clone("transfer factor");
@@ -520,6 +536,7 @@ void closure_efakepho(int ichannel){
 	DY_PhoEt->SetFillStyle(1001);                                           
 	DY_PhoEt->SetLineColor(kYellow);
 	DY_PhoEt->SetFillColor(kYellow);
+// from proxy events, predicted backgrounds
 	pred_PhoEt->Draw("hist same");
 	DY_PhoEt->Draw("hist same");
 	TLegend *leg =  new TLegend(0.5,0.55,0.9,0.8);
@@ -548,13 +565,14 @@ void closure_efakepho(int ichannel){
 	p_PhoEt->Draw("same");
 	for(int ibin(1); ibin < pred_PhoEt->GetSize(); ibin++){
 		error_PhoEt->SetPoint(ibin-1,pred_PhoEt->GetBinCenter(ibin), pred_PhoEt->GetBinContent(ibin));
+		// syst + stat error
 		float prederror = pred_PhoEt->GetBinError(ibin);
 		error_PhoEt->SetPointError(ibin-1,(pred_PhoEt->GetBinLowEdge(ibin+1)-pred_PhoEt->GetBinLowEdge(ibin))/2,prederror);
 		ratioerror_PhoEt->SetPoint(ibin-1,pred_PhoEt->GetBinCenter(ibin), 1); 
 		ratioerror_PhoEt->SetPointError(ibin-1,(pred_PhoEt->GetBinLowEdge(ibin+1)-pred_PhoEt->GetBinLowEdge(ibin))/2, prederror/pred_PhoEt->GetBinContent(ibin)); 
 	}
 	error_PhoEt->SetFillColor(12);
-  error_PhoEt->SetFillStyle(3345);
+  	error_PhoEt->SetFillStyle(3345);
 	error_PhoEt->Draw("E2 same");
 
 	c_pt->cd();
@@ -568,6 +586,7 @@ void closure_efakepho(int ichannel){
 	ratio->SetMaximum(2);
 	ratio->SetMarkerStyle(20);
 	ratio->SetLineColor(kBlack);
+	// from signal events - predicted events
 	ratio->Divide(pred_PhoEt);
 	ratio->SetTitle("");
 	ratio->GetYaxis()->SetTitle("#frac{Simulation}{Prediction}");
@@ -578,10 +597,10 @@ void closure_efakepho(int ichannel){
 	ratioerror_PhoEt->Draw("E2 same");
 	ratio->Draw("same");
 	flatratio->Draw("same");
-	c_pt->SaveAs("closure_elefakepho_PhotonEt_eg.pdf");
+	c_pt->SaveAs(Form("/eos/uscms/store/user/tmishra/elefakepho/closure_elefakepho_PhotonEt_eg_%d.pdf",RunYear));
 
 
-
+// similar for other variables
 // ******** MET ************************//
 	TCanvas *c_met = new TCanvas("MET", "MET",600,600);
 	c_met->cd();
@@ -606,6 +625,7 @@ void closure_efakepho(int ichannel){
 	pred_MET->SetFillColor(kRed);
 	for(int ibin(1); ibin < pred_MET->GetSize(); ibin++){
 		float prederror = pred_MET->GetBinError(ibin);
+		// Total stat and syst error
 		error_MET->SetPoint(ibin-1,pred_MET->GetBinCenter(ibin), pred_MET->GetBinContent(ibin));
 		error_MET->SetPointError(ibin-1,(pred_MET->GetBinLowEdge(ibin+1)-pred_MET->GetBinLowEdge(ibin))/2,prederror);
 		ratioerror_MET->SetPoint(ibin-1,pred_MET->GetBinCenter(ibin), 1); 
@@ -657,7 +677,7 @@ void closure_efakepho(int ichannel){
 	line_met_ratio->SetLineStyle(2);
 	line_met_ratio->Draw("same");
  	gPad->RedrawAxis();
-	c_met->SaveAs("closure_elefakepho_MET_eg.pdf");
+	c_met->SaveAs(Form("/eos/uscms/store/user/tmishra/elefakepho/closure_elefakepho_MET_eg_%d.pdf",RunYear));
 
 // ******** Mt ************************//
 	TCanvas *c_mt = new TCanvas("Mt", "Mt",600,600);
@@ -722,7 +742,7 @@ void closure_efakepho(int ichannel){
 	ratioerror_Mt->Draw("E2 same");
 	ratio_mt->Draw("same");
 	flatratio_mt->Draw("same");
-	c_mt->SaveAs("closure_elefakepho_MT_eg.pdf");
+	c_mt->SaveAs(Form("/eos/uscms/store/user/tmishra/elefakepho/closure_elefakepho_MT_eg_%d.pdf",RunYear));
 
 // ******** HT ************************//
 	TCanvas *c_HT = new TCanvas("HT", "HT",600,600);
@@ -786,8 +806,6 @@ void closure_efakepho(int ichannel){
 	ratioerror_HT->SetFillStyle(3345);
 	ratioerror_HT->Draw("E2 same");
 	flatratio_HT->Draw("same");
-	c_HT->SaveAs("closure_elefakepho_HT_eg.pdf");
+	c_HT->SaveAs(Form("/eos/uscms/store/user/tmishra/elefakepho/closure_elefakepho_HT_eg_%d.pdf",RunYear));
 
 }
-
-

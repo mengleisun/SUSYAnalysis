@@ -25,31 +25,27 @@
 #include "../../include/analysis_photon.h"
 #include "../../include/analysis_muon.h"
 #include "../../include/analysis_ele.h"
+#include "../../include/analysis_jet.h"
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_mcData.h"
 
-
+int RunYear = 2016;
 void analysis_R9(){//main  
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("../../lib/libAnaClasses.so");
 
-	char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/plot_R9_DY.root";
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/FullStatusOct/plot_R9_DY.log");
-
+	logfile.open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_R9_DY_%d.log",RunYear));
 	logfile << "analysis_egTrigger()" << std::endl;
 
 	RunType datatype(MC);
-
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_NLO.root");
+	es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DYJetsToLL/DYJetsToLL_%d.root",RunYear));
 
-	TFile *outputfile = TFile::Open(outputname,"NEW");
+	TFile *outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_R9_DY_%d.root",RunYear),"RECREATE");
 	outputfile->cd();
 //	TDirectory *cdtof = outputfile->mkdir("MC");
 //	cdtof->cd();
-
-	logfile << "output: " << outputname <<  std::endl;
 
 	float tagPt(0);
 	float tagEta(0);
@@ -146,14 +142,14 @@ void analysis_R9(){//main
 
 		if(!raw.passHLT())continue;
 		if(raw.nPho <1)continue;
-		if(((raw.HLTEleMuX >> 1) &1) ==0)continue;
+		if(((raw.HLTEleMuX >> 1) &1) ==0)continue; // HLT_Ele27_WPTight
 
 		std::vector<std::vector<recoEle>::iterator> tagEleVec;
 		tagEleVec.clear();
 		for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
 			if(itEle->getEt() < 30 || fabs(itEle->getEta())>2.1)continue;
 			if(!itEle->passHLTSelection())continue;
-			if(!itEle->fireTrgs(11))continue;
+			if(!itEle->fireTrgs(11))continue; // HLT_Ele27_WPTight
 			if(!itEle->passSignalSelection())continue;
 			tagEleVec.push_back(itEle);
 		}

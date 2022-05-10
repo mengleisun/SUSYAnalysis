@@ -28,18 +28,18 @@
 
 void analysis_MuEGseparate(){//main  
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("../../lib/libAnaClasses.so");
 
-	char outputname[100] = "/uscms_data/d3/mengleis/test/plot_MuonTrigger_WG.root";
+	char outputname[100] = "/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_WG.root";
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/test/plot_MuonTrigger_WG.log"); 
+	logfile.open("/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_WG.log"); 
 
 	logfile << "analysis_mgTrigger()" << std::endl;
 
 	RunType datatype(MC); 
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/WGToLNuG_madgraphMLM_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
+	es->Add("/eos/uscms/store/user/msun/MCSummer16/WGToLNuG_madgraphMLM_RunIISummer16MiniAODv2-TrancheIV_v6-v1.root");
 
 	TFile *outputfile = TFile::Open(outputname,"RECREATE");
 	outputfile->cd();
@@ -175,5 +175,3 @@ void analysis_MuEGseparate(){//main
 
 outputfile->Write();
 }
-
-

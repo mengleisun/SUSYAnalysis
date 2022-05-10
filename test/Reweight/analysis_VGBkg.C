@@ -194,7 +194,7 @@ void analysis_VGBkg(){
 			scalefactorup = scalefactor + s_error; 
 		}
 
-		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		XS_weight = XS_weight*385.41*0.985719;
 	//	if(ievt <= 62202 && phoEt > 140)continue;  // 117233=mg, 62202=eg
 	//	else if(ievt >  62202 && phoEt <= 140)continue;

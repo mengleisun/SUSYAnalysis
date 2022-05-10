@@ -5,8 +5,8 @@
 ROOTGLIBS     = $(shell $(ROOTSYS)/bin/root-config --glibs)
 ROOTCFLAGS    = $(shell $(ROOTSYS)/bin/root-config --cflags) 
 
-CXX           = g++ 
-CXXFLAGS      = -g -Wall -fPIC   	
+CXX           = g++ -Wall -Wno-maybe-uninitialized
+CXXFLAGS      = -g -Wall -fPIC -Wno-maybe-uninitialized
 SOFLAGS       = -shared 
 
 CXXFLAGS     += $(ROOTCFLAGS) 
@@ -29,7 +29,7 @@ ana: ../src/analysis_photon.cc
 	$(CXX) $(CXXFLAGS) -c  analysis_photonDict.cc -o ../lib/analysis_photonDict.o 	
 	$(CXX) $(CXXFLAGS) -c  roofit_Dict.cc -o ../lib/roofit_Dict.o
 	$(CXX) $(SOFLAGS) $(ANACLASSES) -o ../lib/libAnaClasses.so $(ROOTGLIBS) 
-	$(CXX) $(SOFLAGS) $(ROOFITCLASSES) -o ../lib/libRooFitClasses.so $(ROOTGLIBS)
+	$(CXX) $(SOFLAGS) $(ROOFITCLASSES) -o ../lib/libRooFitClasses.so $(ROOTCFLAGS)
 	cp *.pcm ../lib/.
 # =============================== 
 clean: 

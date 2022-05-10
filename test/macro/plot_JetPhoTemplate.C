@@ -57,7 +57,8 @@ plot_JetPhoTemplate(){
 	setTDRStyle();   
 //************ Signal Tree **********************//
 	TChain *mctree = new TChain("egTree");
-	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_hadron_GJet.root");
+	//mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_hadron_GJet.root");
+	mctree->Add("/eos/uscms/store/user/tmishra/InputFilesDATA/2017/plot_hadron_GJet_2017.root");
 	float mc_phoEt(0);
 	float mc_phoEta(0); 
 	float mc_phoPhi(0); 
@@ -109,11 +110,11 @@ plot_JetPhoTemplate(){
 
 		if(!isFake){
 			p_truesigma->Fill(mc_phoSigma);
-			if(mc_phoSigma <= 0.0103)p_sigsigma->Fill(mc_phoSigma);
-			else if(mc_phoSigma > 0.0103 && mc_phoSigma < 0.016)p_sbsigma->Fill(mc_phoSigma);
+			if(mc_phoSigma <= 0.0106)p_sigsigma->Fill(mc_phoSigma);
+			else if(mc_phoSigma > 0.0106 && mc_phoSigma < 0.016)p_sbsigma->Fill(mc_phoSigma);
 		}
 
-		if(mc_phoSigma > 0.0103)continue;
+		if(mc_phoSigma > 0.0106)continue;
 		if(!isFake)p_true->Fill(mc_phoChIso);
 		if(isFake)p_fake->Fill(mc_phoChIso);
 	}
@@ -128,14 +129,14 @@ plot_JetPhoTemplate(){
 	p_true->GetXaxis()->SetTitleSize(20);
 	p_true->SetLineWidth(2);
 	p_fake->SetLineWidth(2);
-	p_true->Draw();
+	p_true->Draw("hist");
 	p_fake->SetLineColor(kRed);
-	p_fake->Draw("same");
+	p_fake->Draw("hist same");
 	TLegend *leg= new TLegend(0.5,0.7,0.85,0.85);
 	leg->AddEntry(p_true, "true photons");
 	leg->AddEntry(p_fake, "jet->#gamma fakes");
-	leg->Draw("same");
-	can_iso->SaveAs("PLOT_JetPhoTemplate.pdf");
+	leg->Draw("hist same");
+	can_iso->SaveAs("../PLOT_JetPhoTemplate_2017.pdf");
 
 	TLatex* latex = new TLatex();
 	TCanvas *can_sigma = new TCanvas("can_sigma","",600,600);
@@ -146,14 +147,14 @@ plot_JetPhoTemplate(){
 	p_truesigma->Scale(1/p_truesigma->GetEntries());
 	p_sigsigma->Scale(1/p_truesigma->GetEntries());
 	p_sbsigma->Scale(1/p_truesigma->GetEntries());
-	p_truesigma->Draw();
+	p_truesigma->Draw("hist");
 	p_sigsigma->SetFillColor(kBlue);
-	p_sbsigma->SetFillColor(kYellow);
-	p_sigsigma->Draw("same");
-	p_sbsigma->Draw("same");
+	p_sbsigma->SetFillColor(kOrange);
+	p_sigsigma->Draw("hist same");
+	p_sbsigma->Draw("hist same");
 	latex->DrawLatex(0.006,0.000005,"p_{signal}");
 	latex->DrawLatex(0.011,0.000005,"p_{sideband}");
-	can_sigma->SaveAs("PLOT_Iteration.pdf");
+	can_sigma->SaveAs("../PLOT_Iteration_2017.pdf");
 
 	return 1;
 }

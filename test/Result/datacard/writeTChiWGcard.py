@@ -6,7 +6,7 @@ import argparse
 n_channels = 36
 syst_names = ['jes','jer','esf','scale','eleshape','jetshape','qcdshape','xs','lumi','isr']
 
-susy_in = ROOT.TFile('../signalTree_TChiWG.root','read')
+susy_in = ROOT.TFile('/uscms/homes/m/mengleis/work/SUSY2016/SUSYAnalysis/test/Result/signalTree_TChiWG.root','read')
 h_SUSYmass = susy_in.Get('h_chan1_rate_nom')
 h_rates = {}
 for ich in range(1,n_channels+1):
@@ -26,7 +26,7 @@ for xbin in range(1, h_SUSYmass.GetXaxis().GetNbins() + 1):
         continue
     mass1 = h_SUSYmass.GetXaxis().GetBinCenter(xbin)
 
-    file_out = open('./Final/counting_tchiwg_' + str(int(mass1))  +  '.txt', 'w')
+    file_out = open('./FinalTChiWG/counting_tchiwg_' + str(int(mass1))  +  '.txt', 'w')
     avg_jes = 0
     avg_jer = 0
     avg_esf = 0

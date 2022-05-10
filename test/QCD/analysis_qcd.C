@@ -1,3 +1,4 @@
+// Here jet is taken as lepton only signalTree , signal events from QCD sample
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -22,31 +23,31 @@
 #include "TFileCollection.h"
 
 #include "../../include/analysis_rawData.h"
+#include "../../include/analysis_jet.h"
 #include "../../include/analysis_photon.h"
 #include "../../include/analysis_muon.h"
 #include "../../include/analysis_ele.h"
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
-#include "../../include/analysis_jet.h"
 
 
 void analysis_qcd(){//main 
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/fakelep_QCD.root";
+  char outputname[100] = "/eos/uscms/store/user/tmishra/fakeLep/fakelep_QCD.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/fakelep_egsignal_QCD.log"); 
+  logfile.open("/eos/uscms/store/user/tmishra/fakeLep/fakelep_egsignal_QCD.log"); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
   //logfile << "Loose the proxy definition: no upper bounds for photon; LooseFakeProxy for electron" << std::endl;
 
-  RunType datatype(MCDoubleEG); 
+  RunType datatype(MCDoubleEG2016); 
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TrancheIV_v6-v1.root");
+	es->Add("root://cmseos.fnal.gov//store/user/mengleis/copied/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TrancheIV_v6-v1.root");
 
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;

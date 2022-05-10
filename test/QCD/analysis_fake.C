@@ -58,24 +58,24 @@ bool passEleSignalSelection(float eta, float sigma, float dEta, float dPhi, floa
 
 void analysis_fake(){//main 
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/Sep1/test_egsignal_QCDfake_2.root";
+  char outputname[100] = "test_egsignal_QCDfake_2.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/Sep1/test_egsignal_QCDfake_2.log"); 
+  logfile.open("test_egsignal_QCDfake.log"); 
 
   logfile << "analysis_eg()" << std::endl;
   logfile << "medium eleID+miniIso" << std::endl;
   //logfile << "Loose the proxy definition: no upper bounds for photon; LooseFakeProxy for electron" << std::endl;
 
-  RunType datatype(MCDoubleEG); 
+  RunType datatype(MCDoubleEG2016); 
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/QCD.root");
-	//es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
+	es->Add("/eos/uscms/store/user/mengleis/copied/QCD_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TrancheIV_v6-v1.root");
 
-  const unsigned nEvts = es->GetEntries(); 
+  //const unsigned nEvts = es->GetEntries(); 
+  const unsigned nEvts = 100000; 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
   logfile << "Output file: " << outputname << std::endl;
@@ -263,12 +263,15 @@ void analysis_fake(){//main
 				for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
 					if(DeltaR(itpho->getEta(), itpho->getPhi(), itEle->getEta(), itEle->getPhi()) < 0.05){
 						matchPho = itpho;
-						hasmatch = true;
+						hasmatch = true; // ele match pho
 					}
 				}
 				bool isSig = passEleSignalSelection( itEle->getEta(), itEle->getSigma(),fabs(itEle->getdEtaIn()) , fabs(itEle->getdPhiIn()), itEle->getHoverE(), itEle->getEoverPInv(), itEle->getMissHits(), itEle->getConvVeto(), itEle->getMiniIso());
 				//if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))isSig=false;
 				//if(itEle->passSignalSelection() && isSig){
+
+				
+				// electron signal selection
 				if(isSig){
 					if(eleOrder == 1)eff_pass->Fill(itEle->getCalibPt(), 1);
 					phoEt = 100; 
@@ -313,6 +316,8 @@ void analysis_fake(){//main
 					sigtree->Fill();
 				}
 				//else if(!itEle->passSignalSelection()){
+
+				// electron does n't pass signal selection
 				else{
 					if(eleOrder == 1)eff_pass->Fill(itEle->getCalibPt(), 0);
 					fakeLepIndex = eleOrder;

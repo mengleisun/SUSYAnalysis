@@ -2,15 +2,15 @@ import re
 import os
 import ROOT
 
-#br_neu = 0.5
-#br_cha = 1-br_neu
-#
-#br_susy = 2*br_neu*br_cha
-#br_susy = br_susy/0.5
-br_susy = 1
+br_neu = 0.5
+br_cha = 1-br_neu
+
+br_susy = 2*br_neu*br_cha
+br_susy = br_susy/0.5
+#br_susy = 1
 
 
-susy_in = ROOT.TFile('../signalTree_T5WG.root','read')
+susy_in = ROOT.TFile('/uscms/home/tmishra/nobackup/signal_trees/signalTree_T5WG_2016.root','read')
 n_channels = 36
 syst_names = ['jes','jer','esf','scale','eleshape','jetshape','qcdshape','xs','lumi','isr']
 
@@ -33,7 +33,7 @@ for i in range(1, h_SUSYmass.GetXaxis().GetNbins() + 1):
         if(h_SUSYmass.GetBinContent(i,j) <= 0):
             continue
         file_out = open(
-            './Final/counting_t5Wg_'
+            '/tmp/tribeni/counting_t5Wg_'
             + str(int(h_SUSYmass.GetXaxis().GetBinCenter(i))) + '_'
             + str(int(h_SUSYmass.GetYaxis().GetBinCenter(j))) + '.txt', 'w'
             )

@@ -8,24 +8,51 @@ enum MCType{
 	TTG = 6,
 	WWG = 7,
 	WZG = 8,
-	DYLL10 = 9,
-	ZG130 = 10,
+	DYLL10 = 9, // not used
+	ZG130 = 10, // not used
 	TT = 11,
 	WW = 12,
 	WZ = 13,
   W  = 14,
-	QCDEM30 = 15,
-	QCDEM40 = 16,
-	QCDMU = 17,
-	GJet = 18,
-	generalMC = 19,
-  nMCType = 20
+	QCDEM30 = 15, // not used
+	QCDEM40 = 16, // not used 
+	QCDMU = 17, // not used 
+	GJet = 18, // not used 
+
+	T5WgmG1800mLSP800 = 19,
+	TChiWgmChi1000mLSP1 = 20,
+	T5WgmG1800mLSP1600 = 21,
+	T5WgmG1500mLSP1 = 22,
+  generalMC = 23,
+  nMCType = 24
 };
 
-double MC_XS[20] = {1, 489.0/*WGJetInclusive*/, 17.018/*WGJet40*/, 0.87971/*WGJet130*/, 117.8/*ZGInclusive*/, 5670/*DY*/, 3.697/*TTG*/, 0.21/*WWG*/,0.04/*WZG*/, 18610, 0.143, 750/*TTBar*/,63.21/*WW*/,22.82/*WZ*/, 61526/*W*/, 108000000/*QCDEM30*/, 54120000/*QCDEM40*/, 1/*MU*/, 16792/*GJet*/,1};
+// XSec for T5Wg_mG-1800_mLSP-800  = .001027
+// XSec for TChiWg_mChi-1000_mLSP-1 = .001019
+// update for WGJet40
+double MC_XS[25] = {1, 412.7/*WGToLNuG*/, 19.75 /*WGJet40*/, 0.8099/*WGJet130*/, 55.48	/*ZGInclusive*/, 6404.0/*DY*/, 3.757/*TTG*/, 0.2147/*WWG*/, 0.04345/*WZG*/, 18610, 0.143, 750.5/*TTBar*/, 75.95/*WW*/, 27.59/*WZ*/, 61526/*W*/, 108000000/*QCDEM30*/, 54120000/*QCDEM40*/, 1/*MU*/, 16792/*GJet*/, 0.001027 /*T5Wg_mG-1800_mLSP-800*/, 0.001019 /*TChiWg_mChi-1000_mLSP-1*/, 0.001057/*T5Wg_mG-1800_mLSP-1600*/,   0.005763 /*T5Wg_mG-1500_mLSP-1*/, 1};
 
 //0.143 // LO ZG130
 //0.1404 // NLO ZG130
+
+
+double getEvtWeight(int year, double XSec, double nEvents_MC){
+    
+    float luminosity;
+    if(year==2016) luminosity = 36470;
+    //if(year==2017) luminosity = 41540;
+    if(year==2017) luminosity = 27130;
+    if(year==2018) luminosity = 59960;
+    double evtWeight = 1.;
+	
+    evtWeight = XSec * luminosity / nEvents_MC;
+    //cout << "Using event weight " << evtWeight << endl;
+    //cout << "XS = " << evtWeight/luminosity*nEvents_MC << endl;
+    //cout << "lumi = " << luminosity << endl;
+    //cout << "nEvents_MC = " << nEvents_MC << endl;
+    return evtWeight;
+}
+
 
 float DeltaPhi(float phi1, float phi2){
   float deltaPhi = phi1 - phi2;
@@ -44,7 +71,9 @@ float DeltaR(float eta1,float phi1,float eta2,float phi2)
 	deltaPhi = TMath::TwoPi() - deltaPhi;
 		return TMath::Sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
 }
-
+// prompt photon if momID
+// 1-6 for quarks, 11, 13, 15 leptons, 21, 22, 24 for gluons, photons, W+
+// check for photon (PID 22) and electron(PID 11)
 bool isHad(int PID, int momID){
    bool isFakePho;
    if(fabs(PID) == 22 || fabs(PID) == 11){
@@ -129,6 +158,21 @@ void DrawHisto(TObjArray *obj_list,TCanvas *canvas, int iPad, bool setLog){
   leg->Draw("same");
 }
 
+int StartHEM = 319077;
+double passHEMVeto(int mcType, rawData raw){
+    if(mcType==0 && raw.run < StartHEM) return true;
+    for(int iJet(0); iJet < raw.nJet; iJet++){
+        if(recoJet(raw, iJet).getPt() > 30 && recoJet(raw, iJet).getEta() > -3.2 && recoJet(raw, iJet).getEta() < -1.2 && recoJet(raw, iJet).getPhi() > -1.77 && recoJet(raw, iJet).getPhi() < -0.67 && DeltaPhi(recoJet(raw, iJet).getPhi(),raw.pfMETPhi)<0.5) 
+	return false;
+    }
+
+    for(int iEle(0); iEle < raw.nEle; iEle++){
+	if(recoEle(raw, iEle).getCalibEt() > 30 && recoEle(raw, iEle).getEta() > -3.0 && recoEle(raw, iEle).getEta() < -1.4 && recoEle(raw, iEle).getPhi() > -1.57 && recoEle(raw, iEle).getPhi() < -0.87) 
+	return false;
+    }
+        return true;   
+}
+
 unsigned findIndex(float* array, float kinevar,unsigned len){
   unsigned Index(0);
   for(unsigned i(0); i< len; i++){
@@ -141,114 +185,327 @@ unsigned findIndex(float* array, float kinevar,unsigned len){
   return Index;
 }
 
-float getPUESF(int nvertex){
+float getPUESF16(int nvertex){
 	
 	float pileupweights[100];
-	pileupweights[0] = 0.00000;  
-	pileupweights[1] = 7.04304;
-	pileupweights[2] = 1.57478;
-	pileupweights[3] = 1.25661;
-	pileupweights[4] = 1.35018;
-	pileupweights[5] = 1.30695;
-	pileupweights[6] = 1.41195;
-	pileupweights[7] = 1.45244;
-	pileupweights[8] = 1.41624;
-	pileupweights[9] = 1.43834;
-	pileupweights[10]= 1.42312;
-	pileupweights[11]= 1.39738;
-	pileupweights[12]= 1.35533;
-	pileupweights[13]= 1.32917;
-	pileupweights[14]= 1.28631;
-	pileupweights[15]= 1.24885;
-	pileupweights[16]= 1.19631;
-	pileupweights[17]= 1.15745;
-	pileupweights[18]= 1.11156;
-	pileupweights[19]= 1.06394;
-	pileupweights[20]= 1.02461;
-	pileupweights[21]= 0.97780;
-	pileupweights[22]= 0.93597;
-	pileupweights[23]= 0.89860;
-	pileupweights[24]= 0.85123;
-	pileupweights[25]= 0.82087;
-	pileupweights[26]= 0.77079;
-	pileupweights[27]= 0.72831;
-	pileupweights[28]= 0.68178;
-	pileupweights[29]= 0.63569;
-	pileupweights[30]= 0.58593;
-	pileupweights[31]= 0.55364;
-	pileupweights[32]= 0.50999;
-	pileupweights[33]= 0.46912;
-	pileupweights[34]= 0.42884;
-	pileupweights[35]= 0.40110;
-	pileupweights[36]= 0.37670;
-	pileupweights[37]= 0.34328;
-	pileupweights[38]= 0.31827;
-	pileupweights[39]= 0.30448;
-	pileupweights[40]= 0.27736;
-	pileupweights[41]= 0.25714;
-	pileupweights[42]= 0.24828;
-	pileupweights[43]= 0.25165;
-	pileupweights[44]= 0.22350;
-	pileupweights[45]= 0.21263;
-	pileupweights[46]= 0.20924;
-	pileupweights[47]= 0.20377;
-	pileupweights[48]= 0.21069;
-	pileupweights[49]= 0.19633;
-	pileupweights[50]= 0.18781;
-	pileupweights[51]= 0.18492;
-	pileupweights[52]= 0.18520;
-	pileupweights[53]= 0.18875;
-	pileupweights[54]= 0.17958;
-	pileupweights[55]= 0.16748;
-	pileupweights[56]= 0.16586;
-	pileupweights[57]= 0.19078;
-	pileupweights[58]= 0.17135;
-	pileupweights[59]= 0.16249;
-	pileupweights[60]= 0.15503;
-	pileupweights[61]= 0.12345;
-	pileupweights[62]= 0.14708;
-	pileupweights[63]= 0.13309;
-	pileupweights[64]= 0.14519;
-	pileupweights[65]= 0.11982;
-	pileupweights[66]= 0.11879;
-	pileupweights[67]= 0.11448;
-	pileupweights[68]= 0.14388;
-	pileupweights[69]= 0.10006;
-	pileupweights[70]= 0.08019;
-	pileupweights[71]= 0.12361;
-	pileupweights[72]= 0.12655;
-	pileupweights[73]= 0.09417;
-	pileupweights[74]= 0.07416;
-	pileupweights[75]= 0.06769;
-	pileupweights[76]= 0.05976;
-	pileupweights[77]= 0.06849;
-	pileupweights[78]= 0.14126;
-	pileupweights[79]= 0.10595;
-	pileupweights[80]= 0.09888;
-	pileupweights[81]= 0.08476;
-	pileupweights[82]= 0.04512;
-	pileupweights[83]= 0.04316;
-	pileupweights[84]= 0.04120;
-	pileupweights[85]= 0.02354;
-	pileupweights[86]= 0.07063;
-	pileupweights[87]= 0.02354;
-	pileupweights[88]= 0.02354;
-	pileupweights[89]= 0.10595;
-	pileupweights[90]= 0;
-	pileupweights[91]= 0.14126;
-	pileupweights[92]= 0.02354;
-	pileupweights[93]= 0;
-	pileupweights[94]= 0.03531;
-	pileupweights[95]= 0;
-	pileupweights[96]= 0;
-	pileupweights[97]= 0;
-	pileupweights[98]= 0;
-	pileupweights[99]= 0;
-
+	pileupweights[0] = 0;
+        pileupweights[1] = 0;
+        pileupweights[2] = 1.04404;
+        pileupweights[3] = 0.671719;
+        pileupweights[4] = 0.551154;
+        pileupweights[5] = 0.571996;
+        pileupweights[6] = 0.489252;
+        pileupweights[7] = 0.600793;
+        pileupweights[8] = 0.648089;
+        pileupweights[9] = 0.70624;
+        pileupweights[10] = 0.78362;
+        pileupweights[11] = 0.775689;
+        pileupweights[12] = 0.822737;
+        pileupweights[13] = 0.900937;
+        pileupweights[14] = 0.910491;
+        pileupweights[15] = 0.918496;
+        pileupweights[16] = 0.946654;
+        pileupweights[17] = 0.964116;
+        pileupweights[18] = 0.966068;
+        pileupweights[19] = 1.00622;
+        pileupweights[20] = 1.03616;
+        pileupweights[21] = 1.03452;
+        pileupweights[22] = 1.07318;
+        pileupweights[23] = 1.05786;
+        pileupweights[24] = 1.07856;
+        pileupweights[25] = 1.10927;
+        pileupweights[26] = 1.13568;
+        pileupweights[27] = 1.15534;
+        pileupweights[28] = 1.26312;
+        pileupweights[29] = 1.22121;
+        pileupweights[30] = 1.3091;
+        pileupweights[31] = 1.38049;
+        pileupweights[32] = 1.40534;
+        pileupweights[33] = 1.62435;
+        pileupweights[34] = 1.71987;
+        pileupweights[35] = 1.69665;
+        pileupweights[36] = 1.79234;
+        pileupweights[37] = 2.21024;
+        pileupweights[38] = 1.8312;
+        pileupweights[39] = 2.66367;
+        pileupweights[40] = 2.94597;
+        pileupweights[41] = 2.70223;
+        pileupweights[42] = 3.94469;
+        pileupweights[43] = 3.60809;
+        pileupweights[44] = 3.68486;
+        pileupweights[45] = 3.55326;
+        pileupweights[46] = 6.55086;
+        pileupweights[47] = 3.37779;
+        pileupweights[48] = 11.6687;
+        pileupweights[49] = 0;
+        pileupweights[50] = 3.5825;
+        pileupweights[51] = 9.51922;
+        pileupweights[52] = 1.99597;
+        pileupweights[53] = 0;
+        pileupweights[54] = 0;
+        pileupweights[55] = 0;
+        pileupweights[56] = 0;
+        pileupweights[57] = 0;
+        pileupweights[58] = 0;
+        pileupweights[59] = 0;
+        pileupweights[60] = 0;
+        pileupweights[61] = 0;
+        pileupweights[62] = 0.307072;
+        pileupweights[63] = 0;
+        pileupweights[64] = 0;
+        pileupweights[65] = 0;
+        pileupweights[66] = 0;
+        pileupweights[67] = 0;
+        pileupweights[68] = 0;
+        pileupweights[69] = 0;
+        pileupweights[70] = 0;
+        pileupweights[71] = 0;
+        pileupweights[72] = 0;
+        pileupweights[73] = 0;
+        pileupweights[74] = 0;
+        pileupweights[75] = 0;
+        pileupweights[76] = 0;
+        pileupweights[77] = 0;
+        pileupweights[78] = 0;
+        pileupweights[79] = 0;
+        pileupweights[80] = 0;
+        pileupweights[81] = 0;
+        pileupweights[82] = 0;
+        pileupweights[83] = 0;
+        pileupweights[84] = 0;
+        pileupweights[85] = 0;
+        pileupweights[86] = 0;
+        pileupweights[87] = 0;
+        pileupweights[88] = 0;
+        pileupweights[89] = 0;
+        pileupweights[90] = 0;
+        pileupweights[91] = 0;
+        pileupweights[92] = 0;
+        pileupweights[93] = 0;
+        pileupweights[94] = 0;
+        pileupweights[95] = 0;
+        pileupweights[96] = 0;
+        pileupweights[97] = 0;
+        pileupweights[98] = 0;
+        pileupweights[99] = 0;
+	if(nvertex > 99)return 0;
+	else return pileupweights[nvertex]; 
+}
+float getPUESF17(int nvertex){
+	
+	float pileupweights[100];	
+	pileupweights[0] = 0;
+        pileupweights[1] = 0;
+        pileupweights[2] = 0.368589;
+        pileupweights[3] = 5.52883;
+        pileupweights[4] = 0.652119;
+        pileupweights[5] = 0.700319;
+        pileupweights[6] = 0.425295;
+        pileupweights[7] = 0.455316;
+        pileupweights[8] = 0.466681;
+        pileupweights[9] = 0.436581;
+        pileupweights[10] = 0.463855;
+        pileupweights[11] = 0.483533;
+        pileupweights[12] = 0.458275;
+        pileupweights[13] = 0.476209;
+        pileupweights[14] = 0.479196;
+        pileupweights[15] = 0.528833;
+        pileupweights[16] = 0.498161;
+        pileupweights[17] = 0.592429;
+        pileupweights[18] = 0.610549;
+        pileupweights[19] = 0.616739;
+        pileupweights[20] = 0.628302;
+        pileupweights[21] = 0.659463;
+        pileupweights[22] = 0.711438;
+        pileupweights[23] = 0.738332;
+        pileupweights[24] = 0.712789;
+        pileupweights[25] = 0.770604;
+        pileupweights[26] = 0.808979;
+        pileupweights[27] = 0.822348;
+        pileupweights[28] = 0.902373;
+        pileupweights[29] = 0.903288;
+        pileupweights[30] = 0.987908;
+        pileupweights[31] = 1.03126;
+        pileupweights[32] = 1.06761;
+        pileupweights[33] = 1.10689;
+        pileupweights[34] = 1.20031;
+        pileupweights[35] = 1.2554;
+        pileupweights[36] = 1.28501;
+        pileupweights[37] = 1.39552;
+        pileupweights[38] = 1.43056;
+        pileupweights[39] = 1.47498;
+        pileupweights[40] = 1.58264;
+        pileupweights[41] = 1.67398;
+        pileupweights[42] = 1.76129;
+        pileupweights[43] = 1.65561;
+        pileupweights[44] = 1.95346;
+        pileupweights[45] = 2.0641;
+        pileupweights[46] = 2.35761;
+        pileupweights[47] = 2.31189;
+        pileupweights[48] = 2.51311;
+        pileupweights[49] = 2.64964;
+        pileupweights[50] = 2.74274;
+        pileupweights[51] = 3.17832;
+        pileupweights[52] = 3.48279;
+        pileupweights[53] = 4.42307;
+        pileupweights[54] = 4.15277;
+        pileupweights[55] = 4.2729;
+        pileupweights[56] = 4.33371;
+        pileupweights[57] = 5.15272;
+        pileupweights[58] = 7.05585;
+        pileupweights[59] = 5.57639;
+        pileupweights[60] = 5.38363;
+        pileupweights[61] = 7.39021;
+        pileupweights[62] = 4.79166;
+        pileupweights[63] = 9.70617;
+        pileupweights[64] = 12.5781;
+        pileupweights[65] = 15.9968;
+        pileupweights[66] = 10.8734;
+        pileupweights[67] = 9.32003;
+        pileupweights[68] = 28.9342;
+        pileupweights[69] = 45.705;
+        pileupweights[70] = 9.58331;
+        pileupweights[71] = 14.0064;
+        pileupweights[72] = 16.2179;
+        pileupweights[73] = 7.49464;
+        pileupweights[74] = 14.1907;
+        pileupweights[75] = 12.1634;
+        pileupweights[76] = 8.29325;
+        pileupweights[77] = 0;
+        pileupweights[78] = 0;
+        pileupweights[79] = 11.4263;
+        pileupweights[80] = 0;
+        pileupweights[81] = 0;
+        pileupweights[82] = 0;
+        pileupweights[83] = 5.16024;
+        pileupweights[84] = 0;
+        pileupweights[85] = 0;
+        pileupweights[86] = 0;
+        pileupweights[87] = 0;
+        pileupweights[88] = 2.21153;
+        pileupweights[89] = 0;
+        pileupweights[90] = 0;
+        pileupweights[91] = 0;
+        pileupweights[92] = 0;
+        pileupweights[93] = 0;
+        pileupweights[94] = 2.58012;
+        pileupweights[95] = 0;
+        pileupweights[96] = 0;
+        pileupweights[97] = 0;
+        pileupweights[98] = 0;
+        pileupweights[99] = 0;
+	
 	if(nvertex > 99)return 0;
 	else return pileupweights[nvertex]; 
 }
 
+float getPUESF18(int nvertex){
+	
+	float pileupweights[100];
+	pileupweights[0] = 0;
+	pileupweights[1] = 0;
+        pileupweights[2] = 1.28953;
+        pileupweights[3] = 0.421578;
+        pileupweights[4] = 0.82745;
+        pileupweights[5] = 0.523873;
+        pileupweights[6] = 0.800097;
+        pileupweights[7] = 0.575908;
+        pileupweights[8] = 0.681356;
+        pileupweights[9] = 0.631048;
+        pileupweights[10] = 0.735895;
+        pileupweights[11] = 0.767841;
+        pileupweights[12] = 0.733907;
+        pileupweights[13] = 0.854597;
+        pileupweights[14] = 0.71963;
+        pileupweights[15] = 0.768989;
+        pileupweights[16] = 0.7891;
+        pileupweights[17] = 0.811136;
+        pileupweights[18] = 0.795095;
+        pileupweights[19] = 0.80085;
+        pileupweights[20] = 0.831406;
+        pileupweights[21] = 0.835328;
+        pileupweights[22] = 0.875346;
+        pileupweights[23] = 0.847136;
+        pileupweights[24] = 0.88979;
+        pileupweights[25] = 0.901946;
+        pileupweights[26] = 0.902386;
+        pileupweights[27] = 0.950084;
+        pileupweights[28] = 0.9262;
+        pileupweights[29] = 0.936081;
+        pileupweights[30] = 0.968535;
+        pileupweights[31] = 0.989897;
+        pileupweights[32] = 1.01124;
+        pileupweights[33] = 1.03438;
+        pileupweights[34] = 0.998615;
+        pileupweights[35] = 1.04456;
+        pileupweights[36] = 1.17434;
+        pileupweights[37] = 1.1385;
+        pileupweights[38] = 1.20681;
+        pileupweights[39] = 1.29955;
+        pileupweights[40] = 1.36529;
+        pileupweights[41] = 1.5202;
+        pileupweights[42] = 1.49041;
+        pileupweights[43] = 1.67056;
+        pileupweights[44] = 1.82047;
+        pileupweights[45] = 2.1055;
+        pileupweights[46] = 2.1692;
+        pileupweights[47] = 2.59291;
+        pileupweights[48] = 2.65146;
+        pileupweights[49] = 2.43148;
+        pileupweights[50] = 3.33404;
+        pileupweights[51] = 3.04206;
+        pileupweights[52] = 3.85581;
+        pileupweights[53] = 4.45841;
+        pileupweights[54] = 4.90291;
+        pileupweights[55] = 5.29153;
+        pileupweights[56] = 5.35156;
+        pileupweights[57] = 5.23522;
+        pileupweights[58] = 6.20588;
+        pileupweights[59] = 9.15568;
+        pileupweights[60] = 6.47697;
+        pileupweights[61] = 5.22013;
+        pileupweights[62] = 8.3551;
+        pileupweights[63] = 9.86493;
+        pileupweights[64] = 19.343;
+        pileupweights[65] = 11.6058;
+        pileupweights[66] = 6.57662;
+        pileupweights[67] = 9.83269;
+        pileupweights[68] = 4.5456;
+        pileupweights[69] = 0;
+        pileupweights[70] = 0;
+        pileupweights[71] = 6.77005;
+        pileupweights[72] = 14.6684;
+        pileupweights[73] = 12.4118;
+        pileupweights[74] = 11.2834;
+        pileupweights[75] = 0;
+        pileupweights[76] = 0;
+        pileupweights[77] = 0;
+        pileupweights[78] = 6.12528;
+        pileupweights[79] = 2.65966;
+        pileupweights[80] = 0;
+        pileupweights[81] = 0;
+        pileupweights[82] = 0;
+        pileupweights[83] = 0;
+        pileupweights[84] = 0;
+        pileupweights[85] = 0;
+        pileupweights[86] = 0;
+        pileupweights[87] = 0;
+        pileupweights[88] = 0;
+        pileupweights[89] = 0;
+        pileupweights[90] = 0;
+        pileupweights[91] = 0;
+        pileupweights[92] = 0;
+        pileupweights[93] = 0;
+        pileupweights[94] = 0;
+        pileupweights[95] = 0;
+        pileupweights[96] = 0;
+        pileupweights[97] = 0;
+        pileupweights[98] = 0;
+        pileupweights[99] = 0;
+	
+	if(nvertex > 99)return 0;
+	else return pileupweights[nvertex]; 
+}
 
 //Double_t bkgEtBins[]={35,40,45,50,55,60,65,70,75,80, 85,90,95,100,105,110,115,120,125,130, 135,140,146,152,158,164,170,177,184,192, 200,208,216,224,232,240,250,260,275,290, 305,325,345,370,400,500,800};
 Double_t bkgEtBins[]={35,40,50,60,70,80,90,100,110,120,130,140,150,160,170,185,200,215,230,250,275,290, 305,325,345,370,400,500,800};

@@ -3,7 +3,7 @@
 
   class mcData{
   public:
-  mcData(rawData& raw, int imc){
+  mcData(rawData & raw, int imc){
     p4_.SetPtEtaPhiM((*raw.mcPt)[imc],(*raw.mcEta)[imc],(*raw.mcPhi)[imc],(*raw.mcMass)[imc]);
     momp4_.SetPtEtaPhiM((*raw.mcMomPt)[imc],(*raw.mcMomEta)[imc],(*raw.mcMomPhi)[imc],(*raw.mcMomMass)[imc]);
     mcPID_ = (*raw.mcPID)[imc];

@@ -28,7 +28,7 @@
 
 void plot_sfmap(){//main  
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 	gStyle->SetOptStat(0);
 	//setTDRStyle();
 
@@ -133,5 +133,3 @@ void plot_sfmap(){//main
 	muonISOESF->Draw("colz text E");
 	c_muid->SaveAs("SF_Muon.pdf");	
 }
-
-

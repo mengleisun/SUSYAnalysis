@@ -29,6 +29,7 @@
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_jet.h"
 
+RunYear =2016;
 
 void analysis_ISRMC(){//main  
 
@@ -40,9 +41,9 @@ void analysis_ISRMC(){//main
 
   logfile << "analysis_mg()" << std::endl;
 
-  RunType datatype(MCMuonEG);
+  RunType datatype(MCMuonEG2016);
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
 	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTGJets_RunIISummer16MiniAODv2-TrancheIV_v6_v1ANDext1.root");
 	//es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/TTJets_TuneCUETP8M2T4_13TeV-amcatnloFXFX-pythia8.root");
@@ -190,7 +191,9 @@ void analysis_ISRMC(){//main
 			METPhi_T1UESUp = raw.pfMETPhi_T1UESUp;
 			METPhi_T1UESDo = raw.pfMETPhi_T1UESDo;
 			nVtx = raw.nVtx;
-			PUweight = getPUESF(nVtx);
+			if(RunYear==2016)PUweight = getPUESF16(nVtx);
+			if(RunYear==2017)PUweight = getPUESF17(nVtx);
+			if(RunYear==2018)PUweight = getPUESF18(nVtx);
 
 			nTotal+=1;
 			if(!raw.passHLT())continue;

@@ -25,29 +25,30 @@
 #include "../../include/analysis_photon.h"
 #include "../../include/analysis_muon.h"
 #include "../../include/analysis_ele.h"
+#include "../../include/analysis_jet.h"
 #include "../../include/analysis_mcData.h"
 #include "../../include/analysis_tools.h"
-#include "../../include/analysis_jet.h"
 
 void analysis_mgMC(){//main  
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/fakelep_mgsignal_QCD.root";
+  char outputname[100] = "/eos/uscms/store/user/tmishra/fakeLep/fakelep_mgsignal_QCD.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/fakelep_mgsignal_QCD.log"); 
+  logfile.open("/eos/uscms/store/user/tmishra/fakeLep/fakelep_mgsignal_QCD.log"); 
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
 	
-  RunType datatype(MCMuonEG);
+  RunType datatype(MCMuonEG2016);
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	//es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf-RunIISummer16MiniAODv2-PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6-v1.root");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/QCD_Pt-20toInf_MuEnrichedPt15_pythia8.root");
+	es->Add("/eos/uscms/store/user/tmishra/InputFilesMC/QCDMuEnriched/QCDMuEnriched_2016.root");
+	//es->Add("root://cmseos.fnal.gov//store/user/mengleis/copied/QCD_Pt-20toInf_MuEnrichedPt15_pythia8.root");
 
   const unsigned nEvts = es->GetEntries(); 
+  //const unsigned nEvts = 10000; 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
   logfile << "Output file: " << outputname << std::endl;
@@ -263,7 +264,7 @@ void analysis_mgMC(){//main
 				if(itMu->isMedium() && itMu->getPt() > 15 && itMu->getMiniIso() < 0.2)miniisoLep.push_back(itMu);
 				if(itMu->getPt() < 25)continue;
 				if(!itMu->passHLTSelection())continue;
-				if(itMu->isFakeProxy())fakeLepCollection.push_back(itMu);
+				if(itMu->isFakeProxy())fakeLepCollection.push_back(itMu); // muon proxies
 				if(itMu->passSignalSelection()){
 					if(proxyLepCollection.size() == 0)proxyLepCollection.push_back(itMu);
 					if(hasLep && !hasTrail){

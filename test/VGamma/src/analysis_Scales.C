@@ -1,3 +1,4 @@
+// added some branches scalefactor, else rest is same
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -34,7 +35,7 @@ void analysis_VGamma(){//main
 	float ntotalevent  = 9885348;
 	float PUweight(1);
 	
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../../lib/libAnaClasses.so");
 
   char outputname[100] = "/uscms_data/d3/mengleis/resTree_VGamma_TTGJets.root";
   ofstream logfile;
@@ -263,9 +264,11 @@ void analysis_VGamma(){//main
         METFilter = raw.metFilters;
         nVtx = raw.nVtx;
         jetNumber = raw.nJet;
-				
-				PUweight = getPUESF(nVtx);
-	
+				 
+				if(RunYear==2016)PUweight = getPUESF16(nVtx);
+                        	if(RunYear==2017)PUweight = getPUESF17(nVtx);
+                        	if(RunYear==2018)PUweight = getPUESF18(nVtx);
+
         if(raw.nPho <1)continue;
 
         bool hasegPho(false);

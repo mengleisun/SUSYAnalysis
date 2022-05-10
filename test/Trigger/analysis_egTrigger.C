@@ -1,3 +1,4 @@
+// g++ `root-config --cflags` analysis_egTrigger.C -o analysis_egTrigger.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -20,35 +21,84 @@
 #include "TProfile2D.h"
 #include "TLorentzVector.h"
 #include "TFileCollection.h"
+#include "TCut.h"
 
 #include "../../include/analysis_rawData.h"
 #include "../../include/analysis_photon.h"
 #include "../../include/analysis_muon.h"
 #include "../../include/analysis_ele.h"
+#include "../../include/analysis_jet.h"
 #include "../../include/analysis_tools.h"
 #include "../../include/analysis_mcData.h"
+#include "../../src/analysis_rawData.cc"
+#include "../../src/analysis_ele.cc"
+#include "../../src/analysis_photon.cc"
 
 
-void analysis_egTrigger(){//main  
+bool useData = false;
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-
-	char outputname[100] = "/uscms_data/d3/mengleis/plot_egTrigger_DY.root";
+void analysis_egTrigger(int RunYear, const char *Era){//main  
+	
+	//gSystem->Load("../../lib/libAnaClasses.so");
+	
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/plot_egTrigger_DY.log");
+	//if (useData) logfile.open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_ReMiniAOD_%d.log",RunYear));
+	if (useData) logfile.open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_ReMiniAOD_%d%s.log",RunYear,Era));
+	else logfile.open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_DY_%d.log",RunYear));
 
 	logfile << "analysis_egTrigger()" << std::endl;
 
-	RunType datatype(MC);
-
+	RunType datatype;
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	TFileCollection fc("dum","","/uscmst1b_scratch/lpc1/3DayLifetime/mengleis/DY_1.txt");
-	es->AddFileInfoList((TCollection*)fc.GetList());
+	if(!useData) {
+		 datatype = MC;
+		 es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DYJetsToLL/DYJetsToLL_%d.root",RunYear));
+	}
+	
+	if(useData && RunYear==2016)datatype = SingleElectron2016;
+	if(useData && RunYear==2017)datatype = SingleElectron2017;
+	if(useData && RunYear==2018)datatype = SingleElectron2018;
 
-	TFile *outputfile = TFile::Open(outputname,"NEW");
+	if(!useData) es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DYJetsToLL/DYJetsToLL_%d.root",RunYear));
+	//es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_%d%s.root",RunYear,Era));
+	else es->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_%d%s.root",RunYear,Era));
+	/*
+	if(useData && RunYear==2016){
+		 datatype = SingleElectron2016;
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2016B.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2016C.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2016D.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2016E.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2016F.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2016G.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2016H.root");
+	}
+  	if(useData && RunYear==2017){
+		 datatype = SingleElectron2017;
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2017B.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2017C.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2017D.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2017E.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/SingleElectron/SingleElectron_2017F.root");
+	}
+ 	if(useData && RunYear==2018){
+		 datatype = SingleElectron2018;
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_2018A.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_2018B.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_2018C.root");
+		 es->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/DoubleEG/DoubleEG_2018D.root");
+	}*/
+
+	//TFileCollection fc("dum","","SingelEle16B.txt");
+	//es->AddFileInfoList((TCollection*)fc.GetList());
+	
+	TFile *outputfile;
+	//if (useData) outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_ReMiniAOD_%d.root",RunYear),"RECREATE");
+	if (useData) outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_ReMiniAOD_%d%s.root",RunYear,Era),"RECREATE");
+	else outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/Trigger/plot_egTrigger_DY_%d.root",RunYear),"RECREATE");
+
 	outputfile->cd();
 
-	logfile << "output: " << outputname <<  std::endl;
 
 	float tagPt(0);
 	float tagEta(0);
@@ -68,7 +118,7 @@ void analysis_egTrigger(){//main
 	float probePhoR9(0);
 	bool  probePhoMatchLeading;
 	bool  probePhoMatchTrailing;
-	float invmass;
+	float invmass; // eg mass
 
 	egtree->Branch("tagPt",                 &tagPt);
 	egtree->Branch("tagEta",                &tagEta);
@@ -95,7 +145,7 @@ void analysis_egTrigger(){//main
 	float probeEleR9(0);
 	bool  probeEleMatchLeading(false);
 	bool  probeEleMatchTrailing;
-	float diElectronMass;
+	float diElectronMass; // ee mass
 
 	eetree->Branch("tagPt",                 &tagPt);
 	eetree->Branch("tagEta",                &tagEta);
@@ -116,6 +166,7 @@ void analysis_egTrigger(){//main
 	eetree->Branch("mcGMomPID",		   				&mcGMomPID);
 
 	const unsigned nEvts = es->GetEntries(); 
+	cout << "total event "<< nEvts << std::endl;
 	logfile << "total event "<< nEvts << std::endl;
  
 	rawData raw(es, datatype);
@@ -124,7 +175,7 @@ void analysis_egTrigger(){//main
 	std::vector<recoMuon>   Muon;
 	std::vector<recoEle>   Ele;
 	float MET(0);
-
+	
 	for (unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
 
 		if (ievt%10000==0){
@@ -146,16 +197,24 @@ void analysis_egTrigger(){//main
 		if(!raw.passHLT())continue;
 		if(raw.nPho <1)continue;
 		if(MET>70)continue;
-		if(((raw.HLTEleMuX >> 1) &1) ==0)continue;
+		if(RunYear == 2016 && ((raw.HLTEleMuX >> 1) &1) == 0) continue; // HLT_Ele27_eta2p1_WPTight_Gsf_v
+		if(RunYear == 2017 && ((raw.HLTEleMuX >> 3) &1) == 0) continue; // HLT_Ele35_WPTight_Gsf_v
+		if(RunYear == 2018 && ((raw.HLTEleMuX >> 55) &1) == 0) continue; // HLT_Ele32_WPTight_Gsf_v
 
 		std::vector<std::vector<recoEle>::iterator> tagEleVec;
 		tagEleVec.clear();
 		for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
+			// electron pt cut should be higher than trigger threshold
+			// change it to 38 later
 			if(itEle->getEt() < 30 || fabs(itEle->getEta())>2.1)continue;
 			if(!itEle->passHLTSelection())continue;
-			if(!itEle->fireTrgs(11))continue;
+			if(RunYear == 2016 && !itEle->fireTrgs(11))continue; // HLT_Ele27_eta2p1_WPTight_Gsf 
+			// not working for 2017 Check trigger again
+			if(RunYear == 2017 && !itEle->fireTrgs(46))continue; // HLT_Ele35_WPTight_Gsf
+			if(RunYear == 2018 && !itEle->fireTrgs(13))continue; // HLT_Ele32_WPTight_Gsf
 			if(!itEle->passSignalSelection())continue;
 			tagEleVec.push_back(itEle);
+			// Tag is tight WP electron
 		}
 
 		for(unsigned itag(0); itag < tagEleVec.size(); itag++){
@@ -166,8 +225,9 @@ void analysis_egTrigger(){//main
 			std::vector<recoEle>::iterator trailEle;
 			std::vector<recoPhoton>::iterator leadpho;
 			std::vector<recoPhoton>::iterator phoMatchele;
-
+			
 			for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
+				// photon matched to tag electron and fire leading leg filters
 				if(DeltaR(tagEle->getEta(), tagEle->getPhi(), itpho->getEta(), itpho->getPhi())<0.05){
 					phoMatchele = itpho; 
 					tagMatchLead = (itpho->fireDoubleTrg(5) || itpho->fireDoubleTrg(6));
@@ -177,6 +237,7 @@ void analysis_egTrigger(){//main
 							if(!itEle->isMiniMedium())continue;
 							if((itEle->isEB() && itEle->getR9() < 0.5) || (itEle->isEE() && itEle->getR9() < 0.8))continue;
 							diElectronMass = (phoMatchele->getP4()+itEle->getP4()).M();
+							//a  photon match electron and trail electron found  == DIELECTRON MASS
 							if(!foundtrailEle && diElectronMass  > 60 && diElectronMass < 120){
 								foundtrailEle = true;
 								trailEle = itEle;
@@ -188,6 +249,7 @@ void analysis_egTrigger(){//main
 				if(!itpho->isEB() && !itpho->isEE())continue;
 				if(itpho->getR9() < 0.5)continue;
 				if(itpho->isLoose()){
+					// a lead photon and a tag electron found == eg InvMass
 					invmass = (itpho->getP4()+tagEle->getP4()).M();
 					if(!foundZ && invmass > 60 && invmass < 120){ 
 						foundZ = true; 
@@ -228,21 +290,27 @@ void analysis_egTrigger(){//main
 			tagR9 = tagEle->getR9();
 			if(foundZ){
 				invmass = (leadpho->getP4()+tagEle->getP4()).M();
+				// probe is photon
 				probePhoEt = leadpho->getEt();
 				probePhoEta= leadpho->getEta();
 				probePhoPhi= leadpho->getPhi();
 				probePhoR9 = leadpho->getR9();
-				probePhoMatchLeading = (leadpho->fireDoubleTrg(5) || leadpho->fireDoubleTrg(6));
-				probePhoMatchTrailing= (leadpho->fireDoubleTrg(1) || leadpho->fireDoubleTrg(2));
+				// photon firing lead or sublead trigger	
+				probePhoMatchLeading = (leadpho->fireDoubleTrg(5) || leadpho->fireDoubleTrg(6)); // hltEG30
+				if(RunYear == 2016) probePhoMatchTrailing= (leadpho->fireDoubleTrg(1) || leadpho->fireDoubleTrg(2)); // hltEG18
+				if(RunYear == 2017 || RunYear ==2018) probePhoMatchTrailing= (leadpho->fireDoubleTrg(33) || leadpho->fireDoubleTrg(34)); // hltEG22
 				egtree->Fill();
 			}
 			if(foundtrailEle){
 				diElectronMass = (trailEle->getP4()+tagEle->getP4()).M();
+				// probe is electron
 				probeElePt=trailEle->getPt();
 				probeEleEta=trailEle->getEta();
 				probeElePhi=trailEle->getPhi();
 				probeEleR9=trailEle->getR9();
-				probeEleMatchTrailing=(trailEle->fireTrgs(21) || trailEle->fireTrgs(22));
+				// electron firing sublead trigger
+				if(RunYear == 2016) probeEleMatchTrailing=(trailEle->fireTrgs(21) || trailEle->fireTrgs(22)); // hltEG18
+				if(RunYear == 2017 || RunYear == 2018) probeEleMatchTrailing=(trailEle->fireTrgs(43) || trailEle->fireTrgs(44)); // hltEG22
 				eetree->Fill();
 			}
 
@@ -250,9 +318,18 @@ void analysis_egTrigger(){//main
 		}// loop over tag electrons
 
 	}//loop on  events
-
+	// to see percentage
+	cout<<egtree->GetEntries()<<"  "<<100*egtree->GetEntries()/nEvts<<endl;
+	cout<<eetree->GetEntries()<<"  "<<100*eetree->GetEntries()/nEvts<<endl;
+	
 	outputfile->Write();
 	logfile.close();
 }
 
-
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+      cout << "You have to provide two arguments!!\n";
+    analysis_egTrigger(atoi(argv[1]), argv[2]);
+    return 0;
+}

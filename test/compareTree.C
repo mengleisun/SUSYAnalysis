@@ -36,7 +36,7 @@ void compareTree(){//main
 
 	std::ostringstream treeName;
 	treeName.str("");
-	treeName << "signalTree";
+	treeName << "egTree";
 
 	bool   EBOnly = true;
 	double scalefactor1 = 1; 
@@ -81,7 +81,7 @@ void compareTree(){//main
 	int  Nsig_2(0);
 //************ Signal Tree **********************//
   TChain *tree = new TChain(treeName.str().c_str());
-  tree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG.root");
+  tree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_string.root");
   float phoEt(0);
   float phoEta(0);
   float phoPhi(0);
@@ -144,7 +144,7 @@ void compareTree(){//main
 
 //************ Signal Tree **********************//
   TChain *tree2 = new TChain(treeName.str().c_str());
-  tree2->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
+  tree2->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_T5WG_debug.root");
   float second_phoEt(0);
   float second_phoEta(0);
   float second_phoPhi(0);

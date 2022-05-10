@@ -113,11 +113,13 @@ bool isElectron(int PID, int momID){
 }
 
 void testFakeFunc(){//main 
+        // set to batch mode -> do not display graphics
+        gROOT->SetBatch(1);
 
 	ofstream resultfile;
 	resultfile.open("result_fitFakeFunc.txt");
 	 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libRooFitClasses.so");
+	gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libRooFitClasses.so");
 	setTDRStyle();
 	gStyle->SetOptStat(0);
 	gStyle->SetOptFit(0);
@@ -405,19 +407,20 @@ void testFakeFunc(){//main
 		if(probePt < 35)continue;
 		if(doEB && fabs(probeEta) > 1.4442)continue;
 		else if(!doEB && (fabs(probeEta) < 1.56 || fabs(probeEta) > 2.1))continue;
-
+		// numerator and denominator
 		if(vetovalue== false)invmass_den->Fill(invmass);
 		else if(vetovalue== true && FSRveto == true)invmass_num->Fill(invmass);
 	
 		float weight_eta(0);
  		for(unsigned i(0); i<nEtaBins; i++){
-			if(i+1 < nEtaBins)
+			if(i+1 < nEtaBins){
 				if(fabs(probeEta) > EtaBins[i] && fabs(probeEta) < EtaBins[i+1])weight_eta = eta_num[i]/eta_den[i];
+                        }
 			else{ 
 				if(fabs(probeEta) > EtaBins[i])weight_eta = eta_num[i]/eta_den[i];
 			}
 		}
-				
+		// Weight based on 3 variables.		
 		float w_ele = fit_fakerate_pt->Eval(probePt)*fit_fakerate_vtx->Eval(nVertex)*weight_eta;
 		if(vetovalue==false){
 			invmass_prednum->Fill(invmass, w_ele);
@@ -451,7 +454,7 @@ void testFakeFunc(){//main
 		if(probePt_bg < 35)continue; 
 		if(doEB && fabs(probeEta_bg) > 1.4442)continue;
 		else if(!doEB && (fabs(probeEta_bg) < 1.56 || fabs(probeEta_bg) > 2.1))continue;
-	     	
+	     	// background template
 		if(vetovalue_bg== true && FSRveto_bg==true){h_invmass_bg->Fill(invmass_bg);}
 	}
 	
@@ -514,13 +517,10 @@ void testFakeFunc(){//main
 			isZg = isElectron(fabs((*mcPID)[probeIndex]), fabs((*mcMomPID)[probeIndex]));
 			if(isZe && isZg)isZee=true; 
 		}
+		// DY tree
 		if(isZee)h_DYinvmass->Fill(DY_invmass, 1);
 	}
 	h_DYinvmass->Sumw2();
-
-
-
-
 
 	RooRealVar mass_axis("invmass","invmass",70,110);
 	TCanvas *c_fitMass = new TCanvas("c_fitMass", "", 600, 600);
@@ -661,14 +661,14 @@ void testFakeFunc(){//main
      	float toyptvalue[graphPtBins][NTOY];
      	float lowtoyptvalue[graphPtBins];
      	float hightoyptvalue[graphPtBins];
-     	for(unsigned ii(0); ii < graphPtBins; ii++){
+	for(int ii(0); ii < graphPtBins; ii++){
      		lowtoyptvalue[ii] = 1;
      		hightoyptvalue[ii] = 0;
      	}
      	float toyvtxvalue[graphVtxBins][NTOY];
      	float lowtoyvtxvalue[graphVtxBins];
      	float hightoyvtxvalue[graphVtxBins];
-     	for(unsigned ii(0); ii < graphVtxBins; ii++){
+	for(int ii(0); ii < graphVtxBins; ii++){
      		lowtoyvtxvalue[ii] = 1;
      		hightoyvtxvalue[ii] = 0;
      	}
@@ -696,8 +696,8 @@ void testFakeFunc(){//main
      		for(unsigned iEvt(0); iEvt < etreeEt.size(); iEvt++){
 					float weight_eta(0);
 			 		for(unsigned i(0); i<nEtaBins; i++){
-						if(i+1 < nEtaBins)
-							if(fabs(etreeEta[iEvt]) > EtaBins[i] && fabs(etreeEta[iEvt]) < EtaBins[i+1])weight_eta = eta_num[i]/eta_den[i];
+						if(i+1 < nEtaBins){
+							if(fabs(etreeEta[iEvt]) > EtaBins[i] && fabs(etreeEta[iEvt]) < EtaBins[i+1])weight_eta = eta_num[i]/eta_den[i];                                        }
 						else{ 
 							if(fabs(etreeEta[iEvt]) > EtaBins[i])weight_eta = eta_num[i]/eta_den[i];
 						}
@@ -710,13 +710,13 @@ void testFakeFunc(){//main
      		if(invmass_prednum->Integral(lowBinNumber,highBinNumber) > 0 && invmass_prednum->Integral(lowBinNumber,highBinNumber) < 1e20){
      			myfile << random_totalnum[i]/invmass_prednum->Integral(lowBinNumber,highBinNumber) << " " << data1 << " " << data2 << " " << data3 <<  " " << data4 << " " << data5 << std::endl;
      			p_scalefactor->Fill(random_totalnum[i]/invmass_prednum->Integral(lowBinNumber,highBinNumber));
-     			for(unsigned ibin(1); ibin <= graphPtBins; ibin++){
+			for(int ibin(1); ibin <= graphPtBins; ibin++){
      				double estimated = h_toymc_pt[i]->Eval(MINPT+0.5*ibin);
      				toyptvalue[ibin-1][i] = estimated;
      				if(estimated < lowtoyptvalue[ibin-1])lowtoyptvalue[ibin-1] = estimated;
      				if(estimated > hightoyptvalue[ibin-1])hightoyptvalue[ibin-1] = estimated;
      			}
-     			for(unsigned ibin(1); ibin <= graphVtxBins; ibin++){
+			for(int ibin(1); ibin <= graphVtxBins; ibin++){
      				double estimated = h_toymc_vtx[i]->Eval(0.5*ibin);
      				toyvtxvalue[ibin-1][i] = estimated;
      				if(estimated < lowtoyvtxvalue[ibin-1])lowtoyvtxvalue[ibin-1] = estimated;
@@ -726,7 +726,7 @@ void testFakeFunc(){//main
      	}
      
      // *************************   Calculated errors  ***************************************************************************************************************//
-     	for(unsigned ibin(0); ibin < graphPtBins; ibin++){
+	for(int ibin(0); ibin < graphPtBins; ibin++){
      		TH1D *h_toyptdis = new TH1D("h_toyptdis","",50,lowtoyptvalue[ibin],hightoyptvalue[ibin]);
      		for(unsigned i(0); i < NTOY; i++)h_toyptdis->Fill(toyptvalue[ibin][i]);
      		h_toyptdis->Fit("gaus");
@@ -738,7 +738,7 @@ void testFakeFunc(){//main
      		fr_pt_ratioError->SetPointError(ibin, 0.25, fiterror/fit_fakerate_pt->Eval(MINPT+0.5*ibin));
      		delete h_toyptdis; 
      	}
-     	for(unsigned ibin(0); ibin < graphVtxBins; ibin++){
+	for(int ibin(0); ibin < graphVtxBins; ibin++){
      		TH1D *h_toyvtxdis = new TH1D("h_toyvtxdis","",50,lowtoyvtxvalue[ibin],hightoyvtxvalue[ibin]);
      		for(unsigned i(0); i < NTOY; i++)h_toyvtxdis->Fill(toyvtxvalue[ibin][i]);
      		h_toyvtxdis->Fit("gaus");

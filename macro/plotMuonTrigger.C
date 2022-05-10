@@ -18,11 +18,12 @@
 #include "../include/tdrstyle.C"
 
 void plotMuonTrigger(){//main  
-  gStyle->SetOptStat(0);
+	gROOT->SetBatch(kTRUE);
+  	gStyle->SetOptStat(0);
 	gStyle->SetPaintTextFormat("4.4f");
 	setTDRStyle();   
-  Double_t xaxis2d[] = {35,40,45,60,200};
-  Double_t yaxis2d[] = {25,38,45,60,200};
+  	Double_t xaxis2d[] = {35,40,45,60,200};
+  	Double_t yaxis2d[] = {25,38,45,60,200};
 	TProfile2D *p_HLTeff_Z  = new TProfile2D("p_HLTeff_Z", "#mu#gamma trigger efficiency;#gamma p_{T} (GeV); #mu p_{T} (GeV)",4,xaxis2d,4,yaxis2d);
 	TProfile2D *p_HLTeff_mg = new TProfile2D("p_HLTeff_mg","MET dataset",4,xaxis2d,4,yaxis2d);
 	TProfile2D *p_HLTeff_DY = new TProfile2D("p_HLTeff_DY","DY efficiency",4,xaxis2d,4,yaxis2d);
@@ -114,7 +115,7 @@ void plotMuonTrigger(){//main
 	Int_t PaletteColors[] = {9, kBlue, kBlue-4,kCyan, kTeal, kGreen,kSpring, 5, 2};
 	gStyle->SetPalette(9, PaletteColors);
 	p_crosseff->Draw("E colz text");
-	canZ->SaveAs("mgTrigger_efficiency.pdf");
+	canZ->SaveAs("/eos/uscms/store/user/tmishra/Trigger/mgTrigger_efficiency.pdf");
 
 	TChain *DYtree = new TChain("mgTree","mgTree");
 	DYtree->Add("/uscms_data/d3/mengleis/FullStatusOct/plot_MuonTrigger_DY.root");
@@ -164,9 +165,9 @@ void plotMuonTrigger(){//main
 	gPad->SetLogy();
 	gStyle->SetPaintTextFormat("4.4f");
 	p_mgESF->Draw("E colz text");
-	canESF->SaveAs("mgTrigger_ESF_WG.pdf");
+	canESF->SaveAs("/eos/uscms/store/user/tmishra/Trigger/mgTrigger_ESF_WG.pdf");
 	
-	TFile *outputfile = TFile::Open("muonphoton_trigger.root","RECREATE");
+	TFile *outputfile = TFile::Open("/eos/uscms/store/user/tmishra/Trigger/muonphoton_trigger.root","RECREATE");
 	outputfile->cd();
 	p_crosseff->Write();
 	p_mgESF->Write();

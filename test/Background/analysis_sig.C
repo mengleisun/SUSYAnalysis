@@ -1,11 +1,11 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void analysis_sig(){
 	
 	SetRunConfig();
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 	//*********** histo list **********************//
 	TH1D *p_PhoEt = new TH1D("p_PhoEt","#gamma E_{T}; E_{T} (GeV)",nBkgEtBins,bkgEtBins);
@@ -25,8 +25,11 @@ void analysis_sig(){
 	TH1D *p_HT_TT = new TH1D("p_HT_TT","HT; HT (GeV);",nBkgHTBins, bkgHTBins); 
 	//************ Signal Tree **********************//
 	TChain *sigtree = new TChain("signalTree");
+	// signatree from data
+	//if(channelType==1)sigtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_2016.root");
+	//if(channelType==2)sigtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_2016.root");
 	if(channelType==1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
+        if(channelType==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
 
 	float phoEt(0);
 	float phoEta(0);
@@ -70,7 +73,7 @@ void analysis_sig(){
 		if(highMt > 0 && sigMT > highMt)continue;
 		if(lepPt < lowPt)continue;
 		if(highPt > 0 && lepPt > highPt)continue;
-
+		// different MET, MT, lepton pT ranges
 		p_PhoEt->Fill(phoEt);
 		p_PhoEta->Fill(phoEta);
 		p_LepPt->Fill(lepPt);
@@ -91,7 +94,7 @@ void analysis_sig(){
 	}        
 
 	std::ostringstream outputname;
-
+	outputname << "/eos/uscms/store/user/tmishra/Background/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	

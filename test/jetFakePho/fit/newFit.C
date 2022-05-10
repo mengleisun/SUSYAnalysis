@@ -72,7 +72,7 @@ Double_t tmpjetfake_func(Double_t *x, Double_t *par)
 }
 
 void newFit(int detType){
-	int channel = 2; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose; 
+	int channel = 1; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose;
 
 	setTDRStyle();
 	gStyle->SetOptStat(0);
@@ -81,20 +81,17 @@ void newFit(int detType){
 	gStyle->SetTitleX(0.5);
 
 	TChain *sigtree = new TChain("signalTree");
-	//if(channel == 1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	if(channel == 1)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	//else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
-	else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto.root");
+	if(channel == 1)sigtree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_egsignal_DoubleEG_2016B.root");
+	else if(channel ==2)sigtree->Add("resTree_mgsignal_MuonEG_FullEcal_EleVeto.root");
 
 	TChain *controltree = new TChain("jetTree");
-	//if(channel == 1)controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	if(channel == 1)controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	//else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
-	else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto.root");
+	if(channel == 1)controltree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_egsignal_DoubleEG_2016B.root");
+	else if(channel == 2)controltree->Add("resTree_mgsignal_MuonEG_FullEcal_EleVeto.root");
 
 	std::stringstream fakerate_filename;
 	fakerate_filename.str("");
-	fakerate_filename << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MuonEG-"; 
+	//fakerate_filename << "JetFakeRate-MuonEG-";
+        fakerate_filename << "JetFakeRate-DoubleEG-";
 	if(detType == 1)fakerate_filename << "EB.txt";
 	else if(detType == 2)fakerate_filename << "EE.txt";
 	std::ifstream jetfake_file(fakerate_filename.str().c_str());
@@ -117,8 +114,8 @@ void newFit(int detType){
 
 	std::ostringstream elefake_config;
 	elefake_config.str("");
-	if(detType == 1)elefake_config << "../../script/EleFakeRate-ByPtVtx-EB.txt";
-	else if(detType == 2)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-ByPtVtx-EE.txt";
+	if(detType == 1)elefake_config << "EleFakeRate-ByPtVtx-EB.txt";
+	else if(detType == 2)elefake_config << "EleFakeRate-ByPtVtx-EE.txt";
 	std::ifstream elefake_file(elefake_config.str().c_str());
 	double scalefactor(0);
 	double ptslope(0);
@@ -178,9 +175,8 @@ void newFit(int detType){
 
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
-	if(channel == 1)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-	//else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
-	else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto.root");
+	if(channel == 1)proxytree->Add("/eos/uscms/store/group/lpcsusyhad/Tribeni/jetfakepho/resTree_egsignal_DoubleEG_2016B.root");
+	else if(channel == 2)proxytree->Add("resTree_mgsignal_MuonEG_FullEcal_EleVeto.root");
 
 	float proxyphoEt(0);
 	float proxyphoEta(0);
@@ -325,9 +321,8 @@ void newFit(int detType){
 	new_controlPhoEt->Fit("fitfunc_den","S");
 	TF1 *fitden = new_controlPhoEt->GetFunction("fitfunc_den");
 	ofstream myfile;
-	//if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-new.txt");
-	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-15.txt");
-	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EE-new.txt");
+	if(detType == 1)myfile.open("JetFakeRate-transferfactor-DoubleEG-EB.txt");
+	else if(detType == 2)myfile.open("JetFakeRate-transferfactor-DoubleEG-EE.txt");
 
 	TH1D *ratio = new TH1D("transfer fraction","",int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE),35,300);
 	for(unsigned ibin(1); ibin < int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE); ibin++){
@@ -507,8 +502,8 @@ myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
 	}
 	myfile.close();
 	       
-	if(detType == 1)c_pt->SaveAs("JetFakeRate_transfer_MuonEG_EB.pdf");
-	else if(detType == 2)c_pt->SaveAs("JetFakeRate_transfer_MuonEG_EE.pdf");
+	if(detType == 1)c_pt->SaveAs("JetFakeRate-transferfactor-DoubleEG-EB.pdf");
+	else if(detType == 2)c_pt->SaveAs("JetFakeRate-transferfactor-DoubleEG-EE.pdf");
 }
 
 

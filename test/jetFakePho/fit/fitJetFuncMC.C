@@ -52,9 +52,9 @@
 #include "../../../include/analysis_fakes.h"
 
 #define NTOY 10000
-//#define NBIN 18
-#define NBIN 2
+#define NBIN 18
 #define REBINSIZE 1
+int  RunYear = 2018;
 
 Double_t tmpjetfake_func(Double_t *x, Double_t *par)
 {
@@ -73,7 +73,7 @@ Double_t tmpjetfake_func(Double_t *x, Double_t *par)
 }
 
 void fitJetFuncMC(int detType){
-	int channel = 5; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose; 5 = MCEG;
+	int channel = 2; // 1 = eg; 2 = mg; 3 = egloose; 4 = mgloose; 5 = MCEG;
 
 	setTDRStyle();
 	gStyle->SetOptStat(0);
@@ -82,22 +82,24 @@ void fitJetFuncMC(int detType){
 	gStyle->SetTitleX(0.5);
 
 	TChain *sigtree = new TChain("signalTree");
-	if(channel == 1)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel ==2)sigtree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
-	else if(channel ==5){ sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
-											  sigtree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WJet.root"); 
-											}
+	if(channel == 1)sigtree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d.root",RunYear));
+	else if(channel ==2)sigtree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d.root",RunYear));
+	else if(channel ==5){ 
+			    sigtree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DY_%d.root",RunYear));
+			    sigtree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_WJet_%d.root",RunYear));
+			    }
 
 	TChain *controltree = new TChain("jetTree");
-	if(channel == 1)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel == 2)controltree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
-	else if(channel ==5){ controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
-											  controltree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WJet.root"); 
-											}
+	if(channel == 1)controltree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d.root",RunYear));
+	else if(channel ==2)controltree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d.root",RunYear));
+	else if(channel ==5){
+			      controltree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DY_%d.root",RunYear));
+			      controltree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_WJet_%d.root",RunYear));
+			    }
 
 	std::stringstream fakerate_filename;
 	fakerate_filename.str("");
-	fakerate_filename << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-MCEG-"; 
+	fakerate_filename << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-MCEG-"; 
 	if(detType == 1)fakerate_filename << "EB.txt";
 	else if(detType == 2)fakerate_filename << "EE.txt";
 	std::ifstream jetfake_file(fakerate_filename.str().c_str());
@@ -120,8 +122,8 @@ void fitJetFuncMC(int detType){
 
 	std::ostringstream elefake_config;
 	elefake_config.str("");
-	if(detType == 1)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/Background/validateresult/EleFakeRate-ByPtVtx.txt";
-	else if(detType == 2)elefake_config << "/uscms_data/d3/mengleis/SUSYAnalysis/test/eleFakePho/Aug3/EleFakeRate-ByPtVtx-EE.txt";
+	if(detType == 1)elefake_config << "/eos/uscms/store/user/tmishra/elefakepho/DataResult"<<RunYear<<"/EleFakeRate-ByPtVtx-EB.txt";
+        else if(detType == 2)elefake_config << "/eos/uscms/store/user/tmishra/elefakepho/DataResult"<<RunYear<<"/EleFakeRate-ByPtVtx-EE.txt";
 	std::ifstream elefake_file(elefake_config.str().c_str());
 	double scalefactor(0);
 	double ptslope(0);
@@ -215,11 +217,12 @@ void fitJetFuncMC(int detType){
 
 	//************ Proxy Tree **********************//
 	TChain *proxytree = new TChain("proxyTree");
-	if(channel == 1)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal.root");
-	else if(channel == 2)proxytree->Add("/uscms_data/d3/mengleis/Sep1/resTree_mgsignal_MuonEG_FullEcal.root");
-	else if(channel ==5){ proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DY.root");
-											  proxytree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_WJet.root"); 
-											}
+	if(channel == 1)proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DoubleEG_%d.root",RunYear));
+	else if(channel ==2)proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_mgsignal_MuonEG_%d.root",RunYear));
+	else if(channel ==5){
+			      proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_DY_%d.root",RunYear));
+			      proxytree->Add(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/eg_mg_trees/resTree_egsignal_WJet_%d.root",RunYear));
+			    }
 
 	float proxy_crosssection(1);
 	float proxy_ntotalevent(1);
@@ -304,18 +307,19 @@ void fitJetFuncMC(int detType){
 	new_fakesPhoEt->GetXaxis()->SetRangeUser(35,135);
 	gPad->SetLogy();
 	TH1D *new_dummy=new TH1D("dummy",";p_{T} (GeV); Event/GeV",10,35,135);
-	new_dummy->SetMinimum(0.00001);
-	new_dummy->SetMaximum(1000);
+	new_dummy->SetMinimum(10);
+	new_dummy->SetMaximum(1000000);
 	new_dummy->GetXaxis()->SetTitle("p_{T} (GeV)");
 	new_dummy->GetXaxis()->SetTitleOffset(1.0);
 	new_dummy->Draw();
-	new_controlPhoEt->Draw("P same");
+	//new_controlPhoEt->Draw("P same");
 	new_controlPhoEt->SetLineColor(kBlack);
+	new_controlPhoEt->SetMarkerColor(kBlack);
 	new_controlPhoEt->SetMarkerStyle(20);
 	new_fakesPhoEt->SetLineColor(kRed);
 	new_fakesPhoEt->SetMarkerStyle(20);
 	new_fakesPhoEt->SetMarkerColor(kRed);
-	new_fakesPhoEt->Draw("EP same");
+	//new_fakesPhoEt->Draw("EP same");
 	TLegend *leg =  new TLegend(0.6,0.7,0.85,0.85);
 	leg->SetFillStyle(0);
 	leg->SetBorderSize(0);
@@ -332,6 +336,7 @@ void fitJetFuncMC(int detType){
 	//********************   denominator *****************************************************//
 	new_controlPhoEt->Fit("expo");
 	TF1 *inifitden = new_controlPhoEt->GetFunction("expo");
+        inifitden->SetLineColor(kBlack);
 	double iniLambda_den1 = inifitden->GetParameter(1);
 	double iniCoeff_den   = exp(inifitden->GetParameter(0))/2;
 	double iniLambda_den2 =  iniLambda_den1/2; 
@@ -340,9 +345,10 @@ void fitJetFuncMC(int detType){
 	else fitfunc_den->SetParameters(iniCoeff_den, iniCoeff_den/10, iniLambda_den1, iniLambda_den1);
 	new_controlPhoEt->Fit("fitfunc_den","S");
 	TF1 *fitden = new_controlPhoEt->GetFunction("fitfunc_den");
+        fitden->SetLineColor(kBlack);
 	ofstream myfile;
-	if(detType == 1)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MCEG-EB.txt");
-	else if(detType == 2)myfile.open("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MCEG-EE.txt");
+	if(detType == 1)myfile.open(Form("/eos/uscms/store/user/tmishra/jetfakepho/txt%d/JetFakeRate-transferfactor-MCEG-EB.txt",RunYear),"RECREATE");
+        if(detType == 2)myfile.open(Form("/eos/uscms/store/user/tmishra/jetfakepho/txt%d/JetFakeRate-transferfactor-MCEG-EE.txt",RunYear),"RECREATE");
 
 	TH1D *ratio = new TH1D("transfer fraction","",int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE),35,135);
 	for(unsigned ibin(1); ibin < int(p_fakesPhoEt->GetXaxis()->GetNbins()/REBINSIZE); ibin++){
@@ -357,7 +363,7 @@ void fitJetFuncMC(int detType){
 	TFitResultPtr rden = new_controlPhoEt->Fit("fitfunc_den","S");
 	TMatrixDSym covden = rden->GetCovarianceMatrix(); 
 	rden->Print("V");     
-	fitfunc_den->Draw("same");
+	//fitfunc_den->Draw("same");
 	TVectorD muden(4) ;
 	muden(0) = rden->Parameter(0); 
 	muden(1) = rden->Parameter(1);
@@ -400,6 +406,7 @@ void fitJetFuncMC(int detType){
  
 new_fakesPhoEt->Fit("expo");
 TF1 *inifit = new_fakesPhoEt->GetFunction("expo");
+   inifit->SetLineColor(kRed);
 double iniLambda_num1 = inifit->GetParameter(1);
 double iniCoeff_num  	= exp(inifit->GetParameter(0))/2;
 double iniLambda_num2 = iniLambda_num1/2; 
@@ -408,6 +415,7 @@ fitfunc_num->SetParameters(iniCoeff_num, 20, iniLambda_num1, -0.02);
 TVirtualFitter::SetMaxIterations(1000000);
 TFitResultPtr r = new_fakesPhoEt->Fit("fitfunc_num","R S");
 TF1 *fit = new_fakesPhoEt->GetFunction("fitfunc_num");
+        fit->SetLineColor(kRed);
 myfile << "num_coeff1 " << fit->GetParameter(0) << std::endl;
 myfile << "num_coeff2 " << fit->GetParameter(1) << std::endl;
 myfile << "num_lambd1 " << fit->GetParameter(2) << std::endl;
@@ -433,7 +441,7 @@ myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
 	can_pad1->cd();          
 	TMatrixDSym cov = r->GetCovarianceMatrix(); 
 	r->Print("V");     
-	fitfunc_num->Draw("same");
+	//fitfunc_num->Draw("same");
 	float nominalvalue_num[10];
 	for(unsigned ibin(0); ibin < 10; ibin++){
 		nominalvalue_num[ibin] =  fitfunc_num->Eval(35+ibin);
@@ -500,7 +508,7 @@ myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
 	can_pad1->cd();          
 //	num_upper->Draw("L same");
 //	num_lower->Draw("L same");
-	new_controlPhoEt->Draw("EP same");
+	new_controlPhoEt->Draw("P same");
 	new_fakesPhoEt->Draw("EP same");
 	
 	
@@ -516,9 +524,9 @@ myfile << "num_lambd2 " << fit->GetParameter(3) << std::endl;
 		myfile << "ratio " << ibin << " = " << ratio->GetBinContent(ibin) << "  est=" << fitfunc_num->Eval(ratio->GetBinCenter(ibin))/fitfunc_den->Eval(ratio->GetBinCenter(ibin)) << std::endl;
 	}
 	myfile.close();
-	       
-	if(detType == 1)c_pt->SaveAs("JetFakeRate_transfer_MCEG_EB.pdf");
-	else if(detType == 2)c_pt->SaveAs("JetFakeRate_transfer_MCEG_EE.pdf");
+	
+	if(channel == 1 and detType == 1)c_pt->SaveAs(Form("/eos/uscms/store/user/tmishra/jetfakepho/Plots%d/JetFakeRate_transfer_MCEG_EB.png",RunYear));
+        else if(channel == 1 and detType == 2)c_pt->SaveAs(Form("/eos/uscms/store/user/tmishra/jetfakepho/Plots%d/JetFakeRate_transfer_MCEG_EE.png",RunYear));
+        else if(channel == 2 and detType == 1)c_pt->SaveAs(Form("/eos/uscms/store/user/tmishra/jetfakepho/Plots%d/JetFakeRate_transfer_MCMG_EB.png",RunYear));
+        else if(channel == 2 and detType == 2)c_pt->SaveAs(Form("/eos/uscms/store/user/tmishra/jetfakepho/Plots%d/JetFakeRate_transfer_MCMG_EE.png",RunYear));
 }
-
-

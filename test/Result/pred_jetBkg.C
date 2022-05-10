@@ -1,7 +1,7 @@
 #include "../../include/analysis_commoncode.h"
-
+int RunYear = 2016;
 #define NTOY 1000
-bool useGaussFit=false;
+bool useGaussFit, channelType=false;
 
 struct runinfo{
 	int runN;
@@ -22,10 +22,11 @@ bool compareByRun(const runinfo &a, const runinfo &b)
 void pred_jetBkg(){
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
   int channelType = ichannel; // eg = 1; mg =2;
 
 	gRandom = new TRandom3(0);
@@ -43,11 +44,11 @@ void pred_jetBkg(){
 	double jetfake_denerror[265];
 	
 	std::stringstream JetFakeRateFile;
-  JetFakeRateFile.str();
-	//if(channelType==1)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-15.txt";
-	//if(channelType==2)JetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-15.txt";
+  	JetFakeRateFile.str();
 	if(channelType==1)JetFakeRateFile << "../script/JetFakeRate-transferfactor-DoubleEG-EB.txt";
-	if(channelType==2)JetFakeRateFile << "../script/JetFakeRate-transferfactor-MuonEG-EB.txt";
+        if(channelType==2)JetFakeRateFile << "../script/JetFakeRate-transferfactor-MuonEG-EB.txt";
+	//if(channelType==1)JetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-DoubleEG-EB.txt";
+	//if(channelType==2)JetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-MuonEG-EB.txt";
 	std::ifstream jetfakefile(JetFakeRateFile.str().c_str());
 	std::string paratype;
 	float paravalue;	
@@ -74,9 +75,12 @@ void pred_jetBkg(){
 	}
 
 	std::stringstream AltJetFakeRateFile;
-  AltJetFakeRateFile.str();
+  	AltJetFakeRateFile.str();
 	if(channelType==1)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-DoubleEG-EB-5.txt";
-	if(channelType==2)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-129.txt";
+        if(channelType==2)AltJetFakeRateFile << "/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-transferfactor-MuonEG-EB-129.txt";
+
+	//if(channelType==1)AltJetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-DoubleEG-EB.txt";
+	//if(channelType==2)AltJetFakeRateFile << "/eos/uscms/store/user/tmishra/jetfakepho/txt"<<RunYear<<"/JetFakeRate-transferfactor-MuonEG-EB.txt";
 	std::ifstream Altjetfakefile(AltJetFakeRateFile.str().c_str());
 	for(int i(0); i < 4; i++){
 		Altjetfakefile >> paratype >> paravalue;
@@ -126,19 +130,19 @@ void pred_jetBkg(){
 	  toy_predict_highEt[i] = 0;	
 	}
 
-	TH1D *h_jetfakepho_norm;
-	TH1D *h_jetfakepho_controlsample;
-	TH1D *h_jetfakepho_transferfactor;
-	TH1D *h_jetfakepho_syserr_jes;
-	TH1D *h_jetfakepho_syserr_jer;
-	TH1D *h_jetfakepho_syserr_esf;
-	TH1D *h_jetfakepho_syserr_scale;
-	TH1D *h_jetfakepho_syserr_e_to_pho;
-	TH1D *h_jetfakepho_syserr_j_to_pho;
-	TH1D *h_jetfakepho_syserr_j_to_lep;
-	TH1D *h_jetfakepho_syserr_xs;
-	TH1D *h_jetfakepho_syserr_lumi;
-	TH1D *h_jetfakepho_syserr_isr;
+	TH1D *h_jetfakepho_norm = 0;
+	TH1D *h_jetfakepho_controlsample = 0;
+	TH1D *h_jetfakepho_transferfactor = 0;
+	TH1D *h_jetfakepho_syserr_jes = 0;
+	TH1D *h_jetfakepho_syserr_jer = 0;
+	TH1D *h_jetfakepho_syserr_esf = 0;
+	TH1D *h_jetfakepho_syserr_scale = 0;
+	TH1D *h_jetfakepho_syserr_e_to_pho = 0;
+	TH1D *h_jetfakepho_syserr_j_to_pho = 0;
+	TH1D *h_jetfakepho_syserr_j_to_lep = 0;
+	TH1D *h_jetfakepho_syserr_xs = 0;
+	TH1D *h_jetfakepho_syserr_lumi = 0;
+	TH1D *h_jetfakepho_syserr_isr = 0;
 	if(channelType==1){
 		h_jetfakepho_norm            = new TH1D("eg_jetfakepho_norm","eventcount",NBIN,0,NBIN);
 		h_jetfakepho_controlsample   = new TH1D("eg_jetfakepho_controlsample","",NBIN,0,NBIN);
@@ -203,10 +207,8 @@ void pred_jetBkg(){
 
 	/************ jet tree **************************/ 
 		TChain *jettree = new TChain("jetTree");
-		//if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
-		//if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
-		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/Combination/resTree_egsignal_DoubleEG-test.root");
-		if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root");
+		if(channelType==1)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_egsignal_DoubleEG_ReMiniAOD_FullEcal_newEta.root");
+                if(channelType==2)jettree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal.root");
 
   	int   run(0);
   	Long64_t  event(0);
@@ -252,6 +254,12 @@ void pred_jetBkg(){
 			double sysJetFakePho = jetfakeerror/w_jet;	
 			std::cout << "sys " << sysJetFakePho << " num " << jetfake_numerror[i]/fitfunc_den->Eval(35+i) << "  den " << jetfake_denerror[i]*w_jet/fitfunc_den->Eval(35+i) <<  std::endl;
 		}
+
+                for(unsigned i(0); i<1000; i++){
+                        double w_jet = fitfunc_num->Eval(35+i)/fitfunc_den->Eval(35+i);
+                        std::cout << "Et " << 35+i << "  fakerate " << w_jet << std::endl;
+                }
+
 	 
 		for (unsigned ievt(0); ievt<jettree->GetEntries(); ++ievt){//loop on entries
 			jettree->GetEntry(ievt);
@@ -355,7 +363,7 @@ void pred_jetBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_PhoEt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_PhoEt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_PhoEt->GetBinError(ibin)*p_PhoEt->GetBinError(ibin));
 		p_PhoEt->SetBinError(ibin, totalerror);
 	}
@@ -363,7 +371,7 @@ void pred_jetBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_LepPt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_LepPt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_LepPt->GetBinError(ibin)*p_LepPt->GetBinError(ibin));
 		p_LepPt->SetBinError(ibin, totalerror);
 	}
@@ -371,7 +379,7 @@ void pred_jetBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_MET->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_MET[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_MET->GetBinError(ibin)*p_MET->GetBinError(ibin));
 		p_MET->SetBinError(ibin, totalerror);
 	}
@@ -379,7 +387,7 @@ void pred_jetBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_Mt->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_Mt[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_Mt->GetBinError(ibin)*p_Mt->GetBinError(ibin));
 		p_Mt->SetBinError(ibin, totalerror);
 	}
@@ -387,7 +395,7 @@ void pred_jetBkg(){
 		toyvec.clear();
 		toyvec.push_back(p_HT->GetBinContent(ibin));
 		for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_HT[it]->GetBinContent(ibin));
-		double syserr = calcToyError( toyvec, useGaussFit); 
+		double syserr = calcToyError( toyvec, useGaussFit, channelType); 
 		double totalerror = sqrt(syserr*syserr + p_HT->GetBinError(ibin)*p_HT->GetBinError(ibin));
 		p_HT->SetBinError(ibin, totalerror);
 	}
@@ -397,7 +405,7 @@ void pred_jetBkg(){
 			toyvec.clear();
 			toyvec.push_back(h_jetfakepho_norm->GetBinContent(ibin));
 			for(unsigned it(0); it < NTOY; it++)toyvec.push_back(toy_eventcount[it]->GetBinContent(ibin));
-			double syserr = calcToyError( toyvec, useGaussFit);
+			double syserr = calcToyError( toyvec, useGaussFit, channelType);
 
 			h_jetfakepho_transferfactor->SetBinContent(ibin,h_jetfakepho_norm->GetBinContent(ibin)/h_jetfakepho_controlsample->GetBinContent(ibin)); 
 			h_jetfakepho_transferfactor->SetBinError(ibin,syserr/h_jetfakepho_norm->GetBinContent(ibin));
@@ -419,7 +427,7 @@ void pred_jetBkg(){
 			toyvec.clear();
 			toyvec.push_back(sf);
 			for(unsigned it(0); it < NTOY; it++)toyvec.push_back( ibin <= 9? toy_predict_lowEt[it]/proxy_lowEt: toy_predict_highEt[it]/proxy_highEt);
-			double syserr = calcToyError( toyvec, useGaussFit);
+			double syserr = calcToyError( toyvec, useGaussFit, channelType);
 
 			h_jetfakepho_transferfactor->SetBinContent(ibin, sf); 
 			h_jetfakepho_transferfactor->SetBinError(ibin, syserr);
@@ -437,6 +445,7 @@ void pred_jetBkg(){
 	}
 		
 	std::ostringstream outputname;
+	outputname << "/uscms_data/d3/tmishra/Output/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	

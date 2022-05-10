@@ -1,3 +1,4 @@
+// Run using g++ `root-config --cflags` analysis_elefakepho.C -o analysis_elefakepho.exe `root-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -25,26 +26,26 @@
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_tools.h"
 #include "../../../include/analysis_mcData.h"
+#include "../../../src/analysis_rawData.cc"
+#include "../../../src/analysis_ele.cc"
+#include "../../../src/analysis_photon.cc"
 
-void analysis_elefakepho(){//main  
+void analysis_elefakepho(int RunYear, const char *Era){//main
 
-  gSystem->Load("../../../lib/libAnaClasses.so");
-
-  char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP_dR05.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/FullStatusOct/plot_elefakepho_DYTnP_dR05.log"); 
+  logfile.open(Form("/eos/uscms/store/user/tmishra/elefakepho/logs/plot_elefakepho_DYTnP_dR05_DY_%d.log",RunYear),ios::trunc);
 
   logfile << "analysis_elefakepho()" << std::endl;
 
-  RunType datatype(MC); 
+  RunType datatype(MC);                              // Run Type
+  TFile *f = TFile::Open(Form("/eos/uscms/store/group/lpcsusyhad/Tribeni/DYJetsToLL/DYJetsToLL_%d.root",RunYear));
+  TTree *es =(TTree*)f->Get("ggNtuplizer/EventTree");
 
-  TChain* es = new TChain("ggNtuplizer/EventTree");
-  es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/skim-DYJetsToLL_M-50_nlo.root");
-  
-  TFile *outputfile = TFile::Open(outputname,"NEW");
-  outputfile->cd();
+  TFile *output = TFile::Open(Form("/eos/uscms/store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_%d.root",RunYear),"RECREATE");
+  output->cd();
 
   int   tracks(0);
   int   nVertex(0); 
@@ -136,10 +137,10 @@ void analysis_elefakepho(){//main
   rantree->Branch("mcGMomPID",		     &mcGMomPID_random);
   rantree->Branch("mcType",			     &mcType);
 
-  const unsigned nEvts = es->GetEntries(); 
+  const unsigned nEvts = es->GetEntries();
   std::cout << "Total event: " << nEvts << std::endl;
   logfile << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << outputname << std::endl;
+  logfile << "Output file: " << "/eos/uscms/store/user/tmishra/elefakepho/files/plot_elefakepho_DYTnP_dR05_"<<RunYear<<".root"<< std::endl;
   
   rawData raw(es, datatype);
   std::vector<mcData>  MCData;
@@ -156,7 +157,7 @@ void analysis_elefakepho(){//main
     std::cout << "total: " << nEvts << std::endl;
     for (unsigned ievt(0); ievt<nEvts; ++ievt){//loop on entries
   
-      if (ievt%10000==0) std::cout << " -- Processing event " << ievt << std::endl;
+        if (ievt%1000000==0) std::cout << " -- Processing event " << ievt << std::endl;
 
         raw.GetData(es, ievt);
         MCData.clear();
@@ -174,16 +175,21 @@ void analysis_elefakepho(){//main
         tracks = ntrks;
         nVertex = nvtx;
         if(MET > 70.0)continue;
-        if(!raw.passHLT())continue;
-				if(((raw.HLTEleMuX >> 1) &1) ==0)continue;
-
+        //if(!raw.passHLT())continue;
+				if(RunYear==2016 && ((raw.HLTEleMuX >> 4) &1) ==0)continue;  //HLT_Ele27_WPTight_Gsf_v
+				if(RunYear==2017 && ((raw.HLTEleMuX >> 3) &1) ==0)continue;  //HLT_Ele35_WPTight_Gsf_v
+				if(RunYear==2018 && ((raw.HLTEleMuX >> 55) &1) ==0)continue; //HLT_Ele32_WPTight_Gsf_v
         std::vector<std::vector<recoEle>::iterator> ElectronCollection;
         ElectronCollection.clear();
         for(std::vector<recoEle>::iterator itEle = Ele.begin(); itEle != Ele.end(); itEle++){
-           if(itEle->getCalibEt() < 30 || fabs(itEle->getEta())>2.1)continue;
-           if(!itEle->passHLTSelection())continue;
-					 if(!itEle->fireTrgs(11))continue;
-           if(itEle->passSignalSelection())ElectronCollection.push_back(itEle);
+	   // common trigger threshold starts from 35 GeV
+           if(itEle->getCalibEt() < 38 || fabs(itEle->getEta())>2.1)continue;                              // Tag electron selection
+           //if(!itEle->passHLTSelection())continue;
+					 if(RunYear==2016 && !itEle->fireTrgs(12))continue;  //HLT_Ele27_WPTight_Gsf_v
+					 if(RunYear==2017 && !itEle->fireTrgs(46))continue;  //HLT_Ele35_WPTight_Gsf_v
+					 if(RunYear==2018 && !itEle->fireTrgs(13))continue;  //HLT_Ele32_WPTight_Gsf_v
+	   if(itEle->passSignalSelection())ElectronCollection.push_back(itEle); // Tag electron selection
+		// pt > 30 GeV, medium ID, eta < 2.1 electron
         }
         
         std::vector<std::vector<recoPhoton>::iterator> signalPho;
@@ -196,19 +202,21 @@ void analysis_elefakepho(){//main
 				PhoFSRVeto.clear();
         if(ElectronCollection.size() > 0){
 	      for(std::vector<recoPhoton>::iterator itpho = Photon.begin() ; itpho != Photon.end(); ++itpho){
-	        if(itpho->getCalibEt() < 30)continue;
+	        if(itpho->getCalibEt() < 30)continue;                            // Photon pt and loose selection
 	        if(itpho->isLoose()){
-              bool PixelVeto = itpho->PixelSeed()==0? true: false;
+              bool PixelVeto = itpho->PixelSeed()==0? true: false;               // check whether pixel seed or not
               bool GSFveto(true);
 		      bool FSRVeto(true);
 			  for(std::vector<recoEle>::iterator ie = Ele.begin(); ie != Ele.end(); ie++){
 				 //if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.02)GSFveto = false;
 				 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.05)GSFveto = false;
+				 // electron match to a photon
 				 if(DeltaR(itpho->getEta(), itpho->getPhi(), ie->getEta(), ie->getPhi()) < 0.3 && ie->getCalibEt()>2.0)FSRVeto=false;
 			  }
 			  for(std::vector<recoMuon>::iterator im = Muon.begin(); im != Muon.end(); im++)
 				 if(DeltaR(itpho->getEta(), itpho->getPhi(), im->getEta(), im->getPhi()) < 0.3 && im->getEt()>2.0)FSRVeto=false;
-					signalPho.push_back(itpho);
+					// FSR rejection; no events with lepton near photon.
+				        signalPho.push_back(itpho);              // signal photons
 					PhoPixelVeto.push_back(PixelVeto);
 					PhoEleVeto.push_back(GSFveto);
 					PhoFSRVeto.push_back(FSRVeto);
@@ -219,8 +227,8 @@ void analysis_elefakepho(){//main
         int nTagEle = ElectronCollection.size();
 	    int randomTag(0);
 	    if(nTagEle>1)randomTag = ran.Integer(nTagEle);
-	    for(unsigned iTag(0); iTag < nTagEle; iTag++){ 
-	      for(unsigned iProbe(0); iProbe < signalPho.size(); iProbe++){
+	    for(int iTag(0); iTag < nTagEle; iTag++){                             // for # of tags (electrons)
+	      for(unsigned iProbe(0); iProbe < signalPho.size(); iProbe++){       // for # of probes (signal photons)
 	        double dRTagProbe = DeltaR(ElectronCollection[iTag]->getEta(), ElectronCollection[iTag]->getPhi(), signalPho[iProbe]->getEta(), signalPho[iProbe]->getPhi());
 	        double dETagProbe = fabs(ElectronCollection[iTag]->getCalibEt() - signalPho[iProbe]->getCalibEt())/signalPho[iProbe]->getCalibEt();
 	        double InvMass = (ElectronCollection[iTag]->getCalibP4() + signalPho[iProbe]->getCalibP4()).M();
@@ -280,7 +288,7 @@ void analysis_elefakepho(){//main
 
             if(vetovalue_bothcount == false){
               bool isTag(false);
-              for(unsigned iTag(0); iTag < nTagEle; iTag++){
+              for(int iTag(0); iTag < nTagEle; iTag++){
                 double testdR = DeltaR(ElectronCollection[iTag]->getEta(), ElectronCollection[iTag]->getPhi(), signalPho[iProbe]->getEta(), signalPho[iProbe]->getPhi());
                 if(testdR < 0.05)isTag = true;
               }
@@ -306,7 +314,7 @@ void analysis_elefakepho(){//main
 				  mcPhi_bothcount.push_back(itMC->getPhi());
 				  mcPt_bothcount.push_back(itMC->getEt());
 				}
-			  }
+		  }
 			}
             etree->Fill();
 	   }
@@ -314,10 +322,21 @@ void analysis_elefakepho(){//main
            
 
    }//loop on  events
+float percent1=100*rantree->GetEntries()/nEvts;
+float percent2=100*etree->GetEntries()/nEvts;
+logfile << "FakeRateRandomTree events: " << rantree->GetEntries() <<"; "<<percent1<<"\%"<<std::endl;
+logfile << "FakeRateTree events: " << etree->GetEntries() <<"; "<<percent2<<"\%"<<std::endl;
+cout<< "FakeRateRandomTree events: " << rantree->GetEntries() <<"; "<<percent1<<"\%"<<std::endl;
+cout<< "FakeRateTree events: " << etree->GetEntries() <<"; "<<percent2<<"\%"<<std::endl;
 
-outputfile->Write();
-outputfile->Close(); 
+output->Write();
+output->Close();
 logfile.close();
 }
-
-
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+      cout << "You have to provide two arguments!!\n";
+    analysis_elefakepho(atoi(argv[1]),argv[2]);
+    return 0;
+}

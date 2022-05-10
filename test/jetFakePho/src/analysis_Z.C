@@ -29,11 +29,11 @@
 
 void analysis_Z(){//main  
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 
-  char outputname[100] = "/uscms_data/d3/mengleis/plotZ_DoubleMu_eg.root";
+  char outputname[100] = "plotZ_DoubleMu_eg.root";
   ofstream logfile;
-  logfile.open("/uscms_data/d3/mengleis/plotZ_DoubleMu_2016Rereco.log"); 
+  logfile.open("plotZ_DoubleMu_2016Rereco.log");
 
   logfile << "analysis_Z()" << std::endl;
 

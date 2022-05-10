@@ -31,7 +31,7 @@ bool doTT = true;
 
 void plot_bkg(){//main  
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 	setTDRStyle();
 
 	Double_t bkgEtBins[]={35,40,50,60,70,80,90,100,110,120,130,140,150,160,170,185,200,215,230,250,275,290, 305,325,345,370,400,500,800};
@@ -58,6 +58,7 @@ void plot_bkg(){//main
 			signame << "bkgTree_egamma_signal.root";
 			elename << "bkgTree_egamma_eleBkg.root";
 			jetname << "bkgTree_egamma_jetbkg.root";
+			// QCD means j->e fake
 			qcdname << "bkgTree_egamma_qcd.root";
 			VGname  << "bkgTree_egamma_VGBkg.root";
 			rarename << "bkgTree_egamma_rareBkg.root";

@@ -22,14 +22,15 @@
 #include "../../../include/analysis_photon.h"
 #include "../../../include/analysis_muon.h"
 #include "../../../include/analysis_ele.h"
+#include "../../../include/analysis_jet.h"
 #include "../../../include/analysis_rawData.h"
 #include "../../../include/tdrstyle.C"
 #include "../../../include/analysis_tools.h"
 
-#define NBIN 16
+#define NBIN 18
 
 void plotJetFake(){//main 
-
+	gROOT->SetBatch(kTRUE);
 	setTDRStyle();
 	gStyle->SetOptStat(0);
 	gStyle->SetOptFit(0);
@@ -38,10 +39,9 @@ void plotJetFake(){//main
 
 	bool useMC(false);
 	bool doCompare(false);
-	//std::ifstream jetfake_file("../result/JetFakeRate-ChIso-DoubleEG-ReMiniAOD.txt");
-	std::ifstream jetfake_file("/uscms_data/d3/mengleis/SUSYAnalysis/test/jetFakePho/result/JetFakeRate-DoubleEG-EB.txt");
+	std::ifstream jetfake_file("/eos/uscms/store/user/tmishra/jetfakepho/txt2018/JetFakeRate-DoubleEG-EB.txt");
 	 
-	gSystem->Load("/uscms/home/mengleis/work/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("/uscms/home/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/lib/libAnaClasses.so");
 	gStyle->SetOptStat(0);
 	TGraphErrors *jetfrac = new TGraphErrors(NBIN);
 	TGraphErrors *jetfracsys = new TGraphErrors(NBIN);
@@ -60,6 +60,7 @@ void plotJetFake(){//main
 			if(!useMC)jetfake_file >> pt_lower >> pt_upper >> fakerate >> error >> systematic >> truerate;
 			if(useMC)jetfake_file >>  pt_lower >> pt_upper >> fakerate >> error >> systematic >> truerate;
 			jetfrac->SetPoint(i, (pt_lower+pt_upper)/2.0, fakerate);
+                        cout<<fakerate<<endl;
 			jetfrac->SetPointError(i, (pt_upper-pt_lower)/2.0, error);
 			jetfracsys->SetPoint(i, (pt_lower+pt_upper)/2.0, fakerate);
 			jetfracsys->SetPointError(i, 0, systematic);
@@ -110,14 +111,14 @@ void plotJetFake(){//main
 	TH1F *dummy = new TH1F("Hadron Fraction","e#gamma channel;p_{T}(GeV);hadron fraction",17,30,200);
 	dummy->GetXaxis()->SetTitle("p_{T} (GeV)");
 	dummy->GetXaxis()->SetTitleOffset(1);
-	dummy->SetMaximum(0.6);
+	dummy->SetMaximum(0.3);
 	dummy->Draw();
 	jetfrac->Draw("P same");
 //	jetfracsys->Draw("P same");
 	jetfracTrue->SetFillStyle(0);
 	if(doCompare)jetfrac_nocorr->SetFillStyle(0);
 	if(doCompare)jetfrac_nocorr->Draw("P same");
-	if(useMC)jetfracTrue->Draw("same");
+	if(useMC)jetfracTrue->Draw("P same");
 	gStyle->SetLegendBorderSize(0);
 	gStyle->SetLegendFillColor(0);
 //	TLegend *leg =  new TLegend(0.4,0.75,0.85,0.9);
@@ -145,6 +146,6 @@ void plotJetFake(){//main
 //	if(doCompare)ratio_nocorr->SetMarkerColor(kBlue);
 //	if(doCompare)ratio_nocorr->Draw("P same");
 //	flatratio->Draw("same");
-	canvas->SaveAs("JetFakePho_DoubleEG_ReMiniAOD.pdf");
+	canvas->SaveAs("/eos/uscms/store/user/tmishra/jetfakepho/Plots2018/JetFakePho_DoubleEG_ReMiniAOD.pdf");
 }
 

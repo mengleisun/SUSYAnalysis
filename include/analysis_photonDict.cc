@@ -6,7 +6,6 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <string.h>
 #include <assert.h>
 #define G__DICTIONARY
@@ -57,8 +56,8 @@ namespace {
 0
     };
     static const char* includePaths[] = {
-"/cvmfs/cms.cern.ch/slc6_amd64_gcc530/lcg/root/6.06.00-ikhhed6/include",
-"/uscms/homes/m/mengleis/work/SUSY2016/SUSYAnalysis/include/",
+"/cvmfs/cms.cern.ch/slc7_amd64_gcc700/lcg/root/6.12.07-gnimlf7/include",
+"/uscms/homes/t/tmishra/work/CMSSW_10_2_22/src/SUSYAnalysis/include/",
 0
     };
     static const char* fwdDeclCode = R"DICTFWDDCLS(

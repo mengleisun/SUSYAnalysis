@@ -1,11 +1,11 @@
-#include "../analysis_commoncode.h"
+#include "../../include/analysis_commoncode.h"
 
 void analysis_VGBkg(){
 	
 	SetRunConfig();
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  gSystem->Load("../../lib/libAnaClasses.so");
 	
 	esfScaleFactor  objectESF;
 	bool toDeriveScale(false);
@@ -20,6 +20,7 @@ void analysis_VGBkg(){
 	}
 	else{
 		if(channelType == 1){
+			// from ../analysis_commoncode.h
 			factorMC = factor_egVGamma;
 			factorMCUP = factor_egVGamma+factorerror_egVGamma;
 		}
@@ -31,6 +32,7 @@ void analysis_VGBkg(){
 
 	//*********** histo list **********************//
 	std::ostringstream outputname;
+	outputname << "/eos/uscms/store/user/tmishra/Background/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	
@@ -39,6 +41,7 @@ void analysis_VGBkg(){
 	}
 	if(channelType==1)outputname << "egamma_VGBkg";
 	else if(channelType==2)outputname << "mg_VGBkg";
+	// MET and lepton pT range
 	if(anatype ==0)outputname << "_met" << lowMET <<"_" << highMET << "_pt" << lowPt << "_" << highPt;
 	outputname << ".root";
 	TFile *outputfile = TFile::Open(outputname.str().c_str(),"RECREATE");
@@ -119,6 +122,7 @@ void analysis_VGBkg(){
 	chainname.str("");
 	if(channelType == 1)chainname << "egTree";
 	else if(channelType == 2)chainname << "mgTree";
+	// ZG bkg is directly from simulation, mctree
   TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG35_VetoEle.root");
 	mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WG50_VetoEle.root");
@@ -224,6 +228,7 @@ void analysis_VGBkg(){
 		double scalefactor(0);
 		double scalefactorup(0);
 		if(channelType == 1){
+			// from include/analysis_scalefactor.h, src/analysis_scalefactor.cc
 			scalefactor = objectESF.getElectronESF(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
 			double s_ele_error = objectESF.getElectronESFError(lepPt,lepEta)*objectESF.getPhotonESF(phoEt,phoEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
 			double s_pho_error = objectESF.getPhotonESFError(phoEt,phoEta)*objectESF.getElectronESF(lepPt,lepEta)*objectESF.getegPhotonTRGESF(phoEt,phoEta)*objectESF.getElectronTRGESF(lepPt,lepEta);
@@ -241,12 +246,12 @@ void analysis_VGBkg(){
 			double s_error = sqrt(pow(s_mu_error,2) + pow(s_pho_error,2) + pow(s_trg_error,2));
 			scalefactorup = scalefactor + s_error; 
 		}
-
+		// ZG sample has llmass > 30, we use DY for llmass < 30
 		if(mcType == 4 && llmass < 30)continue;
 		if(mcType == 5 && llmass > 30)continue;
-
 		float XS_weight = 35.87*1000*crosssection/ntotalevent;
-
+		//float XS_weight = getEvtWeight(RunYear,crosssection, ntotalevent);
+		// check all weights used
 		float weight = PUweight*XS_weight*scalefactor*ISRWeight*factorMC;
 		float weight_scaleup = PUweight*XS_weight*scalefactorup*ISRWeight*factorMC;
 		float weight_normup = PUweight*XS_weight*scalefactor*ISRWeight*factorMCUP;
@@ -265,7 +270,7 @@ void analysis_VGBkg(){
 		if(highMt > 0 && sigMT > highMt)continue;
 		if(lepPt < lowPt)continue;
 		if(highPt > 0 && lepPt > highPt)continue;
-
+		// MET, MT and lepton pT range
 		bool istruepho(false);
 		double  mindRpho(0.3);
 		unsigned phoIndex(0);
@@ -278,7 +283,7 @@ void analysis_VGBkg(){
 			if((*mcPID)[phoIndex] == 22 && (fabs((*mcMomPID)[phoIndex]) <= 6 || fabs((*mcMomPID)[phoIndex]) == 21 || fabs((*mcMomPID)[phoIndex]) == 999 || fabs((*mcMomPID)[phoIndex])== 11 || fabs((*mcMomPID)[phoIndex])== 13 || fabs((*mcMomPID)[phoIndex])== 15 || fabs((*mcMomPID)[phoIndex])== 23 || fabs((*mcMomPID)[phoIndex])== 24)  )istruepho=true;
 		}
 		if(!istruepho)continue;
-
+		
 		p_PhoEt->Fill(phoEt, weight);
 		p_PhoEta->Fill(phoEta,weight);
 		p_LepPt->Fill(lepPt, weight);
@@ -287,11 +292,13 @@ void analysis_VGBkg(){
 		p_Mt->Fill(sigMT, weight);
 		p_HT->Fill(HT, weight);
 		p_dPhiEleMET->Fill(fabs(dPhiLepMET), weight);
+		// WG samples
 		if(mcType <= 3)p_dPhiEleMET_WG->Fill(fabs(dPhiLepMET), weight);
+		// ZG samples
 		else if( mcType == 4 || mcType == 5)p_dPhiEleMET_ZG->Fill(fabs(dPhiLepMET), weight);
 		p_nJet->Fill(nJet, weight);
 		p_nBJet->Fill(nBJet, weight);
-
+		// when >= 2 bJets, tt events
 		if(nBJet >= 1){
 			p_PhoEt_TT->Fill(phoEt,  weight);
 			p_MET_TT->Fill(sigMET,  weight);
@@ -300,7 +307,7 @@ void analysis_VGBkg(){
 		}
 
 		for(unsigned ii(0);  ii < 500; ii++)toy_dPhiEleMET[ii]->Fill(fabs(dPhiLepMET), weight_toy[ii]); 
-
+		// JES and JER are stored in ntuple
 		jesup_MET->Fill(sigMETJESup, weight);
 		jesup_Mt->Fill(sigMTJESup, weight);
 		jesup_HT->Fill(HTJESup, weight);
@@ -354,6 +361,7 @@ void analysis_VGBkg(){
 		syserror += pow((normup_PhoEt->GetBinContent(ibin)-p_PhoEt->GetBinContent(ibin)),2);
 		syserror += pow((isrup_PhoEt->GetBinContent(ibin)-p_PhoEt->GetBinContent(ibin)),2);
 		p_PhoEt->SetBinError(ibin,sqrt(syserror));
+		// quadrature sum of all errors
 	}	
 	for(int ibin(1); ibin < p_LepPt->GetSize(); ibin++){
 		double syserror(0);

@@ -1,17 +1,19 @@
 #include "../../include/analysis_commoncode.h"
-
+int RunYear = 2016;
 void pred_rareBkg(){
 
 	SetSignalConfig();
+	//binning Bin(NBIN, METbin1, METbin2, METbin3, HTbin1, HTbin2, HTbin3, PHOETbin, PHOETBin2);
 	binning Bin(NBIN, METbin1, METbin2, HTbin1, HTbin2, PHOETbin);
 	setTDRStyle();
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+  	gSystem->Load("../../lib/libAnaClasses.so");
 	esfScaleFactor  objectESF;
 
-  int channelType = ichannel; // eg = 1; mg =2;
+  	int channelType = ichannel; // eg = 1; mg =2;
 	//*********** histo list **********************//
 	std::ostringstream outputname;
+	outputname << "/uscms_data/d3/tmishra/Output/";
 	switch(anatype){
 		case 0: outputname << "controlTree_";break;
 		case 1: outputname << "bkgTree_";break;	
@@ -37,24 +39,26 @@ void pred_rareBkg(){
 	TH1D *p_PU = new TH1D("p_PU","",100,0,100);
 	TH1D *p_nJet = new TH1D("p_nJet","p_nJet",10,0,10);
 
-	TH1D *h_rare_norm;
-	TH1D *h_rare_jesUp;
-	TH1D *h_rare_jesDown;
-	TH1D *h_rare_jerUp;
-	TH1D *h_rare_jerDown;
-	TH1D *h_rare_esfUp;
-	TH1D *h_rare_syserr_jes;
-	TH1D *h_rare_syserr_jer;
-	TH1D *h_rare_syserr_esf;
-	TH1D *h_rare_syserr_scale;
-	TH1D *h_rare_syserr_eleshape;
-	TH1D *h_rare_syserr_jetshape;
-	TH1D *h_rare_syserr_qcdshape;
-	TH1D *h_rare_syserr_xs;
-	TH1D *h_rare_syserr_lumi;
-	TH1D *h_rare_syserr_isr;
+	TH1D *h_rare_norm = 0;
+	TH1D *h_rare_control = 0;
+	TH1D *h_rare_jesUp = 0;
+	TH1D *h_rare_jesDown = 0;
+	TH1D *h_rare_jerUp = 0;
+	TH1D *h_rare_jerDown = 0;
+	TH1D *h_rare_esfUp = 0;
+	TH1D *h_rare_syserr_jes = 0;
+	TH1D *h_rare_syserr_jer = 0;
+	TH1D *h_rare_syserr_esf = 0;
+	TH1D *h_rare_syserr_scale = 0;
+	TH1D *h_rare_syserr_eleshape = 0;
+	TH1D *h_rare_syserr_jetshape = 0;
+	TH1D *h_rare_syserr_qcdshape = 0;
+	TH1D *h_rare_syserr_xs = 0;
+	TH1D *h_rare_syserr_lumi = 0;
+	TH1D *h_rare_syserr_isr = 0;
 	if(channelType==1){
 		h_rare_norm            = new TH1D("eg_rare_norm","eventcount",NBIN,0,NBIN);
+		h_rare_control         = new TH1D("eg_rare_control","eventcount",NBIN,0,NBIN);
 		h_rare_jesUp           = new TH1D("eg_rare_jesUp","eventcount",NBIN,0,NBIN);
 		h_rare_jesDown         = new TH1D("eg_rare_jesDown","eventcount",NBIN,0,NBIN);
 		h_rare_jerUp           = new TH1D("eg_rare_jerUp","eventcount",NBIN,0,NBIN);
@@ -73,6 +77,7 @@ void pred_rareBkg(){
 	} 
 	else if(channelType==2){
 		h_rare_norm            = new TH1D("mg_rare_norm","eventcount",NBIN,0,NBIN);
+		h_rare_control         = new TH1D("mg_rare_control","eventcount",NBIN,0,NBIN);
 		h_rare_jesUp           = new TH1D("mg_rare_jesUp","eventcount",NBIN,0,NBIN);
 		h_rare_jesDown         = new TH1D("mg_rare_jesDown","eventcount",NBIN,0,NBIN);
 		h_rare_jerUp           = new TH1D("mg_rare_jerUp","eventcount",NBIN,0,NBIN);
@@ -123,6 +128,7 @@ void pred_rareBkg(){
 	if(channelType == 1)chainname << "egTree";
 	else if(channelType == 2)chainname << "mgTree";
   TChain *mctree = new TChain(chainname.str().c_str(), chainname.str().c_str());
+
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_TTG_VetoEle.root");
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WWG_VetoEle.root");
   mctree->Add("/uscms_data/d3/mengleis/FullStatusOct/resTree_VGamma_WZG_VetoEle.root");
@@ -248,7 +254,8 @@ void pred_rareBkg(){
 			scalefactorup = scalefactor + s_error; 
 		}
 
-		double XS_weight = 35.87*1000*crosssection/ntotalevent;
+		float XS_weight = 35.87*1000*crosssection/ntotalevent;
+		//double XS_weight = getEvtWeight(RunYear,crosssection,ntotalevent);
 		double weight = PUweight*XS_weight*scalefactor;
 		double weight_scaleup = PUweight*XS_weight*scalefactorup;
 		/** cut flow *****/
@@ -313,6 +320,7 @@ void pred_rareBkg(){
 				SigBinIndex = Bin.findSignalBin(sigMET, HT, phoEt);
 				if( SigBinIndex >= 0){ 
 				  h_rare_norm->Fill( SigBinIndex, weight);
+				  h_rare_control->Fill( SigBinIndex);
 				  h_rare_esfUp->Fill( SigBinIndex, weight_scaleup);
 				}
 
@@ -414,9 +422,10 @@ void pred_rareBkg(){
 		p_dPhiEleMET->SetBinError(ibin,sqrt(syserror));
 	}	
 	
+	//h_rare_norm->Sumw2();
 	for(int contbin(1); contbin <=NBIN; contbin++){
 		float nominalsig = h_rare_norm->GetBinContent(contbin); 
-		std::cout << " bin " << contbin << " rare " << nominalsig << " error " << h_rare_norm->GetBinError(contbin) << std::endl;
+		std::cout << " bin " << contbin << " rare " << nominalsig << " error " << h_rare_norm->GetBinError(contbin) << " rel " << h_rare_norm->GetBinError(contbin)/h_rare_norm->GetBinContent(contbin) << " control " << sqrt(h_rare_control->GetBinContent(contbin))/h_rare_control->GetBinContent(contbin) << std::endl;
 		float jesuperror = fabs(h_rare_jesUp->GetBinContent(contbin)- nominalsig);
 		float jesdoerror = fabs(h_rare_jesDown->GetBinContent(contbin)- nominalsig);
 		float jeruperror = fabs(h_rare_jerUp->GetBinContent(contbin)- nominalsig);

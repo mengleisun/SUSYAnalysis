@@ -30,20 +30,19 @@
 
 void analysis_mgTriggerMC(){//main  
 
-	gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
+	gSystem->Load("../../lib/libAnaClasses.so");
 
-	char outputname[100] = "/uscms_data/d3/mengleis/plot_MuonTrigger_DY.root";
 	ofstream logfile;
-	logfile.open("/uscms_data/d3/mengleis/plot_MuonTrigger_DY.log"); 
+	logfile.open("/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_DY.log"); 
 
 	logfile << "analysis_mgTrigger()" << std::endl;
 
 	RunType datatype(MC); 
 
 	TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/user/msun/MCSummer16/DYJetsToLL_M-50_NLO.root");
+	es->Add("/eos/uscms/store/user/msun/copied/DYJetsToLL_M-50_NLO.root");
 	
-	TFile *outputfile = TFile::Open(outputname,"RECREATE");
+	TFile *outputfile = TFile::Open("/eos/uscms/store/user/tmishra/Trigger/plot_MuonTrigger_DY.root","RECREATE");
 	outputfile->cd();
 
 	TTree *mgtree = new TTree("mgTree","mgTree");
@@ -197,5 +196,3 @@ void analysis_mgTriggerMC(){//main
 
 outputfile->Write();
 }
-
-

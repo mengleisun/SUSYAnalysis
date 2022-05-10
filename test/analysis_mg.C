@@ -1,3 +1,4 @@
+// g++ `root-config --cflags` ../lib/libAnaClasses.so analysis_mg.C -o analysis_mg.exe `oot-config --libs`
 #include<string>
 #include<iostream>
 #include<fstream>
@@ -25,39 +26,34 @@
 #include "../include/analysis_photon.h"
 #include "../include/analysis_muon.h"
 #include "../include/analysis_ele.h"
+#include "../include/analysis_jet.h"
 #include "../include/analysis_mcData.h"
 #include "../include/analysis_tools.h"
-#include "../include/analysis_jet.h"
 
-void analysis_mg(){//main  
+void analysis_mg(int RunYear, const char *Era){//main
 
-  gSystem->Load("/uscms/home/mengleis/work/SUSY2016/SUSYAnalysis/lib/libAnaClasses.so");
-
-  //char outputname[100] = "/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto_onelep.root";
-  char outputname[100] = "/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.root";
   ofstream logfile;
-  //logfile.open("/uscms_data/d3/mengleis/FullStatusOct/resTree_mgsignal_MuonEG_FullEcal_EleVeto.log"); 
-  logfile.open("/uscms_data/d3/mengleis/Combination/resTree_mgsignal_MuonEG-test.log"); 
+  logfile.open(Form("/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_mgsignal_MuonEG_%d%s.log",RunYear,Era),ios::trunc);
 
   logfile << "analysis_mg()" << std::endl;
   logfile << "miniIso; one lepton for fakephoton background" << std::endl;
-	
-  RunType datatype(MuonEG2016);
+  RunType datatype;
+  if(RunYear==2016) datatype = MuonEG2016;
+  if(RunYear==2017) datatype = MuonEG2017;
+  if(RunYear==2018) datatype = MuonEG2018;
 	bool  isMC(false);
-	if(datatype == MC || datatype == MCDoubleEG || datatype == MCMuonEG||  datatype == MCSingleElectron || datatype == MCSingleMuon||  datatype == MCDoubleMuon || datatype == MCMET)isMC=true;
+	if(datatype == MC || datatype == MCDoubleEG2016 || datatype == MCMuonEG2016||  datatype == MCSingleElectron2016 || datatype == MCSingleMuon2016||  datatype == MCDoubleMuon2016 || datatype == MCMET2016)isMC=true;
   TChain* es = new TChain("ggNtuplizer/EventTree");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_MuonEG_FebReminiAOD_BCD.root");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_MuonEG_FebReminiAOD_EFG.root");
-	es->Add("root://cmseos.fnal.gov//store/group/lpcsusystealth/ggNtuple_leppho/FebReminiAOD/private_MuonEG_FebReminiAOD_H.root");
+	es->Add(Form("/eos/uscms/store/user/tmishra/InputFilesDATA/MuonEG/MuonEG_%d%s.root",RunYear,Era));
 
   const unsigned nEvts = es->GetEntries(); 
   logfile << "Total event: " << nEvts << std::endl;
   std::cout << "Total event: " << nEvts << std::endl;
-  logfile << "Output file: " << outputname << std::endl;
+  logfile << "Output file: " << "/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_mgsignal_MuonEG_"<<RunYear<<Era<<".root" << std::endl;
 
 	int nTotal(0),npassHLT(0), npassPho(0), npassLep(0), npassdR(0), npassZ(0), npassMETFilter(0);
 
-  TFile *outputfile = TFile::Open(outputname,"RECREATE");
+  TFile *outputfile = TFile::Open(Form("/eos/uscms/store/user/tmishra/eg_mg_treesData/resTree_mgsignal_MuonEG_%d%s.root",RunYear,Era),"RECREATE");
   outputfile->cd();
 
 	TH1D *p_METFilter = new TH1D("p_METFilter","",12,-2,10);	
@@ -782,6 +778,17 @@ void analysis_mg(){//main
 		}
  
 	}//loop on  events
+cout<< sigtree->GetEntries()<<endl;
+cout<< proxytree->GetEntries()<<endl;
+cout<< jettree->GetEntries()<<endl;
+cout<< fakeLeptree->GetEntries()<<endl;
+cout<< hadrontree->GetEntries()<<endl;
+logfile << "sigTree events: " << sigtree->GetEntries() <<"; "<<100*sigtree->GetEntries()/nEvts<<"\%"<<std::endl;
+logfile << "proxytree events: " << proxytree->GetEntries() <<"; "<<100*proxytree->GetEntries()/nEvts<<"\%"<<std::endl;
+logfile << "jettree events: " << jettree->GetEntries() <<"; "<<100*jettree->GetEntries()/nEvts<<"\%"<<std::endl;
+logfile << "fakeLeptree events: " << fakeLeptree->GetEntries() <<"; "<<100*fakeLeptree->GetEntries()/nEvts<<"\%"<<std::endl;
+logfile << "hadrontree events: " << hadrontree->GetEntries() <<"; "<<100*hadrontree->GetEntries()/nEvts<<"\%"<<std::endl;
+
 
 p_eventcount->Fill("Total",nTotal);
 p_eventcount->Fill("passHLT",npassHLT);
@@ -795,4 +802,10 @@ outputfile->Write();
 logfile.close();
 }
 
-
+int main(int argc, char** argv)
+{
+    if(argc < 3)
+      cout << "You have to provide two arguments!!\n";
+    analysis_mg(atoi(argv[1]),argv[2]);
+    return 0;
+}
